@@ -217,12 +217,12 @@ CWGL_API void cwgl_bindFramebuffer(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_Fra
 CWGL_API void cwgl_deleteFramebuffer(cwgl_ctx_t* ctx, cwgl_Framebuffer_t* framebuffer);
 CWGL_API cwgl_Framebuffer_t* cwgl_createFramebuffer(cwgl_ctx_t* ctx);
 // 4.4.3 Renderbuffer Objects
-CWGL_API void cwgl_bindRenderbuffer(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_Renferbuffer_t* renderbuffer);
+CWGL_API void cwgl_bindRenderbuffer(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_Renderbuffer_t* renderbuffer);
 CWGL_API void cwgl_deleteRenderbuffer(cwgl_ctx_t* ctx, cwgl_Renderbuffer_t* renderbuffer);
 CWGL_API cwgl_Renderbuffer_t* cwgl_createRenderbuffer(cwgl_ctx_t* ctx);
 CWGL_API void cwgl_renderbufferStorage(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_enum_t internalformat, uint32_t width, uint32_t height);
 CWGL_API void cwgl_framebufferRenderbuffer(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_enum_t attachment, cwgl_enum_t renderbuffertarget, cwgl_Renderbuffer_t* renderbuffer);
-CWGL_API void cwgl_framebufferTexture2D(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_enum_t attachment, cwgl_enum_t textarget, cwgl_Texuture_t* texture, int32_t level);
+CWGL_API void cwgl_framebufferTexture2D(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_enum_t attachment, cwgl_enum_t textarget, cwgl_Texture_t* texture, int32_t level);
 // 4.4.5 Framebuffer Completeness
 CWGL_API cwgl_enum_t cwgl_checkFramebufferStatus(cwgl_ctx_t* ctx, cwgl_enum_t target);
 
