@@ -285,7 +285,7 @@ cwgl_getActiveAttrib(cwgl_ctx_t* ctx, cwgl_Program_t* program,
                      int32_t index, int32_t* out_size, 
                      int32_t* type, cwgl_string_t** name){
     // FIXME: Implement this
-    return CWGL_QR_INSUFFICIENT_BUFFER;
+    return CWGL_QR_UNIMPLEMENTED;
 }
 CWGL_API int32_t 
 cwgl_getAttribLocation(cwgl_ctx_t* ctx, cwgl_Program_t* program, 
@@ -340,7 +340,7 @@ cwgl_getActiveUniform(cwgl_ctx_t* ctx, cwgl_Program_t* program,
                       int32_t index, int32_t* out_size, int32_t* type, 
                       cwgl_string_t** name){
     // FIXME: Implement this
-    return CWGL_QR_INSUFFICIENT_BUFFER;
+    return CWGL_QR_UNIMPLEMENTED;
 }
 
 CWGL_API void 

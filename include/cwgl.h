@@ -27,6 +27,7 @@ enum cwgl_query_result_e {
     CWGL_QR_SUCCESS = 0,
     CWGL_QR_GLERROR = 1,
     CWGL_QR_INSUFFICIENT_BUFFER = 2,
+    CWGL_QR_UNIMPLEMENTED = 3,
 
     /* Type queries */
     CWGL_QR_TYPE_BOOL = 0x10,
@@ -53,7 +54,11 @@ enum cwgl_query_result_e {
 };
 typedef enum cwgl_query_result_e cwgl_query_result_t;
 
-enum cwgl_enum_e;
+enum cwgl_enum_e{
+#ifdef CWGL_DECL_ENUMS
+#endif
+    CWGL_ENUM_DUMMY = 0x7fffffff
+};
 typedef enum cwgl_enum_e cwgl_enum_t;
 
 /* Heap Objects */
@@ -120,7 +125,7 @@ CWGL_API void cwgl_bufferSubData(cwgl_ctx_t* ctx, cwgl_enum_t target, uint32_t o
 // 2.10 Vertex shaders
 // 2.10.1 Loading and Creating Shader Source
 CWGL_API cwgl_Shader_t* cwgl_createShader(cwgl_ctx_t* ctx, cwgl_enum_t type);
-CWGL_API void cwgl_shaderSource(cwgl_ctx_t* ctx, const char* source);
+CWGL_API void cwgl_shaderSource(cwgl_ctx_t* ctx, cwgl_Shader_t* shader, const char* source, size_t sourcelen);
 CWGL_API void cwgl_compileShader(cwgl_ctx_t* ctx, cwgl_Shader_t* shader);
 CWGL_API void cwgl_deleteShader(cwgl_ctx_t* ctx, cwgl_Shader_t* shader);
 // 2.10.3 Program Objects
