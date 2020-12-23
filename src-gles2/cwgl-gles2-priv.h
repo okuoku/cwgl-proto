@@ -22,6 +22,18 @@ struct cwgl_UniformLocation_s {
     int name;
 };
 
+struct cwgl_Texture_s {
+    int name;
+};
+
+struct cwgl_Renderbuffer_s {
+    int name;
+};
+
+struct cwgl_Framebuffer_s {
+    int name;
+};
+
 /* Buffer allocation */
 #include <stdlib.h>
 

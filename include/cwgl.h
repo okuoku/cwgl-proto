@@ -159,7 +159,7 @@ CWGL_API void cwgl_depthRange(cwgl_ctx_t* ctx, float zNear, float zFar);
 CWGL_API void cwgl_viewport(cwgl_ctx_t* ctx, int32_t x, int32_t y, int32_t width, int32_t height);
 
 // 3.4 Line Segments
-CWGL_API void cwgl_linewidth(cwgl_ctx_t* ctx, float width);
+CWGL_API void cwgl_lineWidth(cwgl_ctx_t* ctx, float width);
 // 3.5 Polygons
 CWGL_API void cwgl_frontFace(cwgl_ctx_t* ctx, cwgl_enum_t mode);
 CWGL_API void cwgl_cullFace(cwgl_ctx_t* ctx, cwgl_enum_t mode);
@@ -194,7 +194,7 @@ CWGL_API void cwgl_scissor(cwgl_ctx_t* ctx, int32_t x, int32_t y, uint32_t width
 CWGL_API void cwgl_sampleCoverage(cwgl_ctx_t* ctx, float value, int invert);
 // 4.1.4 Stencil Test
 CWGL_API void cwgl_stencilFunc(cwgl_ctx_t* ctx, cwgl_enum_t func, int32_t ref, uint32_t mask);
-CWGL_API void cwgl_stencilFuncSemarate(cwgl_ctx_t* ctx, cwgl_enum_t face, cwgl_enum_t func, int32_t ref, uint32_t mask);
+CWGL_API void cwgl_stencilFuncSeparate(cwgl_ctx_t* ctx, cwgl_enum_t face, cwgl_enum_t func, int32_t ref, uint32_t mask);
 CWGL_API void cwgl_stencilOp(cwgl_ctx_t* ctx, cwgl_enum_t fail, cwgl_enum_t zfail, cwgl_enum_t zpass);
 CWGL_API void cwgl_stencilOpSeparate(cwgl_ctx_t* ctx, cwgl_enum_t face, cwgl_enum_t fail, cwgl_enum_t zfail, cwgl_enum_t zpass);
 // 4.1.5 Depth Buffer Test
