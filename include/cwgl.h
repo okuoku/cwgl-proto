@@ -238,6 +238,8 @@ CWGL_API void cwgl_flush(cwgl_ctx_t* ctx);
 CWGL_API void cwgl_hint(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_enum_t mode);
 
 // 6.1.1 Simple Queries
+CWGL_API cwgl_query_result_t cwgl_getParameter_b1(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x);
+CWGL_API cwgl_query_result_t cwgl_getParameter_b4(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x, int32_t* y, int32_t* z, int32_t* w);
 CWGL_API cwgl_query_result_t cwgl_getParameter_i1(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x);
 CWGL_API cwgl_query_result_t cwgl_getParameter_i2(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x, int32_t* y);
 CWGL_API cwgl_query_result_t cwgl_getParameter_i4(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x, int32_t* y, int32_t* z, int32_t* w);
