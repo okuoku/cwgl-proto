@@ -35,6 +35,12 @@ function GL(w, h, attr){
         drawingBufferHeight: h,
 
         // 5.14.2 Getting information about the context
+        // FIXME: Fill actual attributes
+        /* WebGLHandlesContextLoss */
+        getContextAttributes: function(){
+            return {};
+        },
+
         // 5.14.3 Setting and getting state
         clearColor: function(red, green, blue, alpha){
             CWGL.cwgl_clearColor(ctx, red, green, blue, alpha);
