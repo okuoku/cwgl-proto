@@ -33,7 +33,7 @@ function genlibdef() {
         cwgl_Shader_release: [_, [cwglShader]],
         cwgl_Program_release: [_, [cwglProgram]],
         cwgl_Texture_release: [_, [cwglTexture]],
-        //cwgl_Framebuffer_release: [_, [cwglFramebuffer]], // FIXME:
+        cwgl_Framebuffer_release: [_, [cwglFramebuffer]],
         cwgl_Renderbuffer_release: [_, [cwglRenderbuffer]],
         cwgl_UniformLocation_release: [_, [cwglUniformLocation]],
 
