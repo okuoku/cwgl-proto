@@ -1,19 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(cwgl C)
 
-include_directories(include angle/include)
-
-add_library(cwgl STATIC
-    src-gles2/cwgl-gles2-s2.c
-    src-gles2/cwgl-gles2-s3.c
-    src-gles2/cwgl-gles2-s4.c
-    src-gles2/cwgl-gles2-s5.c
-    src-gles2/cwgl-gles2-s6obj.c
-    src-gles2/cwgl-gles2-s6shader.c
-    )
-
-# TestApp
-
+# SDL2
 if(WIN32)
     # Vulkan SDK and SDL2
     file(TO_CMAKE_PATH $ENV{VK_SDK_PATH} vksdk)
@@ -35,6 +23,21 @@ endif()
 message(STATUS "sdl2_inc = ${sdl2_inc}")
 message(STATUS "emu = ${emu_lib}")
 message(STATUS "es2cap_lib = ${es2cap_lib}")
+
+
+include_directories(include angle/include ${sdl2_inc})
+
+add_library(cwgl STATIC
+    src-gles2/cwgl-gles2-ctxsdl2.c
+    src-gles2/cwgl-gles2-s2.c
+    src-gles2/cwgl-gles2-s3.c
+    src-gles2/cwgl-gles2-s4.c
+    src-gles2/cwgl-gles2-s5.c
+    src-gles2/cwgl-gles2-s6obj.c
+    src-gles2/cwgl-gles2-s6shader.c
+    )
+
+# TestApp
 
 if(sdl2_inc AND emu_lib AND es2cap_lib)
     add_executable(testapp

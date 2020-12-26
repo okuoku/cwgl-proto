@@ -14,7 +14,9 @@ extern "C" {
 /* Context, Platform */
 struct cwgl_ctx_s;
 typedef struct cwgl_ctx_s cwgl_ctx_t;
-CWGL_API cwgl_ctx_t* cwgl_ctx_create(int32_t height, int32_t width, int32_t reserved, int32_t flags);
+CWGL_API int cwgl_init(void); /* Tentative */
+CWGL_API void cwgl_terminate(void); /* Tentative */
+CWGL_API cwgl_ctx_t* cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved, int32_t flags);
 CWGL_API void cwgl_ctx_release(cwgl_ctx_t* ctx);
 #define CWGL_CTX_FLAG_HAS_ALPHA (1<<0)
 #define CWGL_CTX_FLAG_HAS_DEPTH (1<<1)
@@ -22,6 +24,8 @@ CWGL_API void cwgl_ctx_release(cwgl_ctx_t* ctx);
 #define CWGL_CTX_FLAG_ANTIALIAS (1<<3)
 #define CWGL_CTX_FLAG_PREMULTIPLIEDALPHA  (1<<4)
 #define CWGL_CTX_FLAG_PRESERVEDRAWINGBUFFER (1<<5)
+CWGL_API void cwgl_ctx_frame_begin(void);
+CWGL_API void cwgl_ctx_frame_end(void);
 
 enum cwgl_query_result_e {
     CWGL_QR_SUCCESS = 0,
