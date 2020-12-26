@@ -42,8 +42,115 @@ function GL(w, h, attr){
         },
 
         // 5.14.3 Setting and getting state
+        activeTexture: function(texture){
+            CWGL.cwgl_activeTexture(ctx, texture);
+        },
+        blendColor: function(red, green, blue, alpha){
+            CWGL.cwgl_blendColor(ctx, red, green, blue, alpha);
+        },
+        blendEquation: function(mode){
+            CWGL.cwgl_blendEquation(ctx, mode);
+        },
+        blendEquationSeparate: function(modeRGB, modeAlpha){
+            CWGL.cwgl_blendEquationSeparate(ctx, modeRGB, modeAlpha);
+        },
+        blendFunc: function(sfactor, dfactor){
+            CWGL.cwgl_blendFunc(ctx, sfactor, dfactor);
+        },
+        blendFuncSeparate: function(srcRGB, dstRGB, srcAlpha, dstAlpha){
+            CWGL.cwgl_blendFuncSeparate(ctx, srcRGB, dstRGB, srcAlpha, dstAlpha);
+        },
         clearColor: function(red, green, blue, alpha){
             CWGL.cwgl_clearColor(ctx, red, green, blue, alpha);
+        },
+        clearDepth: function(depth){
+            CWGL.cwgl_clearDepth(ctx, depth);
+        },
+        clearStencil: function(s){
+            CWGL.cwgl_clearStencil(ctx, s);
+        },
+        colorMask: function(red, green, blue, alpha){
+            const r = red ? 1 : 0;
+            const g = green ? 1 : 0;
+            const b = blue ? 1 : 0;
+            const a = alpha ? 1 : 0;
+            CWGL.cwgl_colorMask(ctx, r, g, b, a);
+        },
+        cullFace: function(mode){
+            CWGL.cwgl_cullFace(ctx, mode);
+        },
+        depthFunc: function(func){
+            CWGL.cwgl_depthFunc(ctx, func);
+        },
+        depthMask: function(flag){
+            const f = flag ? 1 : 0;
+            CWGL.cwgl_depthMask(ctx, f);
+        },
+        depthRange: function(zNear, zFar){
+            CWGL.cwgl_depthRange(ctx, zNear, zFar);
+        },
+        disable: function(cap){
+            CWGL.cwgl_disable(ctx, cap);
+        },
+        enable: function(cap){
+            CWGL.cwgl_enable(ctx, cap);
+        },
+        frontFace: function(mode){
+            CWGL.cwgl_frontFace(ctx, mode);
+        },
+        getParameter: function(pname){
+            // FIXME:
+        },
+        /* WebGLHandlesContextLoss */
+        getError: function(){
+            // FIXME: Merge local error
+            const server_error = CWGL.cwgl_getError(ctx);
+
+            return server_error;
+        },
+        hint: function(target, mode){
+            CWGL.cwgl_hint(ctx, target, mode);
+        },
+        /* WebGLHandlesContextLoss */
+        isEnabled: function(cap){
+            const b = CWGL.cwgl_isEnabled(ctx, cap);
+            if(b == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
+        lineWidth: function(width){
+            CWGL.cwgl_lineWidth(ctx, width);
+        },
+        pixelStorei: function(pname, param){
+            // FIXME: Handle FLIP_Y
+            CWGL.cwgl_pixelStorei(ctx, pname, param);
+        },
+        polygonOffset: function(factor, units){
+            CWGL.cwgl_polygonOffset(ctx, factor, units);
+        },
+        sampleCoverage: function(value, invert){
+            const i = invert ? 1 : 0;
+            CWGL.cwgl_sampleCoverage(ctx, value, i);
+        },
+        stencilFunc: function(func, ref, mask){
+            CWGL.cwgl_stencilFunc(ctx, func, ref, mask);
+        },
+        stencilFuncSeparate: function(face, func, ref, mask){
+            CWGL.cwgl_stencilFuncSeparate(ctx, face, func, ref, mask);
+        },
+        stencilMask: function(mask){
+            CWGL.cwgl_stencilMask(ctx, mask);
+        },
+        stencilMaskSeparate: function(face, mask){
+            CWGL.cwgl_stencilMaskSeparate(ctx, face, mask);
+        },
+        stencilOp: function(fail, zfail, zpass){
+            CWGL.cwgl_stencilOp(ctx, fail, zfail, zpass);
+        },
+        stencilOpSeparate: function(face, fail, zfail, zpass){
+            CWGL.cwgl_stencilOpSeparate(ctx, face, fail, zefail, zpass);
         },
         // 5.14.4 Viewing and clipping
         viewport: function(x, y, width, height){
