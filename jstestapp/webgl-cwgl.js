@@ -2,6 +2,7 @@ const CWGL = require("./cwgl.js");
 const Ref = require("ref-napi");
 const Weak = require("weak-napi");
 const E = require("./glenums.js");
+const getenumtype = require("./getenumtype.js");
 
 function wrapPointer(obj, relcb){
     const pval = Ref.address(obj);
