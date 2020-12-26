@@ -90,7 +90,25 @@ function genlibdef() {
         cwgl_bindAttribLocation: [_, [C, cwglProgram, Int, "string"]],
         cwgl_getUniformLocation: [cwglUniformLocation, [C, cwglProgram, "string"]],
         // cwgl_getActiveUniform: FIXME:
-        // FIXME: UNIFORMS
+        cwgl_uniform1f: [_, [C, cwglUniformLocation, Float]],
+        cwgl_uniform1i: [_, [C, cwglUniformLocation, Int]],
+        cwgl_uniform2f: [_, [C, cwglUniformLocation, Float, Float]],
+        cwgl_uniform2i: [_, [C, cwglUniformLocation, Int, Int]],
+        cwgl_uniform3f: [_, [C, cwglUniformLocation, Float, Float, Float]],
+        cwgl_uniform3i: [_, [C, cwglUniformLocation, Int, Int, Int]],
+        cwgl_uniform4f: [_, [C, cwglUniformLocation, Float, Float, Float, Float]],
+        cwgl_uniform4i: [_, [C, cwglUniformLocation, Int, Int, Int, Int]],
+        cwgl_uniform1fv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform1iv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform2fv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform2iv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform3fv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform3iv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform4fv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniform4iv: [_, [C, cwglUniformLocation, "void *", Int]],
+        cwgl_uniformMatrix2fv: [_, [C, cwglUniformLocation, Int, "void *", Int]],
+        cwgl_uniformMatrix3fv: [_, [C, cwglUniformLocation, Int, "void *", Int]],
+        cwgl_uniformMatrix4fv: [_, [C, cwglUniformLocation, Int, "void *", Int]],
 
         // 2.10.5 Shader Execution
         cwgl_validateProgram: [_, [C, cwglProgram]],
