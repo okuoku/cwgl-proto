@@ -6,7 +6,17 @@ extern "C" {
 #endif
 // }
 
+#ifdef CWGL_DLL
+/* Win32 DLL */
+#ifdef CWGL_SHARED_BUILD
+#define CWGL_API __declspec(dllexport)
+#else
+#define CWGL_API __declspec(dllimport)
+#endif
+#else
+/* Generic static-library */
 #define CWGL_API
+#endif
 
 #include <stdint.h>
 #include <stddef.h>

@@ -42,6 +42,11 @@ add_library(cwgl SHARED
     src-gles2/cwgl-gles2-s6shader.c
     )
 
+target_compile_definitions(cwgl
+    PUBLIC
+    CWGL_DLL
+    CWGL_SHARED_BUILD)
+
 target_link_directories(cwgl
     PUBLIC
     ${emu_lib} ${sdl2_lib})
@@ -67,3 +72,8 @@ add_executable(testapp
     testapp.c)
 target_link_libraries(testapp cwgl)
 
+if(WIN32)
+    target_compile_definitions(testapp
+        PUBLIC
+        CWGL_DLL)
+endif()
