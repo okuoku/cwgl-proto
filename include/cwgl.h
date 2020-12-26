@@ -163,9 +163,17 @@ CWGL_API void cwgl_uniform3f(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
 CWGL_API void cwgl_uniform3i(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t x, int32_t y, int32_t z);
 CWGL_API void cwgl_uniform4f(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, float x, float y, float z, float w);
 CWGL_API void cwgl_uniform4i(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t x, int32_t y, int32_t z, int32_t w);
-CWGL_API void cwgl_uniformMatrix2fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value);
-CWGL_API void cwgl_uniformMatrix3fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value);
-CWGL_API void cwgl_uniformMatrix4fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value);
+CWGL_API void cwgl_uniform1fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, float* values, size_t count);
+CWGL_API void cwgl_uniform1iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t* values, size_t count);
+CWGL_API void cwgl_uniform2fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, float* values, size_t count);
+CWGL_API void cwgl_uniform2iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t* values, size_t count);
+CWGL_API void cwgl_uniform3fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, float* values, size_t count);
+CWGL_API void cwgl_uniform3iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t* values, size_t count);
+CWGL_API void cwgl_uniform4fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, float* values, size_t count);
+CWGL_API void cwgl_uniform4iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int32_t* values, size_t count);
+CWGL_API void cwgl_uniformMatrix2fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value, size_t count);
+CWGL_API void cwgl_uniformMatrix3fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value, size_t count);
+CWGL_API void cwgl_uniformMatrix4fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, int transpose, float* value, size_t count);
 // 2.10.5 Shader Execution
 CWGL_API void cwgl_validateProgram(cwgl_ctx_t* ctx, cwgl_Program_t* program);
 // 2.12.1 Controlling the Viewport

@@ -422,22 +422,115 @@ cwgl_uniform4i(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location,
 }
 
 CWGL_API void 
+cwgl_uniform1fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                float* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform1fv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform1iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                int32_t* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform1iv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform2fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                float* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform2fv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform2iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                int32_t* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform2iv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform3fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                float* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform3fv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform3iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                int32_t* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform3iv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform4fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                float* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform4fv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
+cwgl_uniform4iv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
+                int32_t* values, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniform4iv(loc, count, values);
+    CTX_LEAVE(ctx);
+}
+
+CWGL_API void 
 cwgl_uniformMatrix2fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
-                      int transpose, float* value){
-    // FIXME: Wrong
+                      int transpose, float* value, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniformMatrix2fv(loc, count, transpose, value);
+    CTX_LEAVE(ctx);
 }
 
 CWGL_API void 
 cwgl_uniformMatrix3fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
-                      int transpose, float* value){
-    // FIXME: Wrong
+                      int transpose, float* value, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniformMatrix3fv(loc, count, transpose, value);
+    CTX_LEAVE(ctx);
 }
 
 CWGL_API void 
 cwgl_uniformMatrix4fv(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* location, 
-                      int transpose, float* value){
-    // FIXME: Wrong
+                      int transpose, float* value, size_t count){
+    GLint loc;
+    CTX_ENTER(ctx);
+    loc = CTX_GETNAME(ctx, location);
+    glUniformMatrix4fv(loc, count, transpose, value);
+    CTX_LEAVE(ctx);
 }
+
 
 // 2.10.5 Shader Execution
 CWGL_API void 
