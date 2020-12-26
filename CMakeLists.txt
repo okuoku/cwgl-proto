@@ -25,9 +25,9 @@ message(STATUS "emu = ${emu_lib}")
 message(STATUS "es2cap_lib = ${es2cap_lib}")
 
 
-include_directories(include angle/include ${sdl2_inc})
+include_directories(include angle/include)
 
-add_library(cwgl STATIC
+add_library(cwgl SHARED
     src-gles2/cwgl-gles2-ctxsdl2.c
     src-gles2/cwgl-gles2-s2.c
     src-gles2/cwgl-gles2-s3.c
@@ -36,6 +36,16 @@ add_library(cwgl STATIC
     src-gles2/cwgl-gles2-s6obj.c
     src-gles2/cwgl-gles2-s6shader.c
     )
+
+target_link_directories(cwgl
+    PUBLIC
+    ${emu_lib} ${sdl2_lib})
+
+target_link_libraries(cwgl SDL2 libGLESv2)
+
+target_include_directories(cwgl
+    PUBLIC
+    ${sdl2_inc})
 
 # TestApp
 
@@ -51,12 +61,6 @@ if(sdl2_inc AND emu_lib AND es2cap_lib)
         ${emu_lib}/libGLESv2.dll
         ${CMAKE_CURRENT_BINARY_DIR}
         )
-    target_link_libraries(testapp SDL2 libGLESv2 cwgl)
-    target_link_directories(testapp
-        PUBLIC
-        ${emu_lib} ${sdl2_lib})
-    target_include_directories(testapp 
-        PUBLIC
-        ${sdl2_inc})
+    target_link_libraries(testapp cwgl)
 endif()
 
