@@ -206,7 +206,7 @@ cwgl_createFramebuffer(cwgl_ctx_t* ctx){
 }
 
 CWGL_API void
-cwgl_Framebuffer_relase(cwgl_ctx_t* ctx, cwgl_Framebuffer_t* framebuffer){
+cwgl_Framebuffer_release(cwgl_ctx_t* ctx, cwgl_Framebuffer_t* framebuffer){
     CTX_ENTER(ctx);
     if(framebuffer){
         CTX_FREE(ctx, Framebuffer, framebuffer);
