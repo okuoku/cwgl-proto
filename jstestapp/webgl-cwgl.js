@@ -30,6 +30,10 @@ function GL(w, h, attr){
         },
 
         // 5.14.1 Attributes
+        /// canvas (set by client)
+        drawingBufferWidth: w,
+        drawingBufferHeight: h,
+
         // 5.14.2 Getting information about the context
         // 5.14.3 Setting and getting state
         clearColor: function(red, green, blue, alpha){
