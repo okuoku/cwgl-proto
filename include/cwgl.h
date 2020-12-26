@@ -133,7 +133,7 @@ CWGL_API void cwgl_drawElements(cwgl_ctx_t* ctx, cwgl_enum_t mode, uint32_t coun
 // 2.9 Buffer Objects
 CWGL_API void cwgl_bindBuffer(cwgl_ctx_t* ctx, cwgl_enum_t target, cwgl_Buffer_t* buffer);
 CWGL_API void cwgl_deleteBuffer(cwgl_ctx_t* ctx, cwgl_Buffer_t* buffer);
-CWGL_API cwgl_Buffer_t* createBuffer(cwgl_ctx_t* ctx);
+CWGL_API cwgl_Buffer_t* cwgl_createBuffer(cwgl_ctx_t* ctx);
 CWGL_API void cwgl_bufferData(cwgl_ctx_t* ctx, cwgl_enum_t target, uint32_t size, void* data, cwgl_enum_t usage);
 CWGL_API void cwgl_bufferSubData(cwgl_ctx_t* ctx, cwgl_enum_t target, uint32_t offset, void* data, size_t buflen);
 // 2.10 Vertex shaders

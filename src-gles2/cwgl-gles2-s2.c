@@ -112,7 +112,7 @@ cwgl_deleteBuffer(cwgl_ctx_t* ctx, cwgl_Buffer_t* buffer){
 }
 
 CWGL_API cwgl_Buffer_t* 
-createBuffer(cwgl_ctx_t* ctx){
+cwgl_createBuffer(cwgl_ctx_t* ctx){
     GLuint name = 0;
     cwgl_Buffer_t* b;
     CTX_ENTER(ctx);
