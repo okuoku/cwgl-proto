@@ -1,24 +1,29 @@
-const CWGL = require("./cwgl.js");
+const GL = require("./webgl-cwgl.js");
 
 const w = 1280;
 const h = 720;
-CWGL.cwgl_init();
-const ctx = CWGL.cwgl_ctx_create(w,h,0,0);
+const gl = GL(w,h,{});
 
-console.log(ctx);
-
+let Tex = null;
 let frame = 0;
-for(;;){
+
+function step() {
     let step = frame % 256;
     let col = 1.0 * step / 256.0;
 
-    CWGL.cwgl_ctx_frame_begin(ctx);
+    gl.cwgl_frame_begin();
 
-    CWGL.cwgl_viewport(ctx, 0, 0, w, h);
-    CWGL.cwgl_clearColor(ctx, col, col, col, 1.0);
-    CWGL.cwgl_clear(ctx, 0x4000 /* COLOR BUFFER BIT */);
+    gl.viewport(0,0,w,h);
+    gl.clearColor(col,col,col,1.0);
+    gl.clear(0x4000 /* COLOR BUFFER BIT */);
 
-    CWGL.cwgl_ctx_frame_end(ctx);
+    gl.cwgl_frame_end();
     frame++;
 }
 
+function mainloop(){
+    step();
+    setImmediate(mainloop);
+}
+
+mainloop();

@@ -29,13 +29,15 @@ function genlibdef() {
 
         /* Heap Objects */
         // FIXME: String
-        cwgl_Buffer_release: [_, [cwglBuffer]],
-        cwgl_Shader_release: [_, [cwglShader]],
-        cwgl_Program_release: [_, [cwglProgram]],
-        cwgl_Texture_release: [_, [cwglTexture]],
-        cwgl_Framebuffer_release: [_, [cwglFramebuffer]],
-        cwgl_Renderbuffer_release: [_, [cwglRenderbuffer]],
-        cwgl_UniformLocation_release: [_, [cwglUniformLocation]],
+        // FIXME: We use size_t for release functions so V8 can collect
+        //        pointer object itself
+        cwgl_Buffer_release: [_, [C, "size_t" /* cwglBuffer */ ]],
+        cwgl_Shader_release: [_, [C, "size_t" /* cwglShader */]],
+        cwgl_Program_release: [_, [C, "size_t" /* cwglProgram */]],
+        cwgl_Texture_release: [_, [C, "size_t" /* cwglTexture */]],
+        cwgl_Framebuffer_release: [_, [C, "size_t" /* cwglFramebuffer */]],
+        cwgl_Renderbuffer_release: [_, [C, "size_t" /* cwglRenderbuffer */]],
+        cwgl_UniformLocation_release: [_, [C, "size_t" /* cwglUniformLocation */]],
 
         /* Context, Platform */
         // cwgl_getContextAttributes: [Int, [C]],
