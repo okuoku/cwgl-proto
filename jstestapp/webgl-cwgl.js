@@ -558,8 +558,8 @@ function GL(w, h, attr){
             wrapPointer(ptr, programfree);
             return ptr;
         },
-        createShader: function(){
-            let ptr = CWGL.cwgl_createShader(ctx);
+        createShader: function(type){
+            let ptr = CWGL.cwgl_createShader(ctx, type);
             wrapPointer(ptr, shaderfree);
             return ptr;
         },
