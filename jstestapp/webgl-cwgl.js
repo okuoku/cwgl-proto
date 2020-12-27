@@ -25,6 +25,12 @@ function GL(w, h, attr){
     function renderbufferfree(ptr){
         CWGL.cwgl_Renderbuffer_release(ctx, ptr);
     }
+    function shaderfree(ptr){
+        CWGL.cwgl_Shader_release(ctx, ptr);
+    }
+    function programfree(ptr){
+        CWGL.cwgl_Program_release(ctx, ptr);
+    }
     wrapPointer(ctx, freectx);
     return {
         /* mgmt */
@@ -483,9 +489,164 @@ function GL(w, h, attr){
         },
         texSubImage2D: function(target, level, xoffset, yoffset, width, height, format, type, pixels){
             // FIXME: No TexImageSource variant
-            CWGL.cwgl_texSubImage2D(ctx, target, leve, xoffset, yoffset, width, height, format, type, pixels, pixels.byteLength);
+            CWGL.cwgl_texSubImage2D(ctx, target, level, xoffset, yoffset, width, height, format, type, pixels, pixels.byteLength);
         },
         // 5.14.9 Programs and Shaders
+        attachShader: function(program, shader){
+            CWGL.cwgl_attachShader(ctx, program, shader);
+        },
+        bindAttribLocation: function(program, index, name){
+            CWGL.cwgl_bindAttribLocation(ctx, program, index, name);
+        },
+        compileShader: function(shader){
+            CWGL.cwgl_compileShader(ctx, shader);
+        },
+        createProgram: function(){
+            let ptr = CWGL.cwgl_createProgram(ctx);
+            wrapPointer(ptr, programfree);
+            return ptr;
+        },
+        createShader: function(){
+            let ptr = CWGL.cwgl_createShader(ctx);
+            wrapPointer(ptr, shaderfree);
+            return ptr;
+        },
+        deleteProgram: function(program){
+            CWGL.cwgl_deleteProgram(ctx, program);
+        },
+        deleteShader: function(shader){
+            CWGL.cwgl_deleteShader(ctx, shader);
+        },
+        detachShader: function(program, shader){
+            CWGL.cwgl_detachShader(ctx, program, shader);
+        },
+        // getAttachedShaders
+        getProgramParameter: function(program, pname){
+            const type = getenumtype(pname);
+            if(type == "int"){
+                let i0 = new Int32Array(1);
+                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program, pname, i0);
+                if(r == 0){
+                    return i0[0];
+                }else{
+                    return null;
+                }
+            }else if(type == "bool"){
+                let i0 = new Int32Array(1);
+                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program, pname, i0);
+                if(r == 0){
+                    return false;
+                }else{
+                    return true;
+                }
+            }else{
+                throw "unimpl";
+            }
+        },
+        getProgramInfoLog: function(program){
+            const s = CWGL.cwgl_getProgramInfoLog(ctx, program, p0);
+            const ssiz = CWGL.cwgl_string_size(ctx, s);
+            const buf = new Uint8Array(ssiz);
+            const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
+            CWGL.cwgl_string_release(ctx, s);
+            if(r == 0){
+                return Ref.readCString(buf, 0);
+            }else{
+                return null;
+            }
+        },
+        getShaderParameter: function(shader, pname){
+            const type = getenumtype(pname);
+            if(type == "int"){
+                let i0 = new Int32Array(1);
+                const r = CWGL.cwgl_getShaderParameter_i1(ctx, program, pname, i0);
+                if(r == 0){
+                    return i0[0];
+                }else{
+                    return null;
+                }
+            }else if(type == "bool"){
+                let i0 = new Int32Array(1);
+                const r = CWGL.cwgl_getShaderParameter_i1(ctx, program, pname, i0);
+                if(r == 0){
+                    return false;
+                }else{
+                    return true;
+                }
+            }else{
+                throw "unimpl";
+            }
+        },
+        getShaderPrecisionFormat: function(shadertype, precisiontype){
+            let rangeMin = new Int32Array(1);
+            let rangeMax = new Int32Array(1);
+            let precision = new Int32Array(1);
+            const r = CWGL.cwgl_getShaderPrecisionFormat(ctx, shadertype, precisiontype, rangeMin, rangeMax, precision);
+            if(r == 0){
+                return {
+                    rangeMin: rangeMin[0],
+                    rangeMax: rangeMax[0],
+                    precision: precision[0]
+                };
+            }else{
+                return null;
+            }
+        },
+        getShaderInfoLog: function(shader){
+            const s = CWGL.cwgl_getShaderInfoLog(ctx, shader, p0);
+            const ssiz = CWGL.cwgl_string_size(ctx, s);
+            const buf = new Uint8Array(ssiz);
+            const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
+            CWGL.cwgl_string_release(ctx, s);
+            if(r == 0){
+                return Ref.readCString(buf, 0);
+            }else{
+                return null;
+            }
+        },
+        getShaderSource: function(shader){
+            const s = CWGL.cwgl_getShaderSource(ctx, shader, p0);
+            const ssiz = CWGL.cwgl_string_size(ctx, s);
+            const buf = new Uint8Array(ssiz);
+            const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
+            CWGL.cwgl_string_release(ctx, s);
+            if(r == 0){
+                return Ref.readCString(buf, 0);
+            }else{
+                return null;
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        isProgram: function(program){
+            const r = CWGL.cwgl_isProgram(ctx, program);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        isShader: function(shader){
+            const r = CWGL.cwgl_isShader(ctx, shader);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
+        linkProgram: function(program){
+            CWGL.cwgl_linkProgram(ctx, program);
+        },
+        shaderSource: function(shader, source){
+            // FIXME: Is it okay to use length here..?
+            CWGL.cwgl_shaderSource(ctx, shader, source, source.length);
+        },
+        useProgram: function(program){
+            CWGL.cwgl_useProgram(ctx, program);
+        },
+        validateProgram: function(program){
+            CWGL.cwgl_validateProgram(ctx, program);
+        },
         // 5.14.10 Uniforms and attributes
         // 5.14.11 Writing to the drawing buffer
         clear: function(mask){
