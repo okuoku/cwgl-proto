@@ -600,9 +600,9 @@ function GL(w, h, attr){
                 let i0 = new Int32Array(1);
                 const r = CWGL.cwgl_getProgramParameter_i1(ctx, program, pname, i0);
                 if(r == 0){
-                    return false;
+                    return i0[0] == 0 ? false : true;
                 }else{
-                    return true;
+                    return null;
                 }
             }else{
                 throw "unimpl";
@@ -634,9 +634,9 @@ function GL(w, h, attr){
                 let i0 = new Int32Array(1);
                 const r = CWGL.cwgl_getShaderParameter_i1(ctx, shader, pname, i0);
                 if(r == 0){
-                    return false;
+                    return i0[0] == 0 ? false : true;
                 }else{
-                    return true;
+                    return null;
                 }
             }else{
                 throw "unimpl";
@@ -782,25 +782,25 @@ function GL(w, h, attr){
             CWGL.cwgl_uniform1fv(ctx, loc, v, v.length);
         },
         uniform2fv: function(loc, v){
-            CWGL.cwgl_uniform2fv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform2fv(ctx, loc, v, v.length / 2);
         },
         uniform3fv: function(loc, v){
-            CWGL.cwgl_uniform3fv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform3fv(ctx, loc, v, v.length / 3);
         },
         uniform4fv: function(loc, v){
-            CWGL.cwgl_uniform4fv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform4fv(ctx, loc, v, v.length / 4);
         },
         uniform1iv: function(loc, v){
             CWGL.cwgl_uniform1iv(ctx, loc, v, v.length);
         },
         uniform2iv: function(loc, v){
-            CWGL.cwgl_uniform2iv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform2iv(ctx, loc, v, v.length / 2);
         },
         uniform3iv: function(loc, v){
-            CWGL.cwgl_uniform3iv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform3iv(ctx, loc, v, v.length / 3);
         },
         uniform4iv: function(loc, v){
-            CWGL.cwgl_uniform4iv(ctx, loc, v, v.length);
+            CWGL.cwgl_uniform4iv(ctx, loc, v, v.length / 4);
         },
         uniformMatrix2fv: function(loc, transpose, v){
             const t = transpose ? 1 : 0;
@@ -827,7 +827,7 @@ function GL(w, h, attr){
             CWGL.cwgl_vertexAttrib3f(ctx, index, x, y, z);
         },
         vertexAttrib4f: function(index, x, y, z, w){
-            CWGL.cwgl_vertexAttrib4f(ctx, index, x, y, z);
+            CWGL.cwgl_vertexAttrib4f(ctx, index, x, y, z, w);
         },
         vertexAttrib1fv: function(index, v){
             CWGL.cwgl_vertexAttrib1f(ctx, index, v[0]);
