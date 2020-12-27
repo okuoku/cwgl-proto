@@ -283,6 +283,9 @@ function GL(w, h, attr){
             CWGL.cwgl_stencilOpSeparate(ctx, face, fail, zefail, zpass);
         },
         // 5.14.4 Viewing and clipping
+        scissor: function(x, y, width, height){
+            CWGL.cwgl_scissor(ctx, x, y, width, height);
+        },
         viewport: function(x, y, width, height){
             CWGL.cwgl_viewport(ctx, x, y, width, height);
         },
