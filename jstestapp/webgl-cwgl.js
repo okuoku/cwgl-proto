@@ -149,7 +149,7 @@ function GL(w, h, attr){
             CWGL.cwgl_frontFace(ctx, mode);
         },
         getParameter: function(pname){
-            console.log("getParam", pname);
+            //console.log("getParam", pname);
             switch(pname){
                 case E.COMPRESSED_TEXTURE_FORMATS:
                     return [];
@@ -797,15 +797,18 @@ function GL(w, h, attr){
         },
         uniformMatrix2fv: function(loc, transpose, v){
             const t = transpose ? 1 : 0;
-            CWGL.cwgl_uniformMatrix2fv(ctx, loc, t, v, v.length);
+            const cnt = v.length / 4;
+            CWGL.cwgl_uniformMatrix2fv(ctx, loc, t, v, cnt);
         },
         uniformMatrix3fv: function(loc, transpose, v){
             const t = transpose ? 1 : 0;
-            CWGL.cwgl_uniformMatrix3fv(ctx, loc, t, v, v.length);
+            const cnt = v.length / 9;
+            CWGL.cwgl_uniformMatrix3fv(ctx, loc, t, v, cnt);
         },
         uniformMatrix4fv: function(loc, transpose, v){
             const t = transpose ? 1 : 0;
-            CWGL.cwgl_uniformMatrix4fv(ctx, loc, t, v, v.length);
+            const cnt = v.length / 16;
+            CWGL.cwgl_uniformMatrix4fv(ctx, loc, t, v, cnt);
         },
         vertexAttrib1f: function(index, x){
             CWGL.cwgl_vertexAttrib1f(ctx, index, x);
