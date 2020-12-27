@@ -263,7 +263,7 @@ function genlibdef() {
         cwgl_getShaderInfoLog: [_, [C, cwglShader]],
         // cwgl_getShaderInfoLog
         // cwgl_getShaderSource
-        // cwgl_getShaderPrecisionFormat
+        cwgl_getShaderPrecisionFormat: [Int, [C, Int, Int, "void *", "void *", "void *"]],
         // cwgl_getVertexAttrib_i1
         // cwgl_getVertexAttrib_f4
         // cwgl_getVertexAttrib_Buffer

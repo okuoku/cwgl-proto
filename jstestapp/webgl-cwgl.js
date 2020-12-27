@@ -54,6 +54,9 @@ function GL(w, h, attr){
     function texfree(ptr){
         CWGL.cwgl_Texture_release(ctx, ptr);
     }
+    function framebufferfree(ptr){
+        CWGL.cwgl_Framebuffer_release(ctx, ptr);
+    }
     function bufferfree(ptr){
         CWGL.cwgl_Buffer_release(ctx, ptr);
     }
@@ -347,7 +350,7 @@ function GL(w, h, attr){
             CWGL.cwgl_stencilOp(ctx, fail, zfail, zpass);
         },
         stencilOpSeparate: function(face, fail, zfail, zpass){
-            CWGL.cwgl_stencilOpSeparate(ctx, face, fail, zefail, zpass);
+            CWGL.cwgl_stencilOpSeparate(ctx, face, fail, zfail, zpass);
         },
         // 5.14.4 Viewing and clipping
         scissor: function(x, y, width, height){
@@ -486,7 +489,7 @@ function GL(w, h, attr){
             }
         },
         renderbufferStorage: function(target, internalformat, width, height){
-            CWGL.cwgl_renderbufferStorage(target, internalformat, width, height);
+            CWGL.cwgl_renderbufferStorage(ctx, target, internalformat, width, height);
         },
         // 5.14.8 Texture objects
         bindTexture: function(target, texture){
@@ -537,7 +540,11 @@ function GL(w, h, attr){
         },
         texImage2D: function(target, level, internalformat, width, height, border, format, type, pixels){
             // FIXME: No TexImageSource variant
-            CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, pixels, pixels.byteLength);
+            if(pixels == null){
+                CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, Ref.NULL, 0);
+            }else{
+                CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, pixels, pixels.byteLength);
+            }
         },
         texParameterf: function(target, pname, param){
             CWGL.cwgl_texParameterf(ctx, target, pname, param);
