@@ -46,6 +46,10 @@ function GL(w, h, attr){
                 throw "huh?";
         }
     }
+    let currentProgram = null;
+    function trackbinding_program(program){
+        currentProgram = program;
+    }
 
     function texfree(ptr){
         CWGL.cwgl_Texture_release(ctx, ptr);
@@ -157,6 +161,8 @@ function GL(w, h, attr){
                     return currentArrayBuffer;
                 case E.ELEMENT_ARRAY_BUFFER_BINDING:
                     return currentElementArrayBuffer;
+                case E.CURRENT_PROGRAM:
+                    return currentProgram;
                 default:
                     break;
             }
@@ -596,7 +602,7 @@ function GL(w, h, attr){
             }
         },
         getProgramInfoLog: function(program){
-            const s = CWGL.cwgl_getProgramInfoLog(ctx, program, p0);
+            const s = CWGL.cwgl_getProgramInfoLog(ctx, program);
             const ssiz = CWGL.cwgl_string_size(ctx, s);
             const buf = new Uint8Array(ssiz);
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
@@ -611,7 +617,7 @@ function GL(w, h, attr){
             const type = getenumtype(pname);
             if(type == "int"){
                 let i0 = new Int32Array(1);
-                const r = CWGL.cwgl_getShaderParameter_i1(ctx, program, pname, i0);
+                const r = CWGL.cwgl_getShaderParameter_i1(ctx, shader, pname, i0);
                 if(r == 0){
                     return i0[0];
                 }else{
@@ -619,7 +625,7 @@ function GL(w, h, attr){
                 }
             }else if(type == "bool"){
                 let i0 = new Int32Array(1);
-                const r = CWGL.cwgl_getShaderParameter_i1(ctx, program, pname, i0);
+                const r = CWGL.cwgl_getShaderParameter_i1(ctx, shader, pname, i0);
                 if(r == 0){
                     return false;
                 }else{
@@ -645,7 +651,7 @@ function GL(w, h, attr){
             }
         },
         getShaderInfoLog: function(shader){
-            const s = CWGL.cwgl_getShaderInfoLog(ctx, shader, p0);
+            const s = CWGL.cwgl_getShaderInfoLog(ctx, shader);
             const ssiz = CWGL.cwgl_string_size(ctx, s);
             const buf = new Uint8Array(ssiz);
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
@@ -657,7 +663,7 @@ function GL(w, h, attr){
             }
         },
         getShaderSource: function(shader){
-            const s = CWGL.cwgl_getShaderSource(ctx, shader, p0);
+            const s = CWGL.cwgl_getShaderSource(ctx, shader);
             const ssiz = CWGL.cwgl_string_size(ctx, s);
             const buf = new Uint8Array(ssiz);
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
@@ -694,6 +700,7 @@ function GL(w, h, attr){
             CWGL.cwgl_shaderSource(ctx, shader, source, source.length);
         },
         useProgram: function(program){
+            trackbinding_program(program);
             CWGL.cwgl_useProgram(ctx, program);
         },
         validateProgram: function(program){
@@ -707,7 +714,27 @@ function GL(w, h, attr){
             CWGL.cwgl_enableVertexAttribArray(ctx, index);
         },
         // getActiveAttrib
-        // getActiveUniform
+        getActiveUniform: function(program, index){
+            let p0 = Ref.alloc(Ref.refType(Ref.types.void));
+            let i0 = new Int32Array(1);
+            let i1 = new Int32Array(1);
+            const r = CWGL.cwgl_getActiveUniform(ctx, program, index, i0, i1, p0);
+            if(r == 0){
+                const s = p0.deref();
+                const ssiz = CWGL.cwgl_string_size(ctx, s);
+                const buf = new Uint8Array(ssiz);
+                CWGL.cwgl_string_read(ctx, s, buf, ssiz);
+                CWGL.cwgl_string_release(ctx, s);
+                const name = Ref.readCString(buf, 0);
+                return {
+                    size: i0[0],
+                    type: i1[0],
+                    name: name
+                };
+            }else{
+                return null;
+            }
+        },
         getAttribLocation: function(program, name){
             return CWGL.cwgl_getAttribLocation(ctx, program, name);
         },
@@ -769,13 +796,16 @@ function GL(w, h, attr){
             CWGL.cwgl_uniform4iv(ctx, loc, v, v.length);
         },
         uniformMatrix2fv: function(loc, transpose, v){
-            CWGL.cwgl_uniformMatrix2fv(ctx, loc, v, v.length);
+            const t = transpose ? 1 : 0;
+            CWGL.cwgl_uniformMatrix2fv(ctx, loc, t, v, v.length);
         },
         uniformMatrix3fv: function(loc, transpose, v){
-            CWGL.cwgl_uniformMatrix3fv(ctx, loc, v, v.length);
+            const t = transpose ? 1 : 0;
+            CWGL.cwgl_uniformMatrix3fv(ctx, loc, t, v, v.length);
         },
         uniformMatrix4fv: function(loc, transpose, v){
-            CWGL.cwgl_uniformMatrix4fv(ctx, loc, v, v.length);
+            const t = transpose ? 1 : 0;
+            CWGL.cwgl_uniformMatrix4fv(ctx, loc, t, v, v.length);
         },
         vertexAttrib1f: function(index, x){
             CWGL.cwgl_vertexAttrib1f(ctx, index, x);

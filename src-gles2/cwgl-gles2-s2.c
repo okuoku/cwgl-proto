@@ -267,8 +267,12 @@ CWGL_API void
 cwgl_useProgram(cwgl_ctx_t* ctx, cwgl_Program_t* program){
     GLuint name;
     CTX_ENTER(ctx);
-    name = CTX_GETNAME(ctx, program);
-    glUseProgram(name);
+    if(program){
+        name = CTX_GETNAME(ctx, program);
+        glUseProgram(name);
+    }else{
+        glUseProgram(0);
+    }
     CTX_LEAVE(ctx);
 }
 
@@ -341,10 +345,24 @@ cwgl_UniformLocation_release(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* u){
 
 CWGL_API cwgl_query_result_t 
 cwgl_getActiveUniform(cwgl_ctx_t* ctx, cwgl_Program_t* program, 
-                      int32_t index, int32_t* out_size, int32_t* type, 
+                      int32_t index, int32_t* out_size, int32_t* out_type, 
                       cwgl_string_t** name){
-    // FIXME: Implement this
-    return CWGL_QR_UNIMPLEMENTED;
+    cwgl_string_t* r;
+    char namebuf[320]; // In WebGL, it should be <256
+    GLuint namep;
+    GLint size = 0;
+    GLenum type = 0;
+    GLsizei namelength = 0;
+    CTX_ENTER(ctx);
+    namep = CTX_GETNAME(ctx, program);
+    glGetActiveUniform(namep, index, sizeof(namebuf), &namelength,
+                       &size, &type, namebuf);
+    r = cwgl_priv_alloc_string(ctx, namebuf, namelength);
+    *out_size = size;
+    *out_type = type;
+    *name = r;
+    CTX_LEAVE(ctx);
+    return CWGL_QR_SUCCESS;
 }
 
 CWGL_API void 

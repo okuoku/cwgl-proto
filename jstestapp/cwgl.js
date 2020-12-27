@@ -93,7 +93,7 @@ function genlibdef() {
         cwgl_getAttribLocation: [Int, [C, cwglProgram, "string"]],
         cwgl_bindAttribLocation: [_, [C, cwglProgram, Int, "string"]],
         cwgl_getUniformLocation: [cwglUniformLocation, [C, cwglProgram, "string"]],
-        // cwgl_getActiveUniform: FIXME:
+        cwgl_getActiveUniform: [Int, [C, cwglProgram, Int, "void *", "void *", "void *"]],
         cwgl_uniform1f: [_, [C, cwglUniformLocation, Float]],
         cwgl_uniform1i: [_, [C, cwglUniformLocation, Int]],
         cwgl_uniform2f: [_, [C, cwglUniformLocation, Float, Float]],
@@ -236,6 +236,7 @@ function genlibdef() {
         cwgl_getParameter_Framebuffer: [Int, [C, Int, "void *"]],
         cwgl_getParameter_Renderbuffer: [Int, [C, Int, "void *"]],
         cwgl_getParameter_Texture: [Int, [C, Int, "void *"]],
+        cwgl_isEnabled: [Int, [C, Int]],
         // 6.1.3 Enumerated Queries
         cwgl_getTexParameter_i1: [Int, [C, Int, Int, "void *"]],
         cwgl_getBufferParameter_i1: [Int, [C, Int, Int, "void *"]],
@@ -256,9 +257,10 @@ function genlibdef() {
         cwgl_isShader: [Int, [C, cwglShader]],
         cwgl_getShaderParameter_i1: [Int, [C, cwglShader, Int, "void *"]],
         cwgl_isProgram: [Int, [C, cwglProgram]],
-        cwgl_getProgramParameter_i1: [Int, [C, cwglProgram, Int, "void *"]]
+        cwgl_getProgramParameter_i1: [Int, [C, cwglProgram, Int, "void *"]],
         // cwgl_getAttachedShaders FIXME: Implement readback
-        // cwgl_getProgramInfoLog
+        cwgl_getProgramInfoLog: [_, [C, cwglProgram]],
+        cwgl_getShaderInfoLog: [_, [C, cwglShader]],
         // cwgl_getShaderInfoLog
         // cwgl_getShaderSource
         // cwgl_getShaderPrecisionFormat

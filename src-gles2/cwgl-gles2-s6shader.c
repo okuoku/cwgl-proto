@@ -66,14 +66,44 @@ cwgl_getAttachedShaders(cwgl_ctx_t* ctx, cwgl_Program_t* program,
 
 CWGL_API cwgl_string_t* 
 cwgl_getProgramInfoLog(cwgl_ctx_t* ctx, cwgl_Program_t* program){
-    // FIXME: Implement this
-    return NULL;
+    cwgl_string_t* r;
+    GLuint name;
+    GLsizei len = 0;
+    GLsizei maxlen = (512*1024);
+    void* buf = malloc(maxlen);
+    CTX_ENTER(ctx);
+    name = CTX_GETNAME(ctx, program);
+    glGetProgramInfoLog(name, maxlen, &len, buf);
+    CTX_LEAVE(ctx);
+    if(len == 0){
+        free(buf);
+        return NULL;
+    }else{
+        r = cwgl_priv_alloc_string(ctx, buf, len + 1);
+        free(buf);
+        return r;
+    }
 }
 
 CWGL_API cwgl_string_t* 
 cwgl_getShaderInfoLog(cwgl_ctx_t* ctx, cwgl_Shader_t* shader){
-    // FIXME: Implement this
-    return NULL;
+    cwgl_string_t* r;
+    GLuint name;
+    GLsizei len = 0;
+    GLsizei maxlen = (512*1024);
+    void* buf = malloc(maxlen);
+    CTX_ENTER(ctx);
+    name = CTX_GETNAME(ctx, shader);
+    glGetShaderInfoLog(name, maxlen, &len, buf);
+    CTX_LEAVE(ctx);
+    if(len == 0){
+        free(buf);
+        return NULL;
+    }else{
+        r = cwgl_priv_alloc_string(ctx, buf, len + 1);
+        free(buf);
+        return r;
+    }
 }
 
 CWGL_API cwgl_string_t* 
