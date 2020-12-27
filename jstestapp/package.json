@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "fake-indexeddb": "^3.1.2",
     "ffi-napi": "^3.1.0",
     "weak-napi": "^2.0.2"
   }
