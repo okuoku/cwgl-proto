@@ -92,6 +92,7 @@ const my_canvas = {
         if(type == "webgl"){
             g_ctx = GL(1280,720,attr);
             g_ctx.canvas = this;
+            g_ctx.cwgl_frame_begin();
             return g_ctx;
         }
         return null;
@@ -141,9 +142,10 @@ wnd.navigator.getGamepads = function(){
 wnd.requestAnimationFrame = function(cb){
     console.log("rAF");
     process.nextTick(async function(){
-        await sleep(100);
+        g_ctx.cwgl_frame_end();
         const now = performance.now();
         console.log("RAF", now);
+        g_ctx.cwgl_frame_begin();
         cb(now);
     });
     return 99.99;
@@ -154,9 +156,11 @@ wnd.indexedDB = indexedDB;
 function fake_settimeout(cb, ms){
     console.log("sTO", cb, ms);
     process.nextTick(async function(){
+        g_ctx.cwgl_frame_end();
         await sleep(ms);
         const now = performance.now();
         console.log("FRAME", now);
+        g_ctx.cwgl_frame_begin();
         cb();
     });
 }
