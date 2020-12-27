@@ -760,6 +760,18 @@ function GL(w, h, attr){
         clear: function(mask){
             CWGL.cwgl_clear(ctx, mask);
         },
+        drawArrays: function(mode, first, count){
+            CWGL.cwgl_drawArrays(ctx, mode, first, count);
+        },
+        drawElements: function(mode, count, type, offset){
+            CWGL.cwgl_drawElements(ctx, mode, count, type, offset);
+        },
+        finish: function(){
+            CWGL.cwgl_finish(ctx);
+        },
+        flush: function(){
+            CWGL.cwgl_flush(ctx);
+        },
         // 5.14.12 Reading back pixels
         // 5.14.13 Detecting context lost events
         // 5.14.14 Detecting and enabling extensions
