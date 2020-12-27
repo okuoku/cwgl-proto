@@ -125,11 +125,11 @@ cwgl_createBuffer(cwgl_ctx_t* ctx){
 
 CWGL_API void
 cwgl_Buffer_release(cwgl_ctx_t* ctx, cwgl_Buffer_t* buffer){
-    CTX_ENTER(ctx);
+    //CTX_ENTER(ctx);
     if(buffer){
         CTX_FREE(ctx, Buffer, buffer);
     }
-    CTX_LEAVE(ctx);
+    //CTX_LEAVE(ctx);
 }
 
 CWGL_API void 
@@ -167,11 +167,11 @@ cwgl_createShader(cwgl_ctx_t* ctx, cwgl_enum_t type){
 
 CWGL_API void
 cwgl_Shader_release(cwgl_ctx_t* ctx, cwgl_Shader_t* shader){
-    CTX_ENTER(ctx);
+    //CTX_ENTER(ctx);
     if(shader){
         CTX_FREE(ctx, Shader, shader);
     }
-    CTX_LEAVE(ctx);
+    //CTX_LEAVE(ctx);
 }
 
 CWGL_API void 
@@ -222,9 +222,11 @@ cwgl_createProgram(cwgl_ctx_t* ctx){
 
 CWGL_API void
 cwgl_Program_release(cwgl_ctx_t* ctx, cwgl_Program_t* program){
-    CTX_ENTER(ctx);
-    CTX_FREE(ctx, Program, program);
-    CTX_LEAVE(ctx);
+    //CTX_ENTER(ctx);
+    if(program){
+        CTX_FREE(ctx, Program, program);
+    }
+    //CTX_LEAVE(ctx);
 }
 
 
@@ -330,9 +332,11 @@ cwgl_getUniformLocation(cwgl_ctx_t* ctx, cwgl_Program_t* program,
 
 CWGL_API void
 cwgl_UniformLocation_release(cwgl_ctx_t* ctx, cwgl_UniformLocation_t* u){
-    CTX_ENTER(ctx);
-    CTX_FREE(ctx, UniformLocation, u);
-    CTX_LEAVE(ctx);
+    //CTX_ENTER(ctx);
+    if(u){
+        CTX_FREE(ctx, UniformLocation, u);
+    }
+    //CTX_LEAVE(ctx);
 }
 
 CWGL_API cwgl_query_result_t 

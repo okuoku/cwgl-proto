@@ -170,11 +170,11 @@ cwgl_createTexture(cwgl_ctx_t* ctx){
 
 CWGL_API void
 cwgl_Texture_release(cwgl_ctx_t* ctx, cwgl_Texture_t* texture){
-    CTX_ENTER(ctx);
+    //CTX_ENTER(ctx);
     if(texture){
         CTX_FREE(ctx, Texture, texture);
     }
-    CTX_LEAVE(ctx);
+    //CTX_LEAVE(ctx);
 }
 
 

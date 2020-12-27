@@ -207,11 +207,11 @@ cwgl_createFramebuffer(cwgl_ctx_t* ctx){
 
 CWGL_API void
 cwgl_Framebuffer_release(cwgl_ctx_t* ctx, cwgl_Framebuffer_t* framebuffer){
-    CTX_ENTER(ctx);
+    //CTX_ENTER(ctx);
     if(framebuffer){
         CTX_FREE(ctx, Framebuffer, framebuffer);
     }
-    CTX_LEAVE(ctx);
+    //CTX_LEAVE(ctx);
 }
 
 // 4.4.3 Renderbuffer Objects
@@ -255,11 +255,11 @@ cwgl_createRenderbuffer(cwgl_ctx_t* ctx){
 
 CWGL_API void
 cwgl_Renderbuffer_release(cwgl_ctx_t* ctx, cwgl_Renderbuffer_t* renderbuffer){
-    CTX_ENTER(ctx);
+    //CTX_ENTER(ctx);
     if(renderbuffer){
         CTX_FREE(ctx, Renderbuffer, renderbuffer);
     }
-    CTX_LEAVE(ctx);
+    //CTX_LEAVE(ctx);
 }
 
 CWGL_API void 
