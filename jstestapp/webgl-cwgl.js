@@ -16,6 +16,37 @@ function freectx(ptr){
 
 function GL(w, h, attr){
     const ctx = CWGL.cwgl_ctx_create(w, h, 0, 0);
+
+
+    let currentTexture2D = null;
+    let currentTextureCubeMap = null
+    function trackbinding_texture(target, texture){
+        switch(target){
+            case E.TEXTURE_2D:
+                currentTexture2D = texture;
+                break;
+            case E.TEXTURE_CUBE_MAP:
+                currentTextureCubeMap = texture;
+                break;
+            default:
+                throw "huh?";
+        }
+    }
+    let currentArrayBuffer = null;
+    let currentElementArrayBuffer = null;
+    function trackbinding_buffer(target, buffer){
+        switch(target){
+            case E.ARRAY_BUFFER:
+                currentArrayBUffer = buffer;
+                break;
+            case E.ELEMENT_ARRAY_BUFFER:
+                currentElementArrayBuffer = buffer;
+                break;
+            default:
+                throw "huh?";
+        }
+    }
+
     function texfree(ptr){
         CWGL.cwgl_Texture_release(ctx, ptr);
     }
@@ -114,6 +145,21 @@ function GL(w, h, attr){
             CWGL.cwgl_frontFace(ctx, mode);
         },
         getParameter: function(pname){
+            console.log("getParam", pname);
+            switch(pname){
+                case E.COMPRESSED_TEXTURE_FORMATS:
+                    return [];
+                case E.TEXTURE_BINDING_2D:
+                    return currentTexture2D;
+                case E.TEXTURE_BINDING_CUBE_MAP:
+                    return currentTextureCubeMap;
+                case E.ARRAY_BUFFER_BINDING:
+                    return currentArrayBuffer;
+                case E.ELEMENT_ARRAY_BUFFER_BINDING:
+                    return currentElementArrayBuffer;
+                default:
+                    break;
+            }
             if(pname == E.COMPRESSED_TEXTURE_FORMATS){
                 // FIXME: Implement compressed texture
                 return [];
@@ -306,6 +352,7 @@ function GL(w, h, attr){
         },
         // 5.14.5 Buffer objects
         bindBuffer: function(target, buffer){
+            trackbinding_buffer(target, buffer);
             if(! buffer){
                 CWGL.cwgl_bindBuffer(ctx, target, Ref.NULL);
             }else{
@@ -437,9 +484,11 @@ function GL(w, h, attr){
         },
         // 5.14.8 Texture objects
         bindTexture: function(target, texture){
+            trackbinding_texture(target, texture);
             if(! texture){
                 CWGL.cwgl_bindTexture(ctx, target, Ref.NULL);
             }else{
+                currentTexture = texture;
                 CWGL.cwgl_bindTexture(ctx, target, texture);
             }
         },
