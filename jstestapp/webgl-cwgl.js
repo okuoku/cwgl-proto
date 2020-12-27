@@ -417,11 +417,31 @@ function GL(w, h, attr){
         /* WebGLHandlesContextLoss */
         isRenderbuffer(renderbuffer){
             const r = CWGL.cwgl_isRenderbuffer(ctx, renderbuffer);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
         },
         renderbufferStorage: function(target, internalformat, width, height){
             CWGL.cwgl_renderbufferStorage(target, internalformat, width, height);
         },
         // 5.14.8 Texture objects
+        bindTexture: function(target, texture){
+            if(! texture){
+                CWGL.cwgl_bindTexture(ctx, target, Ref.NULL);
+            }else{
+                CWGL.cwgl_bindTexture(ctx, target, texture);
+            }
+        },
+        // compressedTexImage2D
+        // compressedTexSubImage2D
+        copyTexImage2D: function(target, level, internalformat, x, y, width, height, border){
+            CWGL.cwgl_copyTexImage2D(ctx, target, level, internalformat, x, y, width, height, border);
+        },
+        copyTexSubImage2D: function(target, level, xoffset, yoffset, x, y, width, height){
+            CWGL.cwgl_copyTexSubImage2D(ctx, target, level, xoffset, yoffset, x, y, width, height);
+        },
         createTexture: function(){
             let ptr = CWGL.cwgl_createTexture(ctx);
             wrapPointer(ptr, texfree);
@@ -429,6 +449,41 @@ function GL(w, h, attr){
         },
         deleteTexture: function(tex){
             CWGL.cwgl_deleteTexture(ctx, tex);
+        },
+        generateMipmap: function(target){
+            CWGL.cwgl_generateMipmap(ctx, target);
+        },
+        getTexParameter: function(target, pname){
+            let i0 = new Int32Array(i);
+            const r = CWGL.cwgl_getTexParameter(ctx, target, pname, i0);
+            if(r == 0){
+                return null;
+            }else{
+                return i0[0];
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        isTexture: function(texture){
+            const r = CWGL.cwgl_isTexture(ctx, renderbuffer);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
+        texImage2D: function(target, level, internalformat, width, height, border, format, type, pixels){
+            // FIXME: No TexImageSource variant
+            CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, pixels, pixels.byteLength);
+        },
+        texParameterf: function(target, pname, param){
+            CWGL.cwgl_texParameterf(ctx, target, pname, param);
+        },
+        texParameteri: function(target, pname, param){
+            CWGL.cwgl_texParameteri(ctx, target, pname, param);
+        },
+        texSubImage2D: function(target, level, xoffset, yoffset, width, height, format, type, pixels){
+            // FIXME: No TexImageSource variant
+            CWGL.cwgl_texSubImage2D(ctx, target, leve, xoffset, yoffset, width, height, format, type, pixels, pixels.byteLength);
         },
         // 5.14.9 Programs and Shaders
         // 5.14.10 Uniforms and attributes
