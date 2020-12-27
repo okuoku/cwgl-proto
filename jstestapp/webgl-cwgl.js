@@ -338,6 +338,54 @@ function GL(w, h, attr){
             }
         },
         // 5.14.6 Framebuffer objects
+        bindFramebuffer: function(target, framebuffer){
+            if(! framebuffer){
+                CWGL.cwgl_bindFramebuffer(ctx, target, Ref.NULL);
+            }else{
+                CWGL.cwgl_bindFramebuffer(ctx, target, framebuffer);
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        checkFramebufferStatus: function(target){
+            return CWGL.cwgl_checkFramebufferStatus(ctx, target);
+        },
+        createFramebuffer: function(){
+            let ptr = CWGL.cwgl_createFramebuffer(ctx);
+            wrapPointer(ptr, framebufferfree);
+            return ptr;
+        },
+        deleteFramebuffer: function(buffer){
+            CWGL.cwgl_deleteFramebuffer(ctx, buffer);
+        },
+        framebufferRenderbuffer: function(target, attachment, renderbuffertarget, renderbuffer){
+            CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+        },
+        framebufferTexture2D: function(target, attachment, textarget, texture, level){
+            CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture, level);
+        },
+        getFramebufferAttachmentParameter(target, attachment, pname){
+            const type = getenumtype(pname);
+            if(type == "int"){
+                let i0 = new Int32Array(1);
+                const r = CWGL.cwgl_getFramebufferAttachmentParameter_i1(ctx, target, attachment, pname, i0);
+                if(r == 0){
+                    return i0[0];
+                }else{
+                    return null;
+                }
+            }else{
+                throw "unimpl";
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        isFramebuffer: function(framebuffer){
+            const r = CWGL.cwgl_isFramebuffer(ctx, framebuffer);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
         // 5.14.7 Renderbuffer objects
         // 5.14.8 Texture objects
         createTexture: function(){
