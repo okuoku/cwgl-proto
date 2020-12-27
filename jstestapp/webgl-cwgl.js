@@ -17,6 +17,13 @@ function freectx(ptr){
 function GL(w, h, attr){
     const ctx = CWGL.cwgl_ctx_create(w, h, 0, 0);
 
+    let shadowDepthRenderbuffer = null;
+    let shadowStencilRenderbuffer = null;
+
+    let currentRenderbuffer = null;
+    function trackbinding_Renderbuffer(rb){
+        currentRenderbuffer = rb;
+    }
 
     let currentTexture2D = null;
     let currentTextureCubeMap = null
@@ -426,7 +433,18 @@ function GL(w, h, attr){
             CWGL.cwgl_deleteFramebuffer(ctx, buffer);
         },
         framebufferRenderbuffer: function(target, attachment, renderbuffertarget, renderbuffer){
-            CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+            if(attachment == E.DEPTH_STENCIL_ATTACHMENT){
+                if(renderbuffer != shadowDepthRenderbuffer){
+                    console.log("ORPHAN shadowStencilRenderbuffer...");
+                    // Fallback
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+                }else{
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.DEPTH_ATTACHMENT, renderbuffertarget, renderbuffer);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.STENCIL_ATTACHMENT, renderbuffertarget, shadowStencilRenderbuffer);
+                }
+            }else{
+                CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+            }
         },
         framebufferTexture2D: function(target, attachment, textarget, texture, level){
             CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture, level);
@@ -456,6 +474,7 @@ function GL(w, h, attr){
         },
         // 5.14.7 Renderbuffer objects
         bindRenderbuffer: function(target, renderbuffer){
+            trackbinding_Renderbuffer(renderbuffer);
             if(! renderbuffer){
                 CWGL.cwgl_bindRenderbuffer(ctx, target, Ref.NULL);
             }else{
@@ -468,6 +487,11 @@ function GL(w, h, attr){
             return ptr;
         },
         deleteRenderbuffer: function(renderbuffer){
+            if(renderbuffer == shadowDepthRenderbuffer){
+                CWGL.cwgl_deleteRenderbuffer(shadowStencilRenderbuffer);
+                shadowDepthRenderbuffer = null;
+                shadowStencilRenderbuffer = null;
+            }
             CWGL.cwgl_deleteRenderbuffer(renderbuffer);
         },
         getRenderbufferParameter: function(target, pname){
@@ -489,7 +513,26 @@ function GL(w, h, attr){
             }
         },
         renderbufferStorage: function(target, internalformat, width, height){
-            CWGL.cwgl_renderbufferStorage(ctx, target, internalformat, width, height);
+            if(internalformat == E.DEPTH_STENCIL){
+                let save_Renderbuffer = currentRenderbuffer;
+                // FIXME: check restrictions
+                CWGL.cwgl_renderbufferStorage(ctx, target, E.DEPTH_COMPONENT16, width, height);
+                let shadow = CWGL.cwgl_createRenderbuffer(ctx);
+                wrapPointer(shadow, renderbufferfree);
+                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, shadow);
+                CWGL.cwgl_renderbufferStorage(ctx, target, E.STENCIL_INDEX8, width, height);
+                if(shadowStencilRenderbuffer){
+                    console.log("LEAKED shadowStencil");
+                }
+                if(shadowDepthRenderbuffer){
+                    console.log("LEAKED shadowDepth");
+                }
+                shadowDepthRenderbuffer = save_Renderbuffer;
+                shadowStencilRenderbuffer = shadow;
+                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, save_Renderbuffer);
+            }else{
+                CWGL.cwgl_renderbufferStorage(ctx, target, internalformat, width, height);
+            }
         },
         // 5.14.8 Texture objects
         bindTexture: function(target, texture){
