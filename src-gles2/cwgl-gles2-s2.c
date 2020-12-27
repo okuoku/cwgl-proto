@@ -357,7 +357,7 @@ cwgl_getActiveUniform(cwgl_ctx_t* ctx, cwgl_Program_t* program,
     namep = CTX_GETNAME(ctx, program);
     glGetActiveUniform(namep, index, sizeof(namebuf), &namelength,
                        &size, &type, namebuf);
-    r = cwgl_priv_alloc_string(ctx, namebuf, namelength);
+    r = cwgl_priv_alloc_string(ctx, namebuf, namelength + 1);
     *out_size = size;
     *out_type = type;
     *name = r;
