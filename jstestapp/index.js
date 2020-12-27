@@ -70,6 +70,8 @@ function fake_rEL(typ){
 }
 
 const my_canvas = {
+    clientWidth: 1280,
+    clientHeight: 720,
     style: {
         cursor: "bogus"
     },
@@ -193,6 +195,7 @@ global.my_module = my_module;
 global.my_screen = my_screen;
 global.fake_settimeout = fake_settimeout;
 
+/*
 function boot(){ // Emscripten plain
     const bootstrap = fs.readFileSync("app/example_emscripten_opengl3.js", "utf8");
     let window = global.my_window;
@@ -204,8 +207,8 @@ function boot(){ // Emscripten plain
     let setTimeout = global.fake_settimeout;
     eval(bootstrap);
 }
+*/
 
-/*
 function boot(){ // Unity
     const bootstrap = fs.readFileSync("app2/gltest2.framework.js", "utf8");
     // Unity preload
@@ -260,7 +263,6 @@ function boot(){ // Unity
     let init = global.initfunc;
     init(global.my_module);
 }
-*/
 
 boot();
 
