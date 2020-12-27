@@ -31,6 +31,9 @@ function GL(w, h, attr){
     function programfree(ptr){
         CWGL.cwgl_Program_release(ctx, ptr);
     }
+    function uniformlocationfree(ptr){
+        CWGL.cwgl_UniformLocation_release(ctx, ptr);
+    }
     wrapPointer(ctx, freectx);
     return {
         /* mgmt */
@@ -648,6 +651,111 @@ function GL(w, h, attr){
             CWGL.cwgl_validateProgram(ctx, program);
         },
         // 5.14.10 Uniforms and attributes
+        disableVertexAttribArray: function(index){
+            CWGL.cwgl_disableVertexAttribArray(ctx, index);
+        },
+        enableVertexAttribArray: function(index){
+            CWGL.cwgl_enableVertexAttribArray(ctx, index);
+        },
+        // getActiveAttrib
+        // getActiveUniform
+        getAttribLocation: function(program, name){
+            return CWGL.cwgl_getAttribLocation(ctx, program, name);
+        },
+        // getUniform
+        getUniformLocation: function(program, name){
+            let ptr = CWGL.cwgl_getUniformLocation(ctx, program, name);
+            wrapPointer(ptr, uniformlocationfree);
+            return ptr;
+        },
+        // getVertexAttrib
+        /* WebGLHandlesContextLoss */
+        // getVertexAttribOffset
+        uniform1f: function(loc, x){
+            CWGL.cwgl_uniform1f(ctx, loc, x);
+        },
+        uniform2f: function(loc, x, y){
+            CWGL.cwgl_uniform2f(ctx, loc, x, y);
+        },
+        uniform3f: function(loc, x, y, z){
+            CWGL.cwgl_uniform3f(ctx, loc, x, y, z);
+        },
+        uniform4f: function(loc, x, y, z, w){
+            CWGL.cwgl_uniform4f(ctx, loc, x, y, z, w);
+        },
+        uniform1i: function(loc, x){
+            CWGL.cwgl_uniform1i(ctx, loc, x);
+        },
+        uniform2i: function(loc, x, y){
+            CWGL.cwgl_uniform2i(ctx, loc, x, y);
+        },
+        uniform3i: function(loc, x, y, z){
+            CWGL.cwgl_uniform3i(ctx, loc, x, y, z);
+        },
+        uniform4i: function(loc, x, y, z, w){
+            CWGL.cwgl_uniform4i(ctx, loc, x, y, z, w);
+        },
+        uniform1fv: function(loc, v){
+            CWGL.cwgl_uniform1fv(ctx, loc, v, v.length);
+        },
+        uniform2fv: function(loc, v){
+            CWGL.cwgl_uniform2fv(ctx, loc, v, v.length);
+        },
+        uniform3fv: function(loc, v){
+            CWGL.cwgl_uniform3fv(ctx, loc, v, v.length);
+        },
+        uniform4fv: function(loc, v){
+            CWGL.cwgl_uniform4fv(ctx, loc, v, v.length);
+        },
+        uniform1iv: function(loc, v){
+            CWGL.cwgl_uniform1iv(ctx, loc, v, v.length);
+        },
+        uniform2iv: function(loc, v){
+            CWGL.cwgl_uniform2iv(ctx, loc, v, v.length);
+        },
+        uniform3iv: function(loc, v){
+            CWGL.cwgl_uniform3iv(ctx, loc, v, v.length);
+        },
+        uniform4iv: function(loc, v){
+            CWGL.cwgl_uniform4iv(ctx, loc, v, v.length);
+        },
+        uniformMatrix2fv: function(loc, transpose, v){
+            CWGL.cwgl_uniformMatrix2fv(ctx, loc, v, v.length);
+        },
+        uniformMatrix3fv: function(loc, transpose, v){
+            CWGL.cwgl_uniformMatrix3fv(ctx, loc, v, v.length);
+        },
+        uniformMatrix4fv: function(loc, transpose, v){
+            CWGL.cwgl_uniformMatrix4fv(ctx, loc, v, v.length);
+        },
+        vertexAttrib1f: function(index, x){
+            CWGL.cwgl_vertexAttrib1f(ctx, index, x);
+        },
+        vertexAttrib2f: function(index, x, y){
+            CWGL.cwgl_vertexAttrib2f(ctx, index, x, y);
+        },
+        vertexAttrib3f: function(index, x, y, z){
+            CWGL.cwgl_vertexAttrib3f(ctx, index, x, y, z);
+        },
+        vertexAttrib4f: function(index, x, y, z, w){
+            CWGL.cwgl_vertexAttrib4f(ctx, index, x, y, z);
+        },
+        vertexAttrib1fv: function(index, v){
+            CWGL.cwgl_vertexAttrib1f(ctx, index, v[0]);
+        },
+        vertexAttrib2fv: function(index, v){
+            CWGL.cwgl_vertexAttrib2f(ctx, index, v[0], v[1]);
+        },
+        vertexAttrib3fv: function(index, v){
+            CWGL.cwgl_vertexAttrib3f(ctx, index, v[0], v[1], v[2]);
+        },
+        vertexAttrib4fv: function(index, v){
+            CWGL.cwgl_vertexAttrib4f(ctx, index, v[0], v[1], v[2], v[3]);
+        },
+        vertexAttribPointer: function(index, size, type, normalized, stride, offset){
+            const n = normalized ? 1 : 0;
+            CWGL.cwgl_vertexAttribPointer(ctx, index, size, type, n, stride, offset);
+        },
         // 5.14.11 Writing to the drawing buffer
         clear: function(mask){
             CWGL.cwgl_clear(ctx, mask);
