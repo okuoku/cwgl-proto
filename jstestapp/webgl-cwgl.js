@@ -22,6 +22,9 @@ function GL(w, h, attr){
     function bufferfree(ptr){
         CWGL.cwgl_Buffer_release(ctx, ptr);
     }
+    function renderbufferfree(ptr){
+        CWGL.cwgl_Renderbuffer_release(ctx, ptr);
+    }
     wrapPointer(ctx, freectx);
     return {
         /* mgmt */
@@ -387,6 +390,37 @@ function GL(w, h, attr){
             }
         },
         // 5.14.7 Renderbuffer objects
+        bindRenderbuffer: function(target, renderbuffer){
+            if(! renderbuffer){
+                CWGL.cwgl_bindRenderbuffer(ctx, target, Ref.NULL);
+            }else{
+                CWGL.cwgl_bindRenderbuffer(ctx, target, renderbuffer);
+            }
+        },
+        createRenderbuffer: function(){
+            let ptr = CWGL.cwgl_createRenderbuffer(ctx);
+            wrapPointer(ptr, renderbufferfree);
+            return ptr;
+        },
+        deleteRenderbuffer: function(renderbuffer){
+            CWGL.cwgl_deleteRenderbuffer(renderbuffer);
+        },
+        getRenderbufferParameter: function(target, pname){
+            let i0 = new Int32Array(i);
+            const r = CWGL.cwgl_getRenderbufferParameter(ctx, target, pname, i0);
+            if(r == 0){
+                return null;
+            }else{
+                return i0[0];
+            }
+        },
+        /* WebGLHandlesContextLoss */
+        isRenderbuffer(renderbuffer){
+            const r = CWGL.cwgl_isRenderbuffer(ctx, renderbuffer);
+        },
+        renderbufferStorage: function(target, internalformat, width, height){
+            CWGL.cwgl_renderbufferStorage(target, internalformat, width, height);
+        },
         // 5.14.8 Texture objects
         createTexture: function(){
             let ptr = CWGL.cwgl_createTexture(ctx);
