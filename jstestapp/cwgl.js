@@ -64,7 +64,7 @@ function genlibdef() {
         cwgl_vertexAttribPointer: [_, [C, Int, Int, Int, Int, Int, Int]],
         cwgl_enableVertexAttribArray: [_, [C, Int]],
         cwgl_disableVertexAttribArray: [_, [C, Int]],
-        cwgl_drawArrays: [_, [C, Int, Int]],
+        cwgl_drawArrays: [_, [C, Int, Int, Int]],
         cwgl_drawElements: [_, [C, Int, Int, Int, Int]],
 
         // 2.9 Buffer Objects
