@@ -266,6 +266,7 @@ CWGL_API cwgl_query_result_t cwgl_getParameter_i1(cwgl_ctx_t* ctx, cwgl_enum_t p
 CWGL_API cwgl_query_result_t cwgl_getParameter_i2(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x, int32_t* y);
 CWGL_API cwgl_query_result_t cwgl_getParameter_i4(cwgl_ctx_t* ctx, cwgl_enum_t pname, int32_t* x, int32_t* y, int32_t* z, int32_t* w);
 CWGL_API cwgl_query_result_t cwgl_getParameter_f1(cwgl_ctx_t* ctx, cwgl_enum_t pname, float* x);
+CWGL_API cwgl_query_result_t cwgl_getParameter_f2(cwgl_ctx_t* ctx, cwgl_enum_t pname, float* x, float* y);
 CWGL_API cwgl_query_result_t cwgl_getParameter_f4(cwgl_ctx_t* ctx, cwgl_enum_t pname, float* x, float* y, float* z, float* w);
 CWGL_API cwgl_query_result_t cwgl_getParameter_str(cwgl_ctx_t* ctx, cwgl_enum_t pname, cwgl_string_t** str);
 CWGL_API cwgl_query_result_t cwgl_getParameter_Buffer(cwgl_ctx_t* ctx, cwgl_enum_t pname, cwgl_Buffer_t** buffer);

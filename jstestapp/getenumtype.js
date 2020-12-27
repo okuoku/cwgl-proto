@@ -350,16 +350,16 @@ function genenumtype(num){
         case ARRAY_BUFFER_BINDING:
         case ELEMENT_ARRAY_BUFFER_BINDING:
         case VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
-            return "WebGLBuffer";
+            return "Buffer";
         case CURRENT_PROGRAM:
-            return "WebGLProgram";
+            return "Program";
         case FRAMEBUFFER_BINDING:
-            return "WebGLFramebuffer";
+            return "Framebuffer";
         case RENDERBUFFER_BINDING:
-            return "WebGLRenderbuffer";
+            return "Renderbuffer";
         case TEXTURE_BINDING_2D:
         case TEXTURE_BINDING_CUBE_MAP:
-            return "WebGLTexture";
+            return "Texture";
         
         case ACTIVE_TEXTURE:
         case ALPHA_BITS:
@@ -435,6 +435,8 @@ function genenumtype(num){
         case VERTEX_ATTRIB_ARRAY_STRIDE:
         case VERTEX_ATTRIB_ARRAY_TYPE:
             return "int";
+        default:
+            throw "huh?";
     }
 }
 

@@ -7,6 +7,12 @@
 
 /* Context */
 void cwgl_priv_check_current(cwgl_ctx_t* ctx);
+cwgl_string_t* cwgl_priv_alloc_string(cwgl_ctx_t* ctx, const char* str,
+                                      size_t buflen);
+struct cwgl_string_s {
+    size_t size; /* Includes nul */
+    char* str;
+};
 
 #define CTX_ENTER(ctx) cwgl_priv_check_current(ctx)
 #define CTX_LEAVE(ctx)

@@ -99,7 +99,137 @@ function GL(w, h, attr){
             CWGL.cwgl_frontFace(ctx, mode);
         },
         getParameter: function(pname){
-            // FIXME:
+            if(pname == E.COMPRESSED_TEXTURE_FORMATS){
+                // FIXME: Implement compressed texture
+                return [];
+            }
+            const type = getenumtype(pname);
+            switch(type){
+                case "int":
+                    {
+                        let box = new Int32Array(1);
+                        const r = CWGL.cwgl_getParameter_i1(ctx, pname, box);
+                        if(r == 0){
+                            return box[0];
+                        } else {
+                            return null;
+                        }
+                    }
+                    break;
+                case "bool":
+                    {
+                        let box = new Int32Array(1);
+                        const r = CWGL.cwgl_getParameter_b1(ctx, pname, box);
+                        if(r == 0){
+                            return box[0] == 0 ? false : true;
+                        } else {
+                            return null;
+                        }
+                    }
+                    break;
+                case "b4":
+                    {
+                        function fold(x){ return x[0] == 0 ? false : true; }
+                        let b0 = new Int32Array(1);
+                        let b1 = new Int32Array(1);
+                        let b2 = new Int32Array(1);
+                        let b3 = new Int32Array(1);
+                        const r = CWGL.cwgl_getParameter_b4(ctx, pname, b0, b1, b2, b3);
+                        if(r == 0){
+                            return [fold(b0), fold(b1), fold(b2), fold(b3)];
+                        } else {
+                            return null;
+                        }
+                    }
+                    break;
+                case "i2":
+                    {
+                        let i0 = new Int32Array(1);
+                        let i1 = new Int32Array(1);
+                        const r = CWGL.cwgl_getParameter_i2(ctx, pname, i0, i1);
+                        if(r == 0){
+                            return Int32Array.of(i0[0], i1[0]);
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "i4":
+                    {
+                        let i0 = new Int32Array(1);
+                        let i1 = new Int32Array(1);
+                        let i2 = new Int32Array(1);
+                        let i3 = new Int32Array(1);
+                        const r = CWGL.cwgl_getParameter_i4(ctx, pname, i0, i1, i2, i3);
+                        if(r == 0){
+                            return Int32Array.of(i0[0], i1[0], i2[0], i3[0]);
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "str":
+                    {
+                        let p0 = Ref.alloc(Ref.refType(Ref.types.void));
+                        const r = CWGL.cwgl_getParameter_str(ctx, pname, p0);
+                        if(r == 0){
+                            const s = p0.deref();
+                            const ssiz = CWGL.cwgl_string_size(ctx, s);
+                            const buf = new Uint8Array(ssiz);
+                            CWGL.cwgl_string_read(ctx, s, buf, ssiz);
+                            CWGL.cwgl_string_release(ctx, s);
+                            return Ref.readCString(buf, 0);
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "float":
+                    {
+                        let f0 = new Float32Array(1);
+                        const r = CWGL.cwgl_getParameter_f1(ctx, pname, f0);
+                        if(r == 0){
+                            return f0[0];
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "f2":
+                    {
+                        let f0 = new Float32Array(1);
+                        let f1 = new Float32Array(1);
+                        const r = CWGL.cwgl_getParameter_f2(ctx, pname, f0, f1);
+                        if(r == 0){
+                            return Float32Array.of(f0[0], f1[0]);
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "f4":
+                    {
+                        let f0 = new Float32Array(1);
+                        let f1 = new Float32Array(1);
+                        let f2 = new Float32Array(1);
+                        let f3 = new Float32Array(1);
+                        const r = CWGL.cwgl_getParameter_f4(ctx, pname, f0, f1, f2, f3);
+                        if(r == 0){
+                            return Float32Array.of(f0[0], f1[0], f2[0], f3[0]);
+                        }else{
+                            return null;
+                        }
+                    }
+                    break;
+                case "Buffer":
+                case "Program":
+                case "Framebuffer":
+                case "Renderbuffer":
+                case "Texture":
+                    throw "unknown";
+                default:
+                    throw "invalid";
+            }
         },
         /* WebGLHandlesContextLoss */
         getError: function(){

@@ -28,7 +28,9 @@ function genlibdef() {
         cwgl_ctx_frame_end: [_, [C]],
 
         /* Heap Objects */
-        // FIXME: String
+        cwgl_string_size: ["size_t", [C, cwglString]],
+        cwgl_string_read: [Int, [C, cwglString, "void *", "size_t"]],
+        cwgl_string_release: [_, [C, cwglString]],
         // FIXME: We use size_t for release functions so V8 can collect
         //        pointer object itself
         cwgl_Buffer_release: [_, [C, "size_t" /* cwglBuffer */ ]],
@@ -226,6 +228,7 @@ function genlibdef() {
         cwgl_getParameter_i2: [Int, [C, Int, "void *", "void *"]],
         cwgl_getParameter_i4: [Int, [C, Int, "void *", "void *", "void *", "void *"]],
         cwgl_getParameter_f1: [Int, [C, Int, "void *"]],
+        cwgl_getParameter_f2: [Int, [C, Int, "void *", "void *"]],
         cwgl_getParameter_f4: [Int, [C, Int, "void *", "void *", "void *", "void *"]],
         cwgl_getParameter_str: [Int, [C, Int, "void *"]],
         cwgl_getParameter_Buffer: [Int, [C, Int, "void *"]],

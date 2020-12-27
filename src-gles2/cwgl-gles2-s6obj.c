@@ -84,6 +84,19 @@ cwgl_getParameter_f1(cwgl_ctx_t* ctx, cwgl_enum_t pname, float* x){
 }
 
 CWGL_API cwgl_query_result_t 
+cwgl_getParameter_f2(cwgl_ctx_t* ctx, cwgl_enum_t pname, float* x, float* y){
+    cwgl_query_result_t r;
+    float f4[4] = {0.0,0.0,0.0,0.0};
+    CTX_ENTER(ctx);
+    glGetFloatv(pname, f4);
+    *x = f4[0];
+    *y = f4[1];
+    r = CWGL_QR_SUCCESS;
+    CTX_LEAVE(ctx);
+    return r;
+}
+
+CWGL_API cwgl_query_result_t 
 cwgl_getParameter_f4(cwgl_ctx_t* ctx, cwgl_enum_t pname, 
                      float* x, float* y, float* z, float* w){
     cwgl_query_result_t r;
@@ -101,9 +114,20 @@ cwgl_getParameter_f4(cwgl_ctx_t* ctx, cwgl_enum_t pname,
 
 CWGL_API cwgl_query_result_t 
 cwgl_getParameter_str(cwgl_ctx_t* ctx, cwgl_enum_t pname, cwgl_string_t** str){
+    const char* res;
+    size_t xlen;
+    cwgl_string_t* out;
     cwgl_query_result_t r;
     CTX_ENTER(ctx);
-    r = CWGL_QR_UNIMPLEMENTED;
+    res = glGetString(pname);
+    if(!res){
+        r = CWGL_QR_GLERROR;
+    }else{
+        xlen = strlen(res);
+        out = cwgl_priv_alloc_string(ctx, res, xlen + 1);
+        *str = out;
+        r = CWGL_QR_SUCCESS;
+    }
     CTX_LEAVE(ctx);
     return r;
 }
