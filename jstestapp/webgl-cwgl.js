@@ -773,6 +773,9 @@ function GL(w, h, attr){
             CWGL.cwgl_flush(ctx);
         },
         // 5.14.12 Reading back pixels
+        readPixels: function(x, y, width, height, format, type, pixels){
+            CWGL.cwgl_readPixels(ctx, x, y, width, height, format, type, pixels, pixels.byteLength);
+        },
         // 5.14.13 Detecting context lost events
         // 5.14.14 Detecting and enabling extensions
 
