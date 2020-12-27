@@ -1,8 +1,7 @@
 
 const process = require("process");
 const fs = require("fs");
-const GL = require("gl");
-const PNG = require("pngjs").PNG;
+const GL = require("./webgl-cwgl.js");
 const indexedDB = require("fake-indexeddb");
 const performance = require('perf_hooks').performance;
 
@@ -23,25 +22,6 @@ const pixels1 = new Uint8Array(1920 * 1080 * 4);
 let flip_fb = 0;
 let shots = 0;
 
-function update_screenshot(){
-    let pixels = false;
-    if(flip_fb == 0){
-        pixels = pixels0;
-        flip_fb = 1;
-    }else{
-        pixels = pixels1;
-        flip_fb = 0;
-    }
-    //console.log("Pre", g_ctx.getError());
-    g_ctx.readPixels(0, 0, 1280, 720, g_ctx.RGBA, g_ctx.UNSIGNED_BYTE, pixels);
-    //console.log("Post", g_ctx.getError());
-    shots++;
-
-    //console.log("Shot", shots);
-    let pngout = PNG.sync.write({width: 1280, height: 720, data: pixels});
-    fs.writeFileSync("out" + shots.toString() + ".png", pngout);
-    console.log("Save", shots);
-}
 
 // FakeFetch
 
@@ -165,7 +145,6 @@ wnd.requestAnimationFrame = function(cb){
         const now = performance.now();
         console.log("RAF", now);
         cb(now);
-        update_screenshot();
     });
     return 99.99;
 }
@@ -179,7 +158,6 @@ function fake_settimeout(cb, ms){
         const now = performance.now();
         console.log("FRAME", now);
         cb();
-        update_screenshot();
     });
 }
 
