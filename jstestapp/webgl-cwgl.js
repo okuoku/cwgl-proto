@@ -19,6 +19,9 @@ function GL(w, h, attr){
     function texfree(ptr){
         CWGL.cwgl_Texture_release(ctx, ptr);
     }
+    function bufferfree(ptr){
+        CWGL.cwgl_Buffer_release(ctx, ptr);
+    }
     wrapPointer(ctx, freectx);
     return {
         /* mgmt */
@@ -290,6 +293,50 @@ function GL(w, h, attr){
             CWGL.cwgl_viewport(ctx, x, y, width, height);
         },
         // 5.14.5 Buffer objects
+        bindBuffer: function(target, buffer){
+            if(! buffer){
+                CWGL.cwgl_bindBuffer(ctx, target, Ref.NULL);
+            }else{
+                CWGL.cwgl_bindBuffer(ctx, target, buffer);
+            }
+        },
+        bufferData: function(target, data_or_size, usage){
+            if(Number.isInteger(data_or_size)){
+                const size = data_or_size;
+                CWGL.cwgl_bufferData(ctx, target, size, Ref.NULL, usage);
+            }else{
+                const data = data_or_size;
+                CWGL.cwgl_bufferData(ctx, target, data.byteLength, data, usage);
+            }
+        },
+        bufferSubData: function(target, offset, data){
+            CWGL.cwgl_bufferSubData(ctx, target, offset, data, data.byteLength);
+        },
+        createBuffer: function(){
+            let ptr = CWGL.cwgl_createBuffer(ctx);
+            wrapPointer(ptr, bufferfree);
+            return ptr;
+        },
+        deleteBuffer: function(buffer){
+            CWGL.cwgl_deleteBuffer(ctx, buffer);
+        },
+        getBufferParameter: function(target, pname){
+            let i0 = new Int32Array(1);
+            const r = CWGL.cwgl_getBufferParameter_i1(ctx, target, pname, i0);
+            if(r == 0){
+                return i0[0];
+            }else{
+                return null;
+            }
+        },
+        isBuffer: function(buffer){
+            const r = CWGL.cwgl_isBuffer(ctx, buffer);
+            if(r == 0){
+                return false;
+            }else{
+                return true;
+            }
+        },
         // 5.14.6 Framebuffer objects
         // 5.14.7 Renderbuffer objects
         // 5.14.8 Texture objects
