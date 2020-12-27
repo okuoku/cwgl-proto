@@ -777,7 +777,17 @@ function GL(w, h, attr){
             CWGL.cwgl_readPixels(ctx, x, y, width, height, format, type, pixels, pixels.byteLength);
         },
         // 5.14.13 Detecting context lost events
+        /* WebGLHandlesContextLoss */
+        isContextLost: function(){
+            return false;
+        },
         // 5.14.14 Detecting and enabling extensions
+        getSupportedExtensions: function(){
+            return [];
+        },
+        getExtension: function(name){
+            return null;
+        },
 
         // Enums
         DEPTH_BUFFER_BIT: 0x00000100,
