@@ -44,7 +44,7 @@ function GL(w, h, attr){
     function trackbinding_buffer(target, buffer){
         switch(target){
             case E.ARRAY_BUFFER:
-                currentArrayBUffer = buffer;
+                currentArrayBuffer = buffer;
                 break;
             case E.ELEMENT_ARRAY_BUFFER:
                 currentElementArrayBuffer = buffer;
