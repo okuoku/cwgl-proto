@@ -147,7 +147,7 @@ wnd.navigator.getGamepads = function(){
 
 wnd.requestAnimationFrame = function(cb){
     //console.log("rAF");
-    process.nextTick(async function(){
+    setImmediate(function(){
         checkheapdump();
         g_ctx.cwgl_frame_end();
         const now = performance.now();
