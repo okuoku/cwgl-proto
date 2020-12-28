@@ -4,6 +4,7 @@ const fs = require("fs");
 const GL = require("./webgl-cwgl.js");
 const indexedDB = require("fake-indexeddb");
 const performance = require('perf_hooks').performance;
+const Heapdump = require("heapdump");
 
 const nav = {};
 const doc = {};
@@ -22,6 +23,9 @@ const pixels1 = new Uint8Array(1920 * 1080 * 4);
 let flip_fb = 0;
 let shots = 0;
 
+let totalframe = 0;
+let heapdump_to_go = 500;
+let heapdump_next = 1000;
 
 // FakeFetch
 
@@ -142,11 +146,12 @@ wnd.navigator.getGamepads = function(){
 }
 
 wnd.requestAnimationFrame = function(cb){
-    console.log("rAF");
+    //console.log("rAF");
     process.nextTick(async function(){
+        checkheapdump();
         g_ctx.cwgl_frame_end();
         const now = performance.now();
-        console.log("RAF", now);
+        //console.log("RAF", now);
         g_ctx.cwgl_frame_begin();
         cb(now);
     });
@@ -155,9 +160,23 @@ wnd.requestAnimationFrame = function(cb){
 
 wnd.indexedDB = indexedDB;
 
+function checkheapdump(){
+    totalframe++;
+    if(totalframe == heapdump_to_go){
+        Heapdump.writeSnapshot("heap1.heapsnapshot");
+    }else if(totalframe == heapdump_next){
+        Heapdump.writeSnapshot("heap2.heapsnapshot");
+    }else if(totalframe < heapdump_to_go){
+        console.log("Heap dump countdown(1):", heapdump_to_go - totalframe);
+    }else if(totalframe < heapdump_next){
+        console.log("Heap dump countdown(2):", heapdump_next - totalframe);
+    }
+}
+
 function fake_settimeout(cb, ms){
     console.log("sTO", cb, ms);
     process.nextTick(async function(){
+        checkheapdump();
         g_ctx.cwgl_frame_end();
         await sleep(ms);
         const now = performance.now();
