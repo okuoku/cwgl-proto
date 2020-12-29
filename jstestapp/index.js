@@ -260,11 +260,6 @@ const my_module = {
         preserveDrawingBuffer: false
     },
     setInterval: setInterval,
-    // app2 application (Unity)
-    dataUrl: "Build/gltest2.data",
-    frameworkUrl: "Build/gltest2.framework.js",
-    codeUrl: "Build/gltest2.wasm",
-    streamingAssetsUrl: "StreamingAssets",
     companyName: "DefaultCompany",
     productName: "WebGLUTSTest",
     productVersion: "0.1",
