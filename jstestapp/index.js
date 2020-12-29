@@ -29,8 +29,13 @@ let heapdump_next = -1;
 
 // Event dispatcher
 function handleevents(){
-    const evtbuf = g_ctx.evtbuf;
-    while(g_ctx.yfrm_fill_events()){
+    const evtbuf = g_ctx.yfrm_evtbuf;
+    while(true){
+        let term = g_ctx.yfrm_fill_events();
+        if(term <= 0){
+            return;
+        }
+        process_events(evtbuf, term);
     }
 }
 
@@ -71,13 +76,137 @@ function fake_fetch(path, opts) {
 }
 
 // Emscripten patches
+const evttarget0 = {}; /* Window */
+const evttarget1 = {}; /* Document */
+const evttarget2 = {}; /* Canvas */
+const evttargets = [evttarget0, evttarget1, evttarget2];
 
-function fake_aEL(typ, lis, usecapture){
-    console.log("Add Event Listender", typ, lis, usecapture);
+function decode_button(btn){
+    /* Priority encode */
+    if(btn & 1){
+        return 0;
+    }
+    if(btn & 4){
+        return 2;
+    }
+    if(btn & 2){
+        return 1;
+    }
+    if(btn & 8){
+        return 3;
+    }
+    if(btn & 16){
+        return 4;
+    }
+    return 0;
 }
 
-function fake_rEL(typ){
-    console.log("Remove Event Listender", typ);
+function send_Mouseevent(name, buf, offs){
+    const x = buf[offs+2];
+    const y = buf[offs+3];
+    const button = buf[offs+4];
+    const buttons = buf[offs+5];
+
+    const evt = {
+        screenX: x,
+        screenY: y,
+        clientX: x,
+        clientY: y,
+        ctrlKey: false, /* FIXME */
+        shiftKey: false, /* FIXME */
+        altKey: false, /* FIXME */
+        metaKey: false, /* FIXME */
+        button: decode_button(button),
+        buttons: buttons
+
+    };
+    dispatch_event(name, evt);
+}
+
+function send_MouseDown(buf, offs){
+    send_Mouseevent("mousedown", buf, offs);
+}
+
+function send_MouseUp(buf, offs){
+    send_Mouseevent("mouseup", buf, offs);
+}
+
+function send_MouseScroll(buf, offs){
+    const dx = buf[offs+2];
+    const dy = buf[offs+3];
+    /* FIXME: Implement */
+}
+
+function send_MouseMove(buf, offs){
+    const x = buf[offs+2];
+    const y = buf[offs+3];
+    const buttons = buf[offs+6];
+    console.log("Move",x,y,buttons);
+    let evt = {
+        screenX: x,
+        screenY: y,
+        clientX: x,
+        clientY: y,
+        ctrlKey: false, /* FIXME */
+        shiftKey: false, /* FIXME */
+        altKey: false, /* FIXME */
+        metaKey: false, /* FIXME */
+        buttons: buttons,
+    };
+    dispatch_event("mousemove", evt);
+}
+
+function process_events(evtbuf, term){
+    let offs = 0;
+    while(term > offs){
+        let type = evtbuf[offs+1];
+        let next = offs + evtbuf[offs];
+        //console.log("Evt",offs,type,next);
+        switch(type){
+            case 0: /* MouseDown:x:y:button:buttons */
+                send_MouseDown(evtbuf, offs);
+                break;
+            case 1: /* MouseUp:x:y:button:buttons */
+                send_MouseUp(evtbuf, offs);
+                break;
+            case 2: /* MouseScroll:dx:dy */
+                send_MouseScroll(evtbuf, offs);
+                break;
+            case 3: /* MouseMove:x:y:dx:dy:buttons */
+                send_MouseMove(evtbuf, offs);
+                break;
+            default:
+                /* Do nothing */
+                break;
+        }
+        offs = next;
+    }
+}
+
+function dispatch_event(tag, obj){
+    obj.preventDefault = function(){};
+    obj.type = tag;
+    evttargets.forEach(e => {
+        if (e[tag]) {
+            console.log("Trig", e[tag], tag, obj);
+            e[tag](obj);
+        }
+    });
+}
+
+function fake_aEL(depth, name){
+    return function(typ, listener, usecapture){
+        // FIXME: implement usecapture
+        console.log("Add Event Listener", depth, name, typ, listener, usecapture);
+        evttargets[depth][typ] = listener;
+    }
+}
+
+function fake_rEL(depth, name){
+    return function(typ){
+        console.log("Remove Event Listener", depth, name, typ);
+        evttargets[depth][typ] = false;
+    }
 }
 
 const my_canvas = {
@@ -98,8 +227,8 @@ const my_canvas = {
             height: 720
         };
     },
-    addEventListener: fake_aEL,
-    removeEventListener: fake_rEL,
+    addEventListener: fake_aEL(2, "CANVAS"),
+    removeEventListener: fake_rEL(2, "CANVAS"),
     getContext: function(type,attr){
         console.log("Draw context", type, attr);
         if(type == "webgl"){
@@ -191,6 +320,7 @@ function fake_settimeout(cb, ms){
         const now = performance.now();
         console.log("FRAME", now);
         g_ctx.cwgl_frame_begin();
+        handleevents();
         cb();
     });
 }
@@ -208,8 +338,8 @@ function fake_queryselector(tgt){
 }
 
 wnd.document.querySelector = fake_queryselector;
-wnd.document.addEventListener = fake_aEL; // specialHTMLTargets[1]
-wnd.addEventListener = fake_aEL; // specialHTMLTargets[2]
+wnd.document.addEventListener = fake_aEL(1, "Document"); // specialHTMLTargets[1]
+wnd.addEventListener = fake_aEL(0, "Window"); // specialHTMLTargets[2]
 wnd.navigator.userAgent = "bogus";
 wnd.navigator.appVersion = "bogus";
 

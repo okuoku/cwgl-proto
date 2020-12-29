@@ -89,14 +89,10 @@ function GL(w, h, attr){
         cwgl_frame_end: function(){
             CWGL.yfrm_frame_end0(ctx);
         },
-        yfrm_fill_events: function(){ // => bool(continue?)
+        yfrm_fill_events: function(){ // => length
             let r = 0;
-            let cont = false;
             r = CWGL.yfrm_query0(0, evtbuf, 128);
-            if(r != 0){
-                cont = true;
-            }
-            return cont;
+            return r;
         },
         yfrm_evtbuf: evtbuf,
 

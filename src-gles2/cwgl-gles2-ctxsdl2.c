@@ -113,19 +113,19 @@ cwgl_priv_check_current(cwgl_ctx_t* ctx){
 static int32_t
 fill_mousebuttonbitmap(uint8_t btn){
     int32_t r = 0;
-    if(btn & SDL_BUTTON_LEFT){
+    if(btn & SDL_BUTTON(1)){
         r |= 1;
     }
-    if(btn & SDL_BUTTON_MIDDLE){
+    if(btn & SDL_BUTTON(2)){
         r |= 2;
     }
-    if(btn & SDL_BUTTON_RIGHT){
+    if(btn & SDL_BUTTON(3)){
         r |= 4;
     }
-    if(btn & SDL_BUTTON_X1){
+    if(btn & SDL_BUTTON(4)){
         r |= 8;
     }
-    if(btn & SDL_BUTTON_X2){
+    if(btn & SDL_BUTTON(5)){
         r |= 16;
     }
     return r;
@@ -161,8 +161,9 @@ fill_mousemotionevent(int32_t* buf, size_t offs, SDL_Event* evt){
     buf[offs] = yrel;
     offs++;
     buf[offs] = buttons;
+    offs++;
 
-    return offs + LEN_mousemotionevent;
+    return offs;
 }
 
 static size_t
@@ -183,8 +184,9 @@ fill_mousewheelevent(int32_t* buf, size_t offs, SDL_Event* evt){
     buf[offs] = dx;
     offs++;
     buf[offs] = dy;
+    offs++;
 
-    return offs + LEN_mousewheelevent;
+    return offs;
 }
 
 
@@ -217,8 +219,9 @@ fill_mousebuttonevent(int32_t* buf, size_t offs, SDL_Event* evt){
     buf[offs] = button;
     offs++;
     buf[offs] = buttons;
+    offs++;
 
-    return offs + LEN_mousebuttonevent;
+    return offs;
 }
 
 YFRM_API int
@@ -226,7 +229,10 @@ yfrm_query0(int32_t slot, int32_t* buf, size_t buflen){
     SDL_Event evt;
     if(slot == 0 /* events */){
         size_t cur = 0;
-        while(((buflen - cur) > MIN_EVENT_SIZE) && SDL_PollEvent(&evt)){
+        while(((buflen - cur) > MIN_EVENT_SIZE)){
+            if(!SDL_PollEvent(&evt)){
+                break;
+            }
             switch(evt.type){
                 case SDL_QUIT:
                     exit(0);
