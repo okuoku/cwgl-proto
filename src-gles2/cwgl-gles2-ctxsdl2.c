@@ -1,4 +1,5 @@
 #include "cwgl-gles2-priv.h"
+#include <yfrm.h>
 
 #include <stdio.h>
 #include <SDL.h>
@@ -80,26 +81,20 @@ cwgl_ctx_release(cwgl_ctx_t* ctx){
     free(ctx);
 }
 
-CWGL_API void
-cwgl_ctx_frame_begin(cwgl_ctx_t* ctx){
-    SDL_Event evt;
+YFRM_API void
+yfrm_frame_begin0(void* c){
 
     if(cur){
         printf("WARNING: Overriding frame !\n");
     }
 
-    cur = ctx;
+    cur = (cwgl_ctx_t*)c;
 
-    /* Consume events */
-    while(SDL_PollEvent(&evt)){
-        if(evt.type == SDL_QUIT){
-            exit(0);
-        }
-    }
 }
 
-CWGL_API void
-cwgl_ctx_frame_end(cwgl_ctx_t* ctx){
+YFRM_API void
+yfrm_frame_end0(void* c){
+    cwgl_ctx_t* ctx = (cwgl_ctx_t*)c;
     cur = NULL;
     SDL_GL_SwapWindow(ctx->wnd);
 }
@@ -108,5 +103,151 @@ void
 cwgl_priv_check_current(cwgl_ctx_t* ctx){
     if(ctx != cur){
         printf("WARNING: Submitting cross context command !\n");
+    }
+}
+
+
+/* Event handling */
+#define MIN_EVENT_SIZE 32 /* ??? */
+
+static int32_t
+fill_mousebuttonbitmap(uint8_t btn){
+    int32_t r = 0;
+    if(btn & SDL_BUTTON_LEFT){
+        r |= 1;
+    }
+    if(btn & SDL_BUTTON_MIDDLE){
+        r |= 2;
+    }
+    if(btn & SDL_BUTTON_RIGHT){
+        r |= 4;
+    }
+    if(btn & SDL_BUTTON_X1){
+        r |= 8;
+    }
+    if(btn & SDL_BUTTON_X2){
+        r |= 16;
+    }
+    return r;
+}
+
+static size_t
+fill_mousemotionevent(int32_t* buf, size_t offs, SDL_Event* evt){
+    const int32_t LEN_mousemotionevent = 7;
+    /* 0 */ const int32_t len = LEN_mousemotionevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t x;
+    /* 3 */ int32_t y;
+    /* 4 */ int32_t xrel;
+    /* 5 */ int32_t yrel;
+    /* 6 */ int32_t buttons;
+    type = 3;
+    x = evt->motion.x;
+    y = evt->motion.y;
+    xrel = evt->motion.xrel;
+    yrel = evt->motion.yrel;
+    buttons = fill_mousebuttonbitmap(evt->motion.state);
+
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = x;
+    offs++;
+    buf[offs] = y;
+    offs++;
+    buf[offs] = xrel;
+    offs++;
+    buf[offs] = yrel;
+    offs++;
+    buf[offs] = buttons;
+
+    return offs + LEN_mousemotionevent;
+}
+
+static size_t
+fill_mousewheelevent(int32_t* buf, size_t offs, SDL_Event* evt){
+    const int32_t LEN_mousewheelevent = 4;
+    /* 0 */ const int32_t len = LEN_mousewheelevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t dx;
+    /* 3 */ int32_t dy;
+    type = 2;
+    dx = evt->wheel.x;
+    dy = evt->wheel.y;
+
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = dx;
+    offs++;
+    buf[offs] = dy;
+
+    return offs + LEN_mousewheelevent;
+}
+
+
+static size_t
+fill_mousebuttonevent(int32_t* buf, size_t offs, SDL_Event* evt){
+    const int32_t LEN_mousebuttonevent = 6;
+    /* 0 */ const int32_t len = LEN_mousebuttonevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t x;
+    /* 3 */ int32_t y;
+    /* 4 */ int32_t button;
+    /* 5 */ int32_t buttons;
+    if(evt->type == SDL_MOUSEBUTTONDOWN){
+        type = 0;
+    }else{
+        type = 1;
+    }
+    x = evt->button.x;
+    y = evt->button.y;
+    button = fill_mousebuttonbitmap(evt->button.button);
+    buttons = fill_mousebuttonbitmap(SDL_GetMouseState(NULL, NULL));
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = x;
+    offs++;
+    buf[offs] = y;
+    offs++;
+    buf[offs] = button;
+    offs++;
+    buf[offs] = buttons;
+
+    return offs + LEN_mousebuttonevent;
+}
+
+YFRM_API int
+yfrm_query0(int32_t slot, int32_t* buf, size_t buflen){
+    SDL_Event evt;
+    if(slot == 0 /* events */){
+        size_t cur = 0;
+        while(((buflen - cur) > MIN_EVENT_SIZE) && SDL_PollEvent(&evt)){
+            switch(evt.type){
+                case SDL_QUIT:
+                    exit(0);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
+                    cur = fill_mousebuttonevent(buf, cur, &evt);
+                    break;
+                case SDL_MOUSEMOTION:
+                    cur = fill_mousemotionevent(buf, cur, &evt);
+                    break;
+                case SDL_MOUSEWHEEL:
+                    cur = fill_mousewheelevent(buf, cur, &evt);
+                    break;
+                default:
+                    /* Do nothing */
+                    break;
+            }
+        }
+        return cur;
+    }else{
+        return -1;
     }
 }

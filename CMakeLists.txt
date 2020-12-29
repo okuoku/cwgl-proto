@@ -46,6 +46,8 @@ add_library(cwgl SHARED
 
 target_compile_definitions(cwgl
     PUBLIC
+    YFRM_DLL
+    YFRM_SHARED_BUILD
     CWGL_DLL
     CWGL_SHARED_BUILD)
 
@@ -77,5 +79,6 @@ target_link_libraries(testapp cwgl)
 if(WIN32)
     target_compile_definitions(testapp
         PUBLIC
+        YFRM_DLL
         CWGL_DLL)
 endif()

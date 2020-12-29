@@ -1,8 +1,10 @@
 #include <cwgl.h>
+#include <yfrm.h>
 
 int
 main(int argc, char** av){
     int w,h;
+    int buf[128];
     cwgl_ctx_t* ctx;
     cwgl_init();
 
@@ -14,7 +16,7 @@ main(int argc, char** av){
     int frame;
     frame = 0;
     for(;;){
-        cwgl_ctx_frame_begin(ctx);
+        yfrm_frame_begin0(ctx);
 
         float step = frame % 256;
         float col = 1.0f * step / 256.0f;
@@ -24,7 +26,8 @@ main(int argc, char** av){
         cwgl_clearColor(ctx, col, col, col, 1.0f);
         cwgl_clear(ctx, 0x4000 /* COLOR BUFFER BIT */);
 
-        cwgl_ctx_frame_end(ctx);
+        while(yfrm_query0(0, buf, 128) > 0){}
+        yfrm_frame_end0(ctx);
         frame ++;
     }
 
