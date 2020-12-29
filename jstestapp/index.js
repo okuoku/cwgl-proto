@@ -24,8 +24,8 @@ let flip_fb = 0;
 let shots = 0;
 
 let totalframe = 0;
-let heapdump_to_go = 500;
-let heapdump_next = 1000;
+let heapdump_to_go = -1;
+let heapdump_next = -1;
 
 // FakeFetch
 
