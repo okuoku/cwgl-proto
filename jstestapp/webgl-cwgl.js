@@ -16,6 +16,7 @@ function freectx(ptr){
 
 function GL(w, h, attr){
     const ctx = CWGL.cwgl_ctx_create(w, h, 0, 0);
+    const evtbuf = new Int32Array(128);
 
     let shadowDepthRenderbuffer = null;
     let shadowStencilRenderbuffer = null;
@@ -83,11 +84,21 @@ function GL(w, h, attr){
     return {
         /* mgmt */
         cwgl_frame_begin: function(){
-            CWGL.cwgl_ctx_frame_begin(ctx);
+            CWGL.yfrm_frame_begin0(ctx);
         },
         cwgl_frame_end: function(){
-            CWGL.cwgl_ctx_frame_end(ctx);
+            CWGL.yfrm_frame_end0(ctx);
         },
+        yfrm_fill_events: function(){ // => bool(continue?)
+            let r = 0;
+            let cont = false;
+            r = CWGL.yfrm_query0(0, evtbuf, 128);
+            if(r != 0){
+                cont = true;
+            }
+            return cont;
+        },
+        yfrm_evtbuf: evtbuf,
 
         // 5.14.1 Attributes
         /// canvas (set by client)

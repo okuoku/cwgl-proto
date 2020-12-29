@@ -27,6 +27,13 @@ let totalframe = 0;
 let heapdump_to_go = -1;
 let heapdump_next = -1;
 
+// Event dispatcher
+function handleevents(){
+    const evtbuf = g_ctx.evtbuf;
+    while(g_ctx.yfrm_fill_events()){
+    }
+}
+
 // FakeFetch
 
 function fake_fetch(path, opts) {
@@ -99,6 +106,7 @@ const my_canvas = {
             g_ctx = GL(1280,720,attr);
             g_ctx.canvas = this;
             g_ctx.cwgl_frame_begin();
+            handleevents();
             return g_ctx;
         }
         return null;
@@ -153,6 +161,7 @@ wnd.requestAnimationFrame = function(cb){
         const now = performance.now();
         //console.log("RAF", now);
         g_ctx.cwgl_frame_begin();
+        handleevents();
         cb(now);
     });
     return 99.99;
