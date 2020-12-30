@@ -1,3 +1,6 @@
+const UNITY_JS = "app2/gltest2.framework.js";
+const UNITY_WASM = "app2/gltest2.wasm";
+const UNITY_DATA = "app2/gltest2.data";
 
 const process = require("process");
 const fs = require("fs");
@@ -62,7 +65,7 @@ function fake_fetch(path, opts) {
             ret({
                 ok: true,
                 arrayBuffer: function(){
-                    let bin = fs.readFileSync("app2/gltest2.wasm");
+                    let bin = fs.readFileSync(UNITY_WASM);
                     console.log(bin);
                     return new Promise(res => {
                         res(bin);
@@ -363,7 +366,7 @@ function boot(){ // Emscripten plain
 */
 
 function boot(){ // Unity
-    const bootstrap = fs.readFileSync("app2/gltest2.framework.js", "utf8");
+    const bootstrap = fs.readFileSync(UNITY_JS, "utf8");
     // Unity preload
     function cb_injectdata(data) { // From Unity 2020.1
         let view = new DataView(data.buffer, data.byteOffset, data.byteLength);
@@ -393,7 +396,7 @@ function boot(){ // Unity
     }
 
     function injectdata(){
-        let data = fs.readFileSync("app2/gltest2.data");
+        let data = fs.readFileSync(UNITY_DATA);
         cb_injectdata(data);
     }
 
