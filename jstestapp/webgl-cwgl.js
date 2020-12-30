@@ -495,11 +495,11 @@ function GL(w, h, attr){
         },
         deleteRenderbuffer: function(renderbuffer){
             if(renderbuffer == shadowDepthRenderbuffer){
-                CWGL.cwgl_deleteRenderbuffer(shadowStencilRenderbuffer);
+                CWGL.cwgl_deleteRenderbuffer(ctx, shadowStencilRenderbuffer);
                 shadowDepthRenderbuffer = null;
                 shadowStencilRenderbuffer = null;
             }
-            CWGL.cwgl_deleteRenderbuffer(renderbuffer);
+            CWGL.cwgl_deleteRenderbuffer(ctx, renderbuffer);
         },
         getRenderbufferParameter: function(target, pname){
             let i0 = new Int32Array(i);
