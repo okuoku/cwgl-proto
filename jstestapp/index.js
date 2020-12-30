@@ -1,6 +1,12 @@
+/*
 const UNITY_JS = "app2/gltest2.framework.js";
 const UNITY_WASM = "app2/gltest2.wasm";
 const UNITY_DATA = "app2/gltest2.data";
+*/
+
+const UNITY_JS = "app3/webgl.framework.js";
+const UNITY_WASM = "app3/webgl.wasm";
+const UNITY_DATA = "app3/webgl.data";
 
 const process = require("process");
 const fs = require("fs");
@@ -159,6 +165,47 @@ function send_MouseMove(buf, offs){
     dispatch_event("mousemove", evt);
 }
 
+// Gamecontroller state
+let buttons = new Array(17);
+let axis = new Array(6);
+
+function set_buttonstate(evtbuf, offs){
+    const type = evtbuf[offs+1];
+    const button = evtbuf[offs+3];
+    if(button >= 0){
+        buttons[button] = type == 101 ? true : false;
+    }
+}
+
+function set_axisstate(evtbuf, offs){
+    const axisindex = evtbuf[offs+3];
+    const value = evtbuf[offs+4];
+    const frac = evtbuf[offs+5];
+
+    if(axisindex >= 0){
+        axis[axisindex] = value / frac;
+    }
+}
+
+function gen_gamepad(){
+    const out = [{
+        id: "Player 1",
+        index: 0,
+        connected: true,
+        timestamp: performance.now(),
+        mapping: "standard",
+        axes: axis,
+        buttons: buttons.map(e => {
+            return {
+                pressed: e ? true : false,
+                touched: false,
+                value: e ? 1.0 : 0.0
+            };
+        })
+    }];
+    return out;
+}
+
 function process_events(evtbuf, term){
     let offs = 0;
     while(term > offs){
@@ -178,6 +225,13 @@ function process_events(evtbuf, term){
             case 3: /* MouseMove:x:y:dx:dy:buttons */
                 send_MouseMove(evtbuf, offs);
                 break;
+            case 100: /* ControllerButton */
+            case 101:
+                set_buttonstate(evtbuf, offs);
+                break;
+            case 102: /* ControllerAxis */
+                set_axisstate(evtbuf, offs);
+                break;
             default:
                 /* Do nothing */
                 break;
@@ -191,7 +245,7 @@ function dispatch_event(tag, obj){
     obj.type = tag;
     evttargets.forEach(e => {
         if (e[tag]) {
-            console.log("Trig", e[tag], tag, obj);
+            //console.log("Trig", e[tag], tag, obj);
             e[tag](obj);
         }
     });
@@ -243,7 +297,6 @@ const my_canvas = {
         }
         return null;
     }
-
 };
 
 const my_module = {
@@ -276,8 +329,7 @@ const my_screen = {
 
 
 wnd.navigator.getGamepads = function(){
-    console.log("GetGamepads");
-    return [];
+    return gen_gamepad();
 }
 
 wnd.requestAnimationFrame = function(cb){

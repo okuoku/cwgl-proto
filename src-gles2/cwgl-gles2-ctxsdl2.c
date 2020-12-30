@@ -37,7 +37,7 @@ cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
     if(! wnd){
         SDL_Window* window;
         /* Init SDL and Create a window */
-        if(SDL_Init(SDL_INIT_VIDEO)){
+        if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO|SDL_INIT_TIMER)){
             printf("SDL Init failed.\n");
             return NULL;
         }
@@ -224,11 +224,156 @@ fill_mousebuttonevent(int32_t* buf, size_t offs, SDL_Event* evt){
     return offs;
 }
 
+static size_t
+fill_controllerbuttonevent(int32_t* buf, size_t offs,SDL_Event* evt){
+    const int32_t LEN_controllerbuttonevent = 4;
+    /* 0 */ const int32_t len = LEN_controllerbuttonevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t ident;
+    /* 3 */ int32_t button;
+
+    if(evt->cbutton.state == SDL_PRESSED){
+        type = 101;
+    }else{
+        type = 100;
+    }
+
+    ident = 1;
+    /* GamePad API order: A B X Y L1 R1 L2 R2 SEL START L3 R3
+     *                    UP DOWN LEFT RIGHT META */
+    switch(evt->cbutton.button){
+        case SDL_CONTROLLER_BUTTON_A:
+            button = 0;
+            break;
+        case SDL_CONTROLLER_BUTTON_B:
+            button = 1;
+            break;
+        case SDL_CONTROLLER_BUTTON_X:
+            button = 2;
+            break;
+        case SDL_CONTROLLER_BUTTON_Y:
+            button = 3;
+            break;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+            button = 4;
+            break;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+            button = 5;
+            break;
+        /* Missing: L2 R2 */
+        case SDL_CONTROLLER_BUTTON_BACK:
+            button = 8;
+            break;
+        case SDL_CONTROLLER_BUTTON_START:
+            button = 9;
+            break;
+        case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+            button = 10;
+            break;
+        case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+            button = 11;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:
+            button = 12;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            button = 13;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            button = 14;
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            button = 15;
+            break;
+        case SDL_CONTROLLER_BUTTON_GUIDE:
+            button = 16;
+            break;
+        default:
+            button = -1;
+            break;
+    }
+
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = ident;
+    offs++;
+    buf[offs] = button;
+    offs++;
+
+    return offs;
+}
+
+static size_t
+fill_controlleraxisevent(int32_t* buf, size_t offs,SDL_Event* evt){
+    const int32_t LEN_controlleraxisevent = 6;
+    /* 0 */ const int32_t len = LEN_controlleraxisevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t ident;
+    /* 3 */ int32_t axis;
+    /* 4 */ int32_t value;
+    /* 5 */ int32_t frac;
+
+    type = 102;
+    ident = 1;
+    switch(evt->caxis.axis){
+        case SDL_CONTROLLER_AXIS_LEFTX:
+            axis = 0;
+            break;
+        case SDL_CONTROLLER_AXIS_LEFTY:
+            axis = 1;
+            break;
+        case SDL_CONTROLLER_AXIS_RIGHTX:
+            axis = 2;
+            break;
+        case SDL_CONTROLLER_AXIS_RIGHTY:
+            axis = 3;
+            break;
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+            axis = 4;
+            break;
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+            axis = 5;
+            break;
+        default:
+            axis = -1;
+            break;
+    }
+    value = evt->caxis.value;
+    frac = 32768;
+
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = ident;
+    offs++;
+    buf[offs] = axis;
+    offs++;
+    buf[offs] = value;
+    offs++;
+    buf[offs] = frac;
+    offs++;
+
+    return offs;
+}
+
+SDL_GameController* cur_controller = NULL;
+
 YFRM_API int
 yfrm_query0(int32_t slot, int32_t* buf, size_t buflen){
     SDL_Event evt;
     if(slot == 0 /* events */){
         size_t cur = 0;
+
+        /* Init gamepad if we don't have one */
+        if(! cur_controller){
+            if(0 < SDL_NumJoysticks()){
+                cur_controller = SDL_GameControllerOpen(0);
+            }
+        }
+
         while(((buflen - cur) > MIN_EVENT_SIZE)){
             if(!SDL_PollEvent(&evt)){
                 break;
@@ -246,6 +391,13 @@ yfrm_query0(int32_t slot, int32_t* buf, size_t buflen){
                     break;
                 case SDL_MOUSEWHEEL:
                     cur = fill_mousewheelevent(buf, cur, &evt);
+                    break;
+                case SDL_CONTROLLERBUTTONDOWN:
+                case SDL_CONTROLLERBUTTONUP:
+                    cur = fill_controllerbuttonevent(buf, cur, &evt);
+                    break;
+                case SDL_CONTROLLERAXISMOTION:
+                    cur = fill_controlleraxisevent(buf, cur, &evt);
                     break;
                 default:
                     /* Do nothing */
