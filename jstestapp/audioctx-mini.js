@@ -1,8 +1,30 @@
+function dummynode(){
+    return {
+        connect: function(){},
+        disconnect: function(){},
+    };
+}
 
+function dummybuffer(){
+    return {};
+}
+
+function wrappromise(promise, success, fail){
+    if(! success){
+        return promise;
+    }else{
+        promise.then(success).catch(fail);
+    }
+}
 
 function audioctx_mini(){
     return {
-        decodeAudioData: function(){},
+        decodeAudioData: function(data, success, fail){
+            const p = new Promise((res, err) => {
+                res(dummybuffer());
+            });
+            return wrappromise(p, success, fail);
+        },
         listener: {
             positionX: 0,
             positionY: 0,
@@ -10,17 +32,26 @@ function audioctx_mini(){
             setPosition: function(){},
             setOrientation: function(){}
         },
-        /*
-        createBuffersource: function(){
-            return dummynode();
-        },
-        createBuffer: function(){
-            return dummynode();
+        createGain: function(){
+            let node = dummynode();
+            node.gain = {};
+            node.gain.setValueAtTime = function(){};
+            return node;
         },
         createPanner: function(){
-            return dummynode();
+            let node = dummynode();
+            node.setPosition = function(){};
+            return node;
         },
-        createGain: function(){
+        createBufferSource: function(){
+            let node = dummynode();
+            node.playbackRate = {};
+            node.playbackRate.value = 1;
+            node.start = function(){};
+            return node;
+        },
+        /*
+        createBuffer: function(){
             return dummynode();
         },
         */
