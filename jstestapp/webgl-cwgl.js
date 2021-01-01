@@ -922,7 +922,7 @@ function GL(w, h, attr){
         },
         // 5.14.14 Detecting and enabling extensions
         getSupportedExtensions: function(){
-            return [];
+            return ["OES_element_index_uint"];
         },
         getExtension: function(name){
             return null;
