@@ -4,13 +4,14 @@ const UNITY_WASM = "app2/gltest2.wasm";
 const UNITY_DATA = "app2/gltest2.data";
 */
 
-const UNITY_JS = "app3/webgl.framework.js";
-const UNITY_WASM = "app3/webgl.wasm";
-const UNITY_DATA = "app3/webgl.data";
+const UNITY_JS = "app4/webgl.framework.js";
+const UNITY_WASM = "app4/webgl.wasm";
+const UNITY_DATA = "app4/webgl.data";
 
 const process = require("process");
 const fs = require("fs");
 const GL = require("./webgl-cwgl.js");
+const audioctx_mini = require("./audioctx-mini.js");
 const indexedDB = require("fake-indexeddb");
 const performance = require('perf_hooks').performance;
 const Heapdump = require("heapdump");
@@ -21,6 +22,7 @@ const wnd = {};
 
 wnd.document = doc;
 wnd.navigator = nav;
+wnd.AudioContext = audioctx_mini;
 
 function sleep(ms){
     return new Promise((res) => setTimeout(res, ms));
@@ -316,6 +318,7 @@ const my_module = {
         preserveDrawingBuffer: false
     },
     setInterval: setInterval,
+    clearInterval: clearInterval,
     companyName: "DefaultCompany",
     productName: "WebGLUTSTest",
     productVersion: "0.1",
@@ -402,6 +405,7 @@ global.my_doc = wnd.document;
 global.my_module = my_module;
 global.my_screen = my_screen;
 global.fake_settimeout = fake_settimeout;
+global.AudioContext = wnd.AudioContext;
 
 /*
 function boot(){ // Emscripten plain
