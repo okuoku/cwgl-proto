@@ -7,6 +7,7 @@ const UNITY_DATA = "app2/gltest2.data";
 const UNITY_JS = "app4/webgl.framework.js";
 const UNITY_WASM = "app4/webgl.wasm";
 const UNITY_DATA = "app4/webgl.data";
+const APPFS_DIR = "app4/appfs";
 
 const process = require("process");
 const fs = require("fs");
@@ -15,6 +16,7 @@ const audioctx_mini = require("./audioctx-mini.js");
 const indexedDB = require("fake-indexeddb");
 const performance = require('perf_hooks').performance;
 const Heapdump = require("heapdump");
+const storage = require("./storage.js")
 
 const nav = {};
 const doc = {};
@@ -456,7 +458,18 @@ function boot(){ // Unity
         cb_injectdata(data);
     }
 
-    global.my_module.preRun.push(injectdata);
+    function GetFS(){
+        const FS = my_module.peekFS();
+        const APPFS = storage.genfs(FS, APPFS_DIR);
+        // Remove current root
+        FS.root = false;
+        FS.mount(APPFS, {}, "/");
+        console.log(FS);
+        FS.mount(FS.filesystems.MEMFS, {}, "/idbfs");
+    }
+
+    //global.my_module.preRun.push(injectdata);
+    global.my_module.preRun.push(GetFS);
 
     function fake_alert(obj){
         console.log("ALERT", obj);
@@ -470,9 +483,14 @@ function boot(){ // Unity
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
     let alert = fake_alert;
-    eval(bootstrap + "\n\n global.initfunc = unityFramework;");
+
+    const preamble = "function unityFramework(Module){function peekFS(){return FS;} Module.peekFS = peekFS; //"
+
+    eval(preamble + bootstrap + "\n\n global.initfunc = unityFramework;");
 
     let init = global.initfunc;
+    my_module.noFSInit = true;
+    my_module.unityFileSystemInit = function(){}; // FIXME: Handle idbfs
     init(global.my_module);
 }
 
