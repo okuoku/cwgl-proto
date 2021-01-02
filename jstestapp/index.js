@@ -13,9 +13,7 @@ const process = require("process");
 const fs = require("fs");
 const GL = require("./webgl-cwgl.js");
 const audioctx_mini = require("./audioctx-mini.js");
-const indexedDB = require("fake-indexeddb");
 const performance = require('perf_hooks').performance;
-const Heapdump = require("heapdump");
 const storage = require("./storage.js")
 
 const nav = {};
@@ -31,10 +29,6 @@ function sleep(ms){
 }
 
 let g_ctx = null;
-const pixels0 = new Uint8Array(1920 * 1080 * 4);
-const pixels1 = new Uint8Array(1920 * 1080 * 4);
-let flip_fb = 0;
-let shots = 0;
 
 let totalframe = 0;
 let heapdump_to_go = -1;
@@ -154,7 +148,6 @@ function send_MouseMove(buf, offs){
     const x = buf[offs+2];
     const y = buf[offs+3];
     const buttons = buf[offs+6];
-    console.log("Move",x,y,buttons);
     let evt = {
         screenX: x,
         screenY: y,
@@ -351,10 +344,9 @@ wnd.requestAnimationFrame = function(cb){
     return 99.99;
 }
 
-wnd.indexedDB = indexedDB;
-
 function checkheapdump(){
     totalframe++;
+    /*
     if(totalframe == heapdump_to_go){
         Heapdump.writeSnapshot("heap1.heapsnapshot");
     }else if(totalframe == heapdump_next){
@@ -364,6 +356,7 @@ function checkheapdump(){
     }else if(totalframe < heapdump_next){
         console.log("Heap dump countdown(2):", heapdump_next - totalframe);
     }
+    */
 }
 
 function fake_settimeout(cb, ms){
@@ -425,38 +418,6 @@ function boot(){ // Emscripten plain
 
 function boot(){ // Unity
     const bootstrap = fs.readFileSync(UNITY_JS, "utf8");
-    // Unity preload
-    function cb_injectdata(data) { // From Unity 2020.1
-        let view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-        let pos = 0;
-        let prefix = "UnityWebData1.0\0";
-        pos += prefix.length;
-        let headerSize = view.getUint32(pos, true); 
-        pos += 4;
-        while (pos < headerSize) {
-            let offset = view.getUint32(pos, true); 
-            pos += 4;
-            let size = view.getUint32(pos, true); 
-            pos += 4;
-            let pathLength = view.getUint32(pos, true); 
-            pos += 4;
-            let path = String.fromCharCode.apply(null, data.subarray(pos, pos + pathLength)); 
-            pos += pathLength;
-            for (var folder = 0, folderNext = path.indexOf("/", folder) + 1 ;
-                 folderNext > 0; 
-                 folder = folderNext, folderNext = path.indexOf("/", folder) + 1){
-                console.log("Inject Dir", path);
-                Module.FS_createPath(path.substring(0, folder), path.substring(folder, folderNext - 1), true, true);
-            }
-            console.log("Inject File", path);
-            Module.FS_createDataFile(path, null, data.subarray(offset, offset + size), true, true, true);
-        }
-    }
-
-    function injectdata(){
-        let data = fs.readFileSync(UNITY_DATA);
-        cb_injectdata(data);
-    }
 
     function GetFS(){
         const FS = my_module.peekFS();
@@ -468,7 +429,6 @@ function boot(){ // Unity
         FS.mount(FS.filesystems.MEMFS, {}, "/idbfs");
     }
 
-    //global.my_module.preRun.push(injectdata);
     global.my_module.preRun.push(GetFS);
 
     function fake_alert(obj){
