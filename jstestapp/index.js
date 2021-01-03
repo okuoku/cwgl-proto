@@ -1,7 +1,3 @@
-/*
-const BOOTSTRAP = "app2/gltest2.framework.js";
-const BOOTWASM = "app2/gltest2.wasm";
-*/
 
 /*
 const BOOTPROTOCOL = "unity";
@@ -51,40 +47,12 @@ function handleevents(){
     }
 }
 
-// FakeFetch
-
-function fake_fetch(path, opts) {
-    console.log("Fake fetch", path, opts);
-    if(path == "example_emscripten_opengl3.wasm"){
-        return new Promise(ret => {
-            ret({
-                ok: true,
-                arrayBuffer: function(){
-                    let bin = fs.readFileSync(BOOTWASM);
-                    console.log(bin);
-                    return new Promise(res => {
-                        res(bin);
-                    });
-                }
-            });
-        });
-    }else if(path == "build.wasm"){
-        // Remap for Unity
-        return new Promise(ret => {
-            ret({
-                ok: true,
-                arrayBuffer: function(){
-                    let bin = fs.readFileSync(BOOTWASM);
-                    console.log(bin);
-                    return new Promise(res => {
-                        res(bin);
-                    });
-                }
-            });
-        });
-    }else{
-        return null;
-    }
+// Bootstrap resources
+function bootstrap_script(){
+    return fs.readFileSync(BOOTSTRAP, "utf8");
+}
+function bootstrap_wasm(){
+    return fs.readFileSync(BOOTWASM);
 }
 
 // Emscripten patches
@@ -400,7 +368,6 @@ wnd.document.URL = "";
 
 // Boot
 global.my_window = wnd;
-global.my_fetch = fake_fetch;
 global.my_doc = wnd.document;
 global.my_module = my_module;
 global.my_screen = my_screen;
@@ -408,19 +375,19 @@ global.fake_settimeout = fake_settimeout;
 global.AudioContext = wnd.AudioContext;
 
 function boot_plain(){ // Emscripten plain
-    const bootstrap = fs.readFileSync("app/example_emscripten_opengl3.js", "utf8");
+    const bootstrap = bootstrap_script();
     let window = global.my_window;
     let navigator = window.navigator;
-    let fetch = global.my_fetch;
     let document = global.my_doc;
     var Module = global.my_module;
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
+    my_module.wasmBinary = bootstrap_wasm();
     eval(bootstrap);
 }
 
 function boot_unity(){ // Unity
-    const bootstrap = fs.readFileSync(BOOTSTRAP, "utf8");
+    const bootstrap = bootstrap_script();
 
     function GetFS(){
         const FS = my_module.peekFS();
@@ -440,7 +407,6 @@ function boot_unity(){ // Unity
 
     let window = global.my_window;
     let navigator = window.navigator;
-    let fetch = global.my_fetch;
     let document = global.my_doc;
     var Module = global.my_module;
     let screen = global.my_screen;
@@ -454,6 +420,7 @@ function boot_unity(){ // Unity
     let init = global.initfunc;
     my_module.noFSInit = true;
     my_module.unityFileSystemInit = function(){}; // FIXME: Handle idbfs
+    my_module.wasmBinary = bootstrap_wasm();
     init(global.my_module);
 }
 
@@ -471,4 +438,3 @@ function boot(){
 }
 
 boot();
-
