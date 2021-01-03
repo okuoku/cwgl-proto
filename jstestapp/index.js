@@ -1,12 +1,11 @@
 /*
-const UNITY_JS = "app2/gltest2.framework.js";
-const UNITY_WASM = "app2/gltest2.wasm";
-const UNITY_DATA = "app2/gltest2.data";
+const BOOTSTRAP = "app2/gltest2.framework.js";
+const BOOTWASM = "app2/gltest2.wasm";
 */
 
-const UNITY_JS = "app4/webgl.framework.js";
-const UNITY_WASM = "app4/webgl.wasm";
-const UNITY_DATA = "app4/webgl.data";
+const BOOTPROTOCOL = "unity";
+const BOOTSTRAP = "app4/webgl.framework.js";
+const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
 
 const process = require("process");
@@ -69,7 +68,7 @@ function fake_fetch(path, opts) {
             ret({
                 ok: true,
                 arrayBuffer: function(){
-                    let bin = fs.readFileSync(UNITY_WASM);
+                    let bin = fs.readFileSync(BOOTWASM);
                     console.log(bin);
                     return new Promise(res => {
                         res(bin);
@@ -402,8 +401,7 @@ global.my_screen = my_screen;
 global.fake_settimeout = fake_settimeout;
 global.AudioContext = wnd.AudioContext;
 
-/*
-function boot(){ // Emscripten plain
+function boot_plain(){ // Emscripten plain
     const bootstrap = fs.readFileSync("app/example_emscripten_opengl3.js", "utf8");
     let window = global.my_window;
     let navigator = window.navigator;
@@ -414,10 +412,9 @@ function boot(){ // Emscripten plain
     let setTimeout = global.fake_settimeout;
     eval(bootstrap);
 }
-*/
 
-function boot(){ // Unity
-    const bootstrap = fs.readFileSync(UNITY_JS, "utf8");
+function boot_unity(){ // Unity
+    const bootstrap = fs.readFileSync(BOOTSTRAP, "utf8");
 
     function GetFS(){
         const FS = my_module.peekFS();
@@ -452,6 +449,19 @@ function boot(){ // Unity
     my_module.noFSInit = true;
     my_module.unityFileSystemInit = function(){}; // FIXME: Handle idbfs
     init(global.my_module);
+}
+
+function boot(){
+    switch(BOOTPROTOCOL){
+        case "unity":
+            boot_unity();
+            break;
+        case "plain":
+            boot_plain();
+            break;
+        default:
+            throw "unknown boot protocol";
+    }
 }
 
 boot();
