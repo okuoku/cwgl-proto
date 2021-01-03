@@ -3,10 +3,16 @@ const BOOTSTRAP = "app2/gltest2.framework.js";
 const BOOTWASM = "app2/gltest2.wasm";
 */
 
+/*
 const BOOTPROTOCOL = "unity";
 const BOOTSTRAP = "app4/webgl.framework.js";
 const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
+*/
+
+const BOOTPROTOCOL = "plain";
+const BOOTSTRAP = "app/example_emscripten_opengl3.js";
+const BOOTWASM = "app/example_emscripten_opengl3.wasm";
 
 const process = require("process");
 const fs = require("fs");
@@ -54,7 +60,7 @@ function fake_fetch(path, opts) {
             ret({
                 ok: true,
                 arrayBuffer: function(){
-                    let bin = fs.readFileSync("app/example_emscripten_opengl3.wasm");
+                    let bin = fs.readFileSync(BOOTWASM);
                     console.log(bin);
                     return new Promise(res => {
                         res(bin);
