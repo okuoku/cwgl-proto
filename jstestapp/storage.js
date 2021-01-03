@@ -196,6 +196,7 @@ function do_genfs(FS, ROOT){
             if(! e.code){
                 throw e;
             }else{
+                console.log("FSerr", e.code);
                 throw new FS.ErrnoError(ERRNO_CODES[e.code]);
             }
         }
@@ -325,7 +326,7 @@ function do_genfs(FS, ROOT){
     }
 
     function newnode_file(parent, name){
-        const r = FS.createNode(parent, name, 511, 0);
+        const r = FS.createNode(parent, name, 511 | 32768 /* IFREG */, 0);
         r.node_ops = file_nodeops;
         r.stream_ops = file_streamops;
         return r;
