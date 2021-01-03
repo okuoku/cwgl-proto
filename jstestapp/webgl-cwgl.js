@@ -21,6 +21,10 @@ function GL(w, h, attr){
     let shadowDepthRenderbuffer = null;
     let shadowStencilRenderbuffer = null;
 
+    let currentFramebuffer = null;
+    function trackbinding_Framebuffer(fb){
+        currentFramebuffer = fb;
+    }
     let currentRenderbuffer = null;
     function trackbinding_Renderbuffer(rb){
         currentRenderbuffer = rb;
@@ -176,6 +180,10 @@ function GL(w, h, attr){
                     return currentTextureCubeMap;
                 case E.ARRAY_BUFFER_BINDING:
                     return currentArrayBuffer;
+                case E.FRAMEBUFFER_BINDING:
+                    return currentFramebuffer;
+                case E.RENDERBUFFER_BINDING:
+                    return currentRenderbuffer;
                 case E.ELEMENT_ARRAY_BUFFER_BINDING:
                     return currentElementArrayBuffer;
                 case E.CURRENT_PROGRAM:
@@ -421,6 +429,7 @@ function GL(w, h, attr){
         },
         // 5.14.6 Framebuffer objects
         bindFramebuffer: function(target, framebuffer){
+            trackbinding_Framebuffer(framebuffer);
             if(! framebuffer){
                 CWGL.cwgl_bindFramebuffer(ctx, target, Ref.NULL);
             }else{
@@ -537,6 +546,8 @@ function GL(w, h, attr){
                 shadowDepthRenderbuffer = save_Renderbuffer;
                 shadowStencilRenderbuffer = shadow;
                 CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, save_Renderbuffer);
+            }else if(internalformat == E.DEPTH_COMPONENT){
+                CWGL.cwgl_renderbufferStorage(ctx, target, E.DEPTH_COMPONENT16, width, height);
             }else{
                 CWGL.cwgl_renderbufferStorage(ctx, target, internalformat, width, height);
             }
@@ -801,9 +812,27 @@ function GL(w, h, attr){
             wrapPointer(ptr, uniformlocationfree);
             return ptr;
         },
-        // getVertexAttrib
+        getVertexAttrib: function(index, pname){
+            // FIXME: Implement this;
+            const type = getenumtype(pname);
+            switch(type){
+                case "bool":
+                    return false;
+                case "int":
+                    return 0;
+                case "f4":
+                    return [0.0,0.0,0.0,1.0];
+                case "Buffer":
+                    return null;
+                default:
+                    throw "unknown";
+            }
+        },
         /* WebGLHandlesContextLoss */
-        // getVertexAttribOffset
+        getVertexAttribOffset: function(index){
+            // FIXME: Implement this;
+            return 0;
+        },
         uniform1f: function(loc, x){
             CWGL.cwgl_uniform1f(ctx, loc, x);
         },
@@ -844,6 +873,7 @@ function GL(w, h, attr){
             CWGL.cwgl_uniform1iv(ctx, loc, v, v.length);
         },
         uniform2iv: function(loc, v){
+            if(!loc) return; // Godot WebGL1 WAR
             CWGL.cwgl_uniform2iv(ctx, loc, v, v.length / 2);
         },
         uniform3iv: function(loc, v){

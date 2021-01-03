@@ -6,12 +6,21 @@ const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
 */
 
+/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app/example_emscripten_opengl3.js";
 const BOOTWASM = "app/example_emscripten_opengl3.wasm";
+*/
+
+const BOOTPROTOCOL = "godot";
+const BOOTSTRAP = "app5/pp.webgl.js";
+const BOOTWASM = "app5/webgl.wasm";
+const GODOT_ARGS = ["--main-pack","webgl.pck"]; // target path
+const APPFS_DIR = "app5/appfs";
 
 const process = require("process");
 const fs = require("fs");
+const Crypto = require("crypto");
 const GL = require("./webgl-cwgl.js");
 const audioctx_mini = require("./audioctx-mini.js");
 const performance = require('perf_hooks').performance;
@@ -24,6 +33,14 @@ const wnd = {};
 wnd.document = doc;
 wnd.navigator = nav;
 wnd.AudioContext = audioctx_mini;
+
+function fake_gRV(buffer){
+    Crypto.randomFillSync(buffer);
+    return buffer;
+}
+
+const crypto = {};
+crypto.getRandomValues = fake_gRV;
 
 function sleep(ms){
     return new Promise((res) => setTimeout(res, ms));
@@ -239,6 +256,8 @@ function fake_rEL(depth, name){
 const my_canvas = {
     clientWidth: 1280,
     clientHeight: 720,
+    width: 1280,
+    height: 720,
     style: {
         cursor: "bogus"
     },
@@ -254,6 +273,7 @@ const my_canvas = {
             height: 720
         };
     },
+    focus: function(){},
     addEventListener: fake_aEL(2, "CANVAS"),
     removeEventListener: fake_rEL(2, "CANVAS"),
     getContext: function(type,attr){
@@ -266,7 +286,11 @@ const my_canvas = {
             return g_ctx;
         }
         return null;
-    }
+    },
+    requestFullscreen: function(){
+        console.log("Ignored requestFullscreen");
+    },
+    id: "canvas"
 };
 
 const my_module = {
@@ -306,12 +330,14 @@ wnd.navigator.getGamepads = function(){
 wnd.requestAnimationFrame = function(cb){
     //console.log("rAF");
     setImmediate(function(){
-        checkheapdump();
-        g_ctx.cwgl_frame_end();
         const now = performance.now();
-        //console.log("RAF", now);
-        g_ctx.cwgl_frame_begin();
-        handleevents();
+        if(g_ctx){
+            checkheapdump();
+            g_ctx.cwgl_frame_end();
+            //console.log("RAF", now);
+            g_ctx.cwgl_frame_begin();
+            handleevents();
+        }
         cb(now);
     });
     return 99.99;
@@ -358,8 +384,20 @@ function fake_queryselector(tgt){
     }
 }
 
+function fake_gEBI(tgt){
+    console.log("Fake getElementById", tgt);
+    return null;
+}
+
+function fake_cEl(typ){
+    console.log("Fake cEL", typ);
+    return {};
+}
+
 wnd.document.querySelector = fake_queryselector;
 wnd.document.addEventListener = fake_aEL(1, "Document"); // specialHTMLTargets[1]
+wnd.document.getElementById = fake_gEBI;
+wnd.document.createElement = fake_cEl;
 wnd.addEventListener = fake_aEL(0, "Window"); // specialHTMLTargets[2]
 wnd.navigator.userAgent = "bogus";
 wnd.navigator.appVersion = "bogus";
@@ -424,6 +462,57 @@ function boot_unity(){ // Unity
     init(global.my_module);
 }
 
+async function boot_godot(){ // Godot
+    const bootstrap = bootstrap_script();
+    // Fake rAF on Global ("real" rAF is at window.)
+
+    function fake_alert(obj){
+        console.log("ALERT", obj);
+    }
+
+    let window = global.my_window;
+    let navigator = window.navigator;
+    let document = global.my_doc;
+    let screen = global.my_screen;
+    let setTimeout = global.fake_settimeout;
+    let alert = fake_alert;
+    window.alert = fake_alert;
+    let requestAnimationFrame = window.requestAnimationFrame;
+
+    eval(bootstrap + "\n\n global.the_godot = Godot;");
+
+    let my_Godot = global.the_godot;
+
+    /* Filler for favicon override... */
+    const Blob = function(){return {};}
+    URL.createObjectURL = function(){
+        console.log("Ignored createObjectURL...");
+    };
+    document.head = {};
+    document.head.appendChild = function(){};
+    /* Emulate engine.init() */
+    const godotconfig = {};
+    godotconfig.wasmBinary = bootstrap_wasm();
+    godotconfig.canvas = my_canvas;
+    my_Godot(godotconfig).then(godot_module => {
+        const FS = godot_module.FS;
+        console.log(godot_module);
+        const APPFS = storage.genfs(FS, APPFS_DIR);
+        /* Instantiate filesystem */
+        //godot_module.FS.mkdir("/appfs");
+        //godot_module.FS.mount(APPFS, {}, "/appfs");
+        FS.root = false;
+        FS.mount(APPFS, {}, "/");
+        FS.mount(FS.filesystems.MEMFS, {}, "/userfs");
+        /* Lock filesystem */
+        FS.mkdir = function(nod){console.log("Ignored mkdir",nod);};
+        FS.mount = function(fs,opt,nod){console.log("Ignored mount",fs,opt,nod);};
+        /* Emulate engine.start() */
+        godotconfig.locale = "en";
+        godotconfig.callMain(GODOT_ARGS);
+    });
+}
+
 function boot(){
     switch(BOOTPROTOCOL){
         case "unity":
@@ -431,6 +520,9 @@ function boot(){
             break;
         case "plain":
             boot_plain();
+            break;
+        case "godot":
+            boot_godot();
             break;
         default:
             throw "unknown boot protocol";

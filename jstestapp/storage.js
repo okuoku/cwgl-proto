@@ -269,7 +269,7 @@ function do_genfs(FS, ROOT){
     }
     /* read(file) */
     function file_read(stream, buffer, offset, length, pos){ // => bytes read
-        console.log("File read", stream.path, offset, length, pos);
+        //console.log("File read", stream.path, offset, length, pos);
         return fs.readSync(stream.NativeFD, buffer, offset, length, pos);
     }
     /* write(file) */

@@ -19,6 +19,9 @@ function wrappromise(promise, success, fail){
 
 function audioctx_mini(){
     return {
+        destination: {
+            channelCount: 2,
+        },
         decodeAudioData: function(data, success, fail){
             const p = new Promise((res, err) => {
                 res(dummybuffer());
@@ -55,6 +58,11 @@ function audioctx_mini(){
             return dummynode();
         },
         */
+        createScriptProcessor: function(){
+            let node = dummynode();
+            node.bufferSize = 4096;
+            return node;
+        }
     }
 }
 
