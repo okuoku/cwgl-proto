@@ -67,7 +67,7 @@ cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
     glc = SDL_GL_CreateContext(wnd);
     SDL_GL_MakeCurrent(wnd, glc);
 
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(0);
 
     r = malloc(sizeof(cwgl_ctx_t));
     r->wnd = wnd;
