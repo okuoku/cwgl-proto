@@ -12,11 +12,19 @@ const BOOTSTRAP = "app/example_emscripten_opengl3.js";
 const BOOTWASM = "app/example_emscripten_opengl3.wasm";
 */
 
+/*
 const BOOTPROTOCOL = "godot";
-const BOOTSTRAP = "app5/pp.webgl.js";
+const BOOTSTRAP = "app5/webgl.js";
 const BOOTWASM = "app5/webgl.wasm";
 const GODOT_ARGS = ["--main-pack","webgl.pck"]; // target path
 const APPFS_DIR = "app5/appfs";
+*/
+
+const BOOTPROTOCOL = "plain";
+const BOOTSTRAP = "app6/dosbox-x.js";
+const BOOTWASM = "app6/dosbox-x.wasm";
+const BOOTARGS = ["-conf", "/appfs/conf"];
+const APPFS_DIR = "app6/appfs";
 
 const process = require("process");
 const fs = require("fs");
@@ -24,7 +32,8 @@ const Crypto = require("crypto");
 const GL = require("./webgl-cwgl.js");
 const audioctx_mini = require("./audioctx-mini.js");
 const performance = require('perf_hooks').performance;
-const storage = require("./storage.js")
+const storage = require("./storage.js");
+const EmuCanvas = require("./emucanvas.js");
 
 const nav = {};
 const doc = {};
@@ -282,8 +291,18 @@ const my_canvas = {
             g_ctx = GL(1280,720,attr);
             g_ctx.canvas = this;
             g_ctx.cwgl_frame_begin();
+            g_ctx.__framebuffer_mode = false;
             handleevents();
             return g_ctx;
+        }else if(type == "2d"){
+            // Framebuffer canvas context
+            g_ctx = GL(1280,720,attr);
+            g_ctx.canvas = this;
+            g_ctx.cwgl_frame_begin();
+            g_ctx.__framebuffer_mode = true;
+            handleevents();
+
+            return EmuCanvas(g_ctx, true);
         }
         return null;
     },
@@ -333,6 +352,7 @@ wnd.requestAnimationFrame = function(cb){
         const now = performance.now();
         if(g_ctx){
             checkheapdump();
+            checkframebuffer();
             g_ctx.cwgl_frame_end();
             //console.log("RAF", now);
             g_ctx.cwgl_frame_begin();
@@ -341,6 +361,12 @@ wnd.requestAnimationFrame = function(cb){
         cb(now);
     });
     return 99.99;
+}
+
+function checkframebuffer(){
+    if(g_ctx.__framebuffer_mode){
+        g_ctx.__drawframebuffer();
+    }
 }
 
 function checkheapdump(){
@@ -358,18 +384,24 @@ function checkheapdump(){
     */
 }
 
-function fake_settimeout(cb, ms){
-    console.log("sTO", cb, ms);
-    process.nextTick(async function(){
-        checkheapdump();
-        g_ctx.cwgl_frame_end();
-        await sleep(ms);
-        const now = performance.now();
-        console.log("FRAME", now);
-        g_ctx.cwgl_frame_begin();
-        handleevents();
+function fake_settimeout(cb, ms, bogus){
+    //console.log("sTO", cb, ms);
+    if(bogus){
+        console.log("huh?", arguments);
+        throw "unknown";
+    }
+    setTimeout(function(){
+        if(g_ctx){
+            checkheapdump();
+            checkframebuffer();
+            g_ctx.cwgl_frame_end();
+            const now = performance.now();
+            //console.log("FRAME", now);
+            g_ctx.cwgl_frame_begin();
+            handleevents();
+        }
         cb();
-    });
+    }, ms);
 }
 
 
@@ -421,6 +453,17 @@ function boot_plain(){ // Emscripten plain
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
     my_module.wasmBinary = bootstrap_wasm();
+    if(BOOTARGS){
+        my_module.arguments = BOOTARGS;
+    }
+    function mountFS(){
+        if(APPFS_DIR){
+            const APPFS = storage.genfs(FS, APPFS_DIR);
+            FS.mkdir("/appfs");
+            FS.mount(APPFS, {}, "/appfs");
+        }
+    }
+    global.my_module.preRun.push(mountFS);
     eval(bootstrap);
 }
 
