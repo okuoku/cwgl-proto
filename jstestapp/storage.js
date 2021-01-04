@@ -231,8 +231,10 @@ function do_genfs(FS, ROOT){
     /* open */
     function file_open(stream){ // => void
         console.log("File Open", stream.path);
-        const path = stream.path;
-        const fd = fs.openSync(ROOT + path);
+        const node = stream.node;
+        const path = pathexpand(node);
+        console.log("Resolved as", path);
+        const fd = fs.openSync(path);
         stream.NativeFD = fd;
 
     }
