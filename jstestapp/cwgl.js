@@ -262,9 +262,8 @@ function genlibdef() {
         cwgl_isProgram: [Int, [C, cwglProgram]],
         cwgl_getProgramParameter_i1: [Int, [C, cwglProgram, Int, "void *"]],
         // cwgl_getAttachedShaders FIXME: Implement readback
-        cwgl_getProgramInfoLog: [_, [C, cwglProgram]],
-        cwgl_getShaderInfoLog: [_, [C, cwglShader]],
-        // cwgl_getShaderInfoLog
+        cwgl_getProgramInfoLog: [cwglString, [C, cwglProgram]],
+        cwgl_getShaderInfoLog: [cwglString, [C, cwglShader]],
         // cwgl_getShaderSource
         cwgl_getShaderPrecisionFormat: [Int, [C, Int, Int, "void *", "void *", "void *"]],
         // cwgl_getVertexAttrib_i1
