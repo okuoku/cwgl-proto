@@ -154,7 +154,22 @@ function do_genfs(FS, ROOT){
     /* getattr(dir, file) */
     function dir_getattr(node){
         console.log("Dir getattr", node);
-        throw "UNIMPL";
+        return {
+            dev: 0,
+            ino: 0,
+            mode: node.mode,
+            nlink: 1,
+            uid: 0,
+            gid: 0,
+            rdev: 0,
+            size: 0,
+            blksize: 4096,
+            /* Dummy */
+            atime: new Date(),
+            mtime: new Date(),
+            ctime: new Date(),
+            blocks: 999999
+        };
     }
     function file_getattr(node){
         console.log("File getattr", node.name);
@@ -220,7 +235,12 @@ function do_genfs(FS, ROOT){
     /* readdir(dir) */
     function dir_readdir(node){
         console.log("Dir readdir", node);
-        throw "UNIMPL";
+        try {
+          return fs.readdirSync(pathexpand(node));
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* symlink(dir) */
     function dir_symlink(parent, newname, path){
@@ -248,8 +268,20 @@ function do_genfs(FS, ROOT){
     }
     /* llseek(dir, file) */
     function dir_llseek(stream, offset, whence){
+        let pos = offset;
         console.log("Dir LLSEEK", stream, offset, whence);
-        throw "UNIMPL";
+        switch(whence){
+            case 2: /* SEEK_END */
+                throw "SEEK_END..?";
+                break;
+            case 1: /* SEEK_CUR */
+                pos += stream.position;
+                break;
+            default:
+                /* No adjustment */
+                break;
+        }
+        return pos;
     }
     function file_llseek(stream, offset, whence){ // => adjusted position
         let pos = offset;
