@@ -153,7 +153,7 @@ function do_genfs(FS, ROOT){
     /* NODE OPS */
     /* getattr(dir, file) */
     function dir_getattr(node){
-        console.log("Dir getattr", node);
+        console.log("Dir getattr", node.name);
         return {
             dev: 0,
             ino: 0,
@@ -269,7 +269,7 @@ function do_genfs(FS, ROOT){
     /* llseek(dir, file) */
     function dir_llseek(stream, offset, whence){
         let pos = offset;
-        console.log("Dir LLSEEK", stream, offset, whence);
+        console.log("Dir LLSEEK", stream.path, offset, whence);
         switch(whence){
             case 2: /* SEEK_END */
                 throw "SEEK_END..?";
