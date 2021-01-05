@@ -14,14 +14,14 @@ const BOOTWASM = "app/example_emscripten_opengl3.wasm";
 
 /*
 const BOOTPROTOCOL = "godot";
-const BOOTSTRAP = "app5/webgl.js";
+const BOOTSTRAP = "app5/pp.webgl.js";
 const BOOTWASM = "app5/webgl.wasm";
 const GODOT_ARGS = ["--main-pack","webgl.pck"]; // target path
 const APPFS_DIR = "app5/appfs";
 */
 
 const BOOTPROTOCOL = "plain";
-const BOOTSTRAP = "app6/dosbox-x.js";
+const BOOTSTRAP = "app6/pp.dosbox-x.js";
 const BOOTWASM = "app6/dosbox-x.wasm";
 const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
@@ -41,7 +41,30 @@ const wnd = {};
 
 wnd.document = doc;
 wnd.navigator = nav;
-wnd.AudioContext = audioctx_mini;
+const acinit = {
+    setAudioTick: function(proc){
+        audio_tick_handler = proc;
+    },
+    audioEnqueue: function(ch0, ch1){
+        if(g_ctx){
+            g_ctx.yfrm_audio_enqueue0(ch0, ch1, ch0.length);
+        }
+    },
+    audioPause: function(){
+        if(g_ctx){
+            g_ctx.yfrm_audio_pause0();
+        }
+    }
+};
+wnd.AudioContext = audioctx_mini(acinit);
+
+let audio_tick_handler = false;
+
+function audiotick(){
+    if(audio_tick_handler){
+        audio_tick_handler();
+    }
+}
 
 function fake_gRV(buffer){
     Crypto.randomFillSync(buffer);
@@ -64,6 +87,7 @@ let heapdump_next = -1;
 // Event dispatcher
 function handleevents(){
     const evtbuf = g_ctx.yfrm_evtbuf;
+    audiotick();
     while(true){
         let term = g_ctx.yfrm_fill_events();
         if(term <= 0){
@@ -452,6 +476,7 @@ function boot_plain(){ // Emscripten plain
     var Module = global.my_module;
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
+    let AudioContext = window.AudioContext;
     my_module.wasmBinary = bootstrap_wasm();
     if(BOOTARGS){
         my_module.arguments = BOOTARGS;
@@ -493,6 +518,7 @@ function boot_unity(){ // Unity
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
     let alert = fake_alert;
+    let AudioContext = window.AudioContext;
 
     const preamble = "function unityFramework(Module){function peekFS(){return FS;} Module.peekFS = peekFS; //"
 
@@ -521,6 +547,7 @@ async function boot_godot(){ // Godot
     let alert = fake_alert;
     window.alert = fake_alert;
     let requestAnimationFrame = window.requestAnimationFrame;
+    let AudioContext = window.AudioContext;
 
     eval(bootstrap + "\n\n global.the_godot = Godot;");
 

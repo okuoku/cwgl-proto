@@ -24,6 +24,8 @@ extern "C" {
 YFRM_API int yfrm_query0(int32_t slot, int32_t* buf, size_t buflen);
 YFRM_API void yfrm_frame_begin0(void*);
 YFRM_API void yfrm_frame_end0(void*);
+YFRM_API void yfrm_audio_enqueue0(float* ch0, float* ch1, int32_t samples);
+YFRM_API void yfrm_audio_pause0(void);
 
 // {
 #ifdef __cplusplus

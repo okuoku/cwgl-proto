@@ -23,6 +23,8 @@ function genlibdef() {
         yfrm_query0: [Int, [Int, "void *", Int]],
         yfrm_frame_begin0: [_, [C]],
         yfrm_frame_end0: [_, [C]],
+        yfrm_audio_enqueue0: [_, ["void *", "void *", Int]],
+        yfrm_audio_pause0: [_, []],
 
         /* Context, Platform */
         cwgl_init: [Int, []],

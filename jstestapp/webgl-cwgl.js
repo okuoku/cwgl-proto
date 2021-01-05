@@ -99,6 +99,12 @@ function GL(w, h, attr){
             return r;
         },
         yfrm_evtbuf: evtbuf,
+        yfrm_audio_enqueue0: function(ch0, ch1, samples){
+            CWGL.yfrm_audio_enqueue0(ch0, ch1, samples);
+        },
+        yfrm_audio_pause0: function(){
+            CWGL.yfrm_audio_pause0();
+        },
 
         // 5.14.1 Attributes
         /// canvas (set by client)
