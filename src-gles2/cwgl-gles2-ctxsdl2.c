@@ -373,94 +373,138 @@ fill_keyevent(int32_t* buf, size_t offs, SDL_Event* evt){
     }else{
         type = 201;
     }
-    switch(evt->key.keysym.sym & 0xff){
-#define KEYMAP(TO,FROM) case FROM: keycode = TO; break;
-        KEYMAP(16, 225)
-            KEYMAP(17, 224)
-            KEYMAP(18, 226)
-            KEYMAP(20, 57)
-            KEYMAP(33, 75)
-            KEYMAP(34, 78)
-            KEYMAP(35, 77)
-            KEYMAP(36, 74)
-            KEYMAP(37, 80)
-            KEYMAP(38, 82)
-            KEYMAP(39, 79)
-            KEYMAP(40, 81)
-            KEYMAP(44, 316)
-            KEYMAP(45, 73)
-            KEYMAP(46, 127)
-            KEYMAP(91, 227)
-            KEYMAP(93, 101)
-            KEYMAP(96, 98)
-            KEYMAP(97, 89)
-            KEYMAP(98, 90)
-            //KEYMAP(99, 91)
-            //KEYMAP(100, 92)
-            //KEYMAP(101, 93)
-            //KEYMAP(102, 94) // keypad 6
-            //KEYMAP(103, 95)
-            //KEYMAP(104, 96)
-            KEYMAP(105, 97)
-            KEYMAP(106, 85)
-            KEYMAP(107, 87)
-            KEYMAP(109, 86)
-            KEYMAP(110, 99)
-            KEYMAP(111, 84)
-            KEYMAP(112, 58)
-            KEYMAP(113, 59)
-            KEYMAP(114, 60)
-            KEYMAP(115, 61)
-            KEYMAP(116, 62)
-            KEYMAP(117, 63)
-            KEYMAP(118, 64)
-            KEYMAP(119, 65)
-            KEYMAP(120, 66)
-            KEYMAP(121, 67)
-            KEYMAP(122, 68)
-            KEYMAP(123, 69)
-            KEYMAP(124, 104)
-            KEYMAP(125, 105)
-            KEYMAP(126, 106)
-            KEYMAP(127, 107)
-            KEYMAP(128, 108)
-            KEYMAP(129, 109)
-            KEYMAP(130, 110)
-            KEYMAP(131, 111)
-            KEYMAP(132, 112)
-            KEYMAP(133, 113)
-            KEYMAP(134, 114)
-            KEYMAP(135, 115)
-            KEYMAP(144, 83)
-            KEYMAP(160, 94)
-            KEYMAP(161, 33)
-            KEYMAP(162, 34)
-            KEYMAP(163, 35)
-            KEYMAP(164, 36)
-            KEYMAP(165, 37)
-            KEYMAP(166, 38)
-            KEYMAP(167, 95)
-            KEYMAP(168, 40)
-            KEYMAP(169, 41)
-            KEYMAP(170, 42)
-            KEYMAP(171, 43)
-            KEYMAP(172, 124)
-            KEYMAP(173, 45)
-            KEYMAP(174, 123)
-            KEYMAP(175, 125)
-            KEYMAP(176, 126)
-            //KEYMAP(181, 127)
-            KEYMAP(182, 129)
-            KEYMAP(183, 128)
-            KEYMAP(188, 44)
-            KEYMAP(190, 46)
-            KEYMAP(191, 47)
-            KEYMAP(192, 96)
-            KEYMAP(219, 91)
-            KEYMAP(220, 92)
-            KEYMAP(221, 93)
-            KEYMAP(222, 39)
-            //KEYMAP(224, 227)
+    switch(evt->key.keysym.scancode){
+#define KEYMAP(TO,FROM) case FROM: keycode = TO; break
+        KEYMAP(3 , SDL_SCANCODE_CANCEL);
+        KEYMAP(6 , SDL_SCANCODE_HELP);
+        KEYMAP(8 , SDL_SCANCODE_BACKSPACE);
+        KEYMAP(9 , SDL_SCANCODE_TAB);
+        //KEYMAP(12 , SDL_SCANCODE_KP_5);
+        KEYMAP(13 , SDL_SCANCODE_RETURN);
+        KEYMAP(16 , SDL_SCANCODE_LSHIFT);
+        KEYMAP(17 , SDL_SCANCODE_LCTRL);
+        KEYMAP(18 , SDL_SCANCODE_LALT);
+        KEYMAP(19 , SDL_SCANCODE_PAUSE);
+        KEYMAP(20 , SDL_SCANCODE_CAPSLOCK);
+        KEYMAP(27 , SDL_SCANCODE_ESCAPE);
+        KEYMAP(32 , SDL_SCANCODE_SPACE);
+        KEYMAP(33 , SDL_SCANCODE_PAGEUP);
+        KEYMAP(34 , SDL_SCANCODE_PAGEDOWN);
+        KEYMAP(35 , SDL_SCANCODE_END);
+        KEYMAP(36 , SDL_SCANCODE_HOME);
+        KEYMAP(37 , SDL_SCANCODE_LEFT);
+        KEYMAP(38 , SDL_SCANCODE_UP);
+        KEYMAP(39 , SDL_SCANCODE_RIGHT);
+        KEYMAP(40 , SDL_SCANCODE_DOWN);
+        KEYMAP(45 , SDL_SCANCODE_INSERT);
+        KEYMAP(46 , SDL_SCANCODE_DELETE);
+        KEYMAP(48 , SDL_SCANCODE_0);
+        KEYMAP(49 , SDL_SCANCODE_1);
+        KEYMAP(50 , SDL_SCANCODE_2);
+        KEYMAP(51 , SDL_SCANCODE_3);
+        KEYMAP(52 , SDL_SCANCODE_4);
+        KEYMAP(53 , SDL_SCANCODE_5);
+        KEYMAP(54 , SDL_SCANCODE_6);
+        KEYMAP(55 , SDL_SCANCODE_7);
+        KEYMAP(56 , SDL_SCANCODE_8);
+        KEYMAP(57 , SDL_SCANCODE_9);
+        KEYMAP(59 , SDL_SCANCODE_SEMICOLON);
+        KEYMAP(60 , SDL_SCANCODE_NONUSBACKSLASH);
+        KEYMAP(61 , SDL_SCANCODE_EQUALS);
+        KEYMAP(63 , SDL_SCANCODE_MINUS);
+        KEYMAP(65 , SDL_SCANCODE_A);
+        KEYMAP(66 , SDL_SCANCODE_B);
+        KEYMAP(67 , SDL_SCANCODE_C);
+        KEYMAP(68 , SDL_SCANCODE_D);
+        KEYMAP(69 , SDL_SCANCODE_E);
+        KEYMAP(70 , SDL_SCANCODE_F);
+        KEYMAP(71 , SDL_SCANCODE_G);
+        KEYMAP(72 , SDL_SCANCODE_H);
+        KEYMAP(73 , SDL_SCANCODE_I);
+        KEYMAP(74 , SDL_SCANCODE_J);
+        KEYMAP(75 , SDL_SCANCODE_K);
+        KEYMAP(76 , SDL_SCANCODE_L);
+        KEYMAP(77 , SDL_SCANCODE_M);
+        KEYMAP(78 , SDL_SCANCODE_N);
+        KEYMAP(79 , SDL_SCANCODE_O);
+        KEYMAP(80 , SDL_SCANCODE_P);
+        KEYMAP(81 , SDL_SCANCODE_Q);
+        KEYMAP(82 , SDL_SCANCODE_R);
+        KEYMAP(83 , SDL_SCANCODE_S);
+        KEYMAP(84 , SDL_SCANCODE_T);
+        KEYMAP(85 , SDL_SCANCODE_U);
+        KEYMAP(86 , SDL_SCANCODE_V);
+        KEYMAP(87 , SDL_SCANCODE_W);
+        KEYMAP(88 , SDL_SCANCODE_X);
+        KEYMAP(89 , SDL_SCANCODE_Y);
+        KEYMAP(90 , SDL_SCANCODE_Z);
+        KEYMAP(91 , SDL_SCANCODE_LGUI);
+        KEYMAP(93 , SDL_SCANCODE_APPLICATION);
+        KEYMAP(96 , SDL_SCANCODE_KP_0);
+        KEYMAP(97 , SDL_SCANCODE_KP_1);
+        KEYMAP(98 , SDL_SCANCODE_KP_2);
+        KEYMAP(99 , SDL_SCANCODE_KP_3);
+        KEYMAP(100 , SDL_SCANCODE_KP_4);
+        KEYMAP(101 , SDL_SCANCODE_KP_5);
+        KEYMAP(102 , SDL_SCANCODE_KP_6);
+        KEYMAP(103 , SDL_SCANCODE_KP_7);
+        KEYMAP(104 , SDL_SCANCODE_KP_8);
+        KEYMAP(105 , SDL_SCANCODE_KP_9);
+        KEYMAP(106 , SDL_SCANCODE_KP_MULTIPLY);
+        KEYMAP(107 , SDL_SCANCODE_KP_PLUS);
+        KEYMAP(109 , SDL_SCANCODE_KP_MINUS);
+        KEYMAP(110 , SDL_SCANCODE_KP_PERIOD);
+        KEYMAP(111 , SDL_SCANCODE_KP_DIVIDE);
+        KEYMAP(112 , SDL_SCANCODE_F1);
+        KEYMAP(113 , SDL_SCANCODE_F2);
+        KEYMAP(114 , SDL_SCANCODE_F3);
+        KEYMAP(115 , SDL_SCANCODE_F4);
+        KEYMAP(116 , SDL_SCANCODE_F5);
+        KEYMAP(117 , SDL_SCANCODE_F6);
+        KEYMAP(118 , SDL_SCANCODE_F7);
+        KEYMAP(119 , SDL_SCANCODE_F8);
+        KEYMAP(120 , SDL_SCANCODE_F9);
+        KEYMAP(121 , SDL_SCANCODE_F10);
+        KEYMAP(122 , SDL_SCANCODE_F11);
+        KEYMAP(123 , SDL_SCANCODE_F12);
+        KEYMAP(124 , SDL_SCANCODE_F13);
+        KEYMAP(125 , SDL_SCANCODE_F14);
+        KEYMAP(126 , SDL_SCANCODE_F15);
+        KEYMAP(127 , SDL_SCANCODE_F16);
+        KEYMAP(128 , SDL_SCANCODE_F17);
+        KEYMAP(129 , SDL_SCANCODE_F18);
+        KEYMAP(130 , SDL_SCANCODE_F19);
+        KEYMAP(131 , SDL_SCANCODE_F20);
+        KEYMAP(132 , SDL_SCANCODE_F21);
+        KEYMAP(133 , SDL_SCANCODE_F22);
+        KEYMAP(134 , SDL_SCANCODE_F23);
+        KEYMAP(135 , SDL_SCANCODE_F24);
+        KEYMAP(144 , SDL_SCANCODE_NUMLOCKCLEAR);
+        KEYMAP(145 , SDL_SCANCODE_SCROLLLOCK);
+        KEYMAP(160 , SDL_SCANCODE_GRAVE);
+        KEYMAP(163 , SDL_SCANCODE_KP_HASH);
+        //KEYMAP(170 , SDL_SCANCODE_KP_MULTIPLY);
+        KEYMAP(171 , SDL_SCANCODE_RIGHTBRACKET);
+        //KEYMAP(173 , SDL_SCANCODE_MINUS);
+        KEYMAP(174 , SDL_SCANCODE_VOLUMEDOWN);
+        KEYMAP(175 , SDL_SCANCODE_VOLUMEUP);
+        KEYMAP(176 , SDL_SCANCODE_AUDIONEXT);
+        KEYMAP(177 , SDL_SCANCODE_AUDIOPREV);
+        KEYMAP(179 , SDL_SCANCODE_AUDIOPLAY);
+        KEYMAP(181 , SDL_SCANCODE_AUDIOMUTE);
+        //KEYMAP(182 , SDL_SCANCODE_VOLUMEDOWN);
+        //KEYMAP(183 , SDL_SCANCODE_VOLUMEUP);
+        //KEYMAP(186 , SDL_SCANCODE_SEMICOLON);
+        //KEYMAP(187 , SDL_SCANCODE_EQUALS);
+        KEYMAP(188 , SDL_SCANCODE_COMMA);
+        //KEYMAP(189 , SDL_SCANCODE_MINUS);
+        KEYMAP(190 , SDL_SCANCODE_PERIOD);
+        KEYMAP(191 , SDL_SCANCODE_SLASH);
+        //KEYMAP(192 , SDL_SCANCODE_GRAVE);
+        KEYMAP(219 , SDL_SCANCODE_LEFTBRACKET);
+        KEYMAP(220 , SDL_SCANCODE_BACKSLASH);
+        //KEYMAP(221 , SDL_SCANCODE_RIGHTBRACKET);
+        KEYMAP(222 , SDL_SCANCODE_APOSTROPHE);
         default:
             keycode = evt->key.keysym.sym;
             break;

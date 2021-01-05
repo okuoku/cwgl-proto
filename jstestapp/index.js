@@ -157,9 +157,11 @@ function send_Keyevent(name, buf, offs){
     const keycode = buf[offs+2];
     const flags = buf[offs+3];
     const keyname = buf[offs+4];
-
+    //console.log(name, String.fromCharCode([keyname]));
     const evt = {
+        key: String.fromCharCode([keyname]),
         keyCode: keycode,
+        which: keycode,
         altKey: flags & 8 ? true : false,
         ctrlKey: flags & 4 ? true : false,
         shiftKey: flags & 2 ? true : false,
