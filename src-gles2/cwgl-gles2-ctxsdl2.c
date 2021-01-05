@@ -360,6 +360,144 @@ fill_controlleraxisevent(int32_t* buf, size_t offs,SDL_Event* evt){
     return offs;
 }
 
+static size_t
+fill_keyevent(int32_t* buf, size_t offs, SDL_Event* evt){
+    const int32_t LEN_keyevent = 5;
+    /* 0 */ const int32_t len = LEN_keyevent;
+    /* 1 */ int32_t type;
+    /* 2 */ int32_t keycode;
+    /* 3 */ int32_t flags;
+    /* 4 */ int32_t keyname; /* Unicode */
+    if(evt->type == SDL_KEYDOWN){
+        type = 200;
+    }else{
+        type = 201;
+    }
+    switch(evt->key.keysym.sym & 0xff){
+#define KEYMAP(TO,FROM) case FROM: keycode = TO; break;
+        KEYMAP(16, 225)
+            KEYMAP(17, 224)
+            KEYMAP(18, 226)
+            KEYMAP(20, 57)
+            KEYMAP(33, 75)
+            KEYMAP(34, 78)
+            KEYMAP(35, 77)
+            KEYMAP(36, 74)
+            KEYMAP(37, 80)
+            KEYMAP(38, 82)
+            KEYMAP(39, 79)
+            KEYMAP(40, 81)
+            KEYMAP(44, 316)
+            KEYMAP(45, 73)
+            KEYMAP(46, 127)
+            KEYMAP(91, 227)
+            KEYMAP(93, 101)
+            KEYMAP(96, 98)
+            KEYMAP(97, 89)
+            KEYMAP(98, 90)
+            //KEYMAP(99, 91)
+            //KEYMAP(100, 92)
+            //KEYMAP(101, 93)
+            //KEYMAP(102, 94) // keypad 6
+            //KEYMAP(103, 95)
+            //KEYMAP(104, 96)
+            KEYMAP(105, 97)
+            KEYMAP(106, 85)
+            KEYMAP(107, 87)
+            KEYMAP(109, 86)
+            KEYMAP(110, 99)
+            KEYMAP(111, 84)
+            KEYMAP(112, 58)
+            KEYMAP(113, 59)
+            KEYMAP(114, 60)
+            KEYMAP(115, 61)
+            KEYMAP(116, 62)
+            KEYMAP(117, 63)
+            KEYMAP(118, 64)
+            KEYMAP(119, 65)
+            KEYMAP(120, 66)
+            KEYMAP(121, 67)
+            KEYMAP(122, 68)
+            KEYMAP(123, 69)
+            KEYMAP(124, 104)
+            KEYMAP(125, 105)
+            KEYMAP(126, 106)
+            KEYMAP(127, 107)
+            KEYMAP(128, 108)
+            KEYMAP(129, 109)
+            KEYMAP(130, 110)
+            KEYMAP(131, 111)
+            KEYMAP(132, 112)
+            KEYMAP(133, 113)
+            KEYMAP(134, 114)
+            KEYMAP(135, 115)
+            KEYMAP(144, 83)
+            KEYMAP(160, 94)
+            KEYMAP(161, 33)
+            KEYMAP(162, 34)
+            KEYMAP(163, 35)
+            KEYMAP(164, 36)
+            KEYMAP(165, 37)
+            KEYMAP(166, 38)
+            KEYMAP(167, 95)
+            KEYMAP(168, 40)
+            KEYMAP(169, 41)
+            KEYMAP(170, 42)
+            KEYMAP(171, 43)
+            KEYMAP(172, 124)
+            KEYMAP(173, 45)
+            KEYMAP(174, 123)
+            KEYMAP(175, 125)
+            KEYMAP(176, 126)
+            //KEYMAP(181, 127)
+            KEYMAP(182, 129)
+            KEYMAP(183, 128)
+            KEYMAP(188, 44)
+            KEYMAP(190, 46)
+            KEYMAP(191, 47)
+            KEYMAP(192, 96)
+            KEYMAP(219, 91)
+            KEYMAP(220, 92)
+            KEYMAP(221, 93)
+            KEYMAP(222, 39)
+            //KEYMAP(224, 227)
+        default:
+            keycode = evt->key.keysym.sym;
+            break;
+    }
+
+    flags = 0;
+    if(evt->key.repeat){
+        flags |= 1;
+    }
+    if(evt->key.keysym.mod & KMOD_SHIFT){
+        flags |= 2;
+    }
+    if(evt->key.keysym.mod & KMOD_CTRL){
+        flags |= 4;
+    }
+    if(evt->key.keysym.mod & KMOD_ALT){
+        flags |= 8;
+    }
+    if(evt->key.keysym.mod & KMOD_GUI){
+        flags |= 16;
+    }
+    keyname = evt->key.keysym.sym < 0x100 ? evt->key.keysym.sym : 0;
+
+    buf[offs] = len;
+    offs++;
+    buf[offs] = type;
+    offs++;
+    buf[offs] = keycode;
+    offs++;
+    buf[offs] = flags;
+    offs++;
+    buf[offs] = keyname;
+    offs++;
+
+    return offs;
+}
+
 SDL_GameController* cur_controller = NULL;
 
 YFRM_API int
@@ -399,6 +537,10 @@ yfrm_query0(int32_t slot, int32_t* buf, size_t buflen){
                     break;
                 case SDL_CONTROLLERAXISMOTION:
                     cur = fill_controlleraxisevent(buf, cur, &evt);
+                    break;
+                case SDL_KEYDOWN:
+                case SDL_KEYUP:
+                    cur = fill_keyevent(buf, cur, &evt);
                     break;
                 default:
                     /* Do nothing */

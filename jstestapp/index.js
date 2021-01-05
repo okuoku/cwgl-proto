@@ -153,6 +153,30 @@ function send_Mouseevent(name, buf, offs){
     dispatch_event(name, evt);
 }
 
+function send_Keyevent(name, buf, offs){
+    const keycode = buf[offs+2];
+    const flags = buf[offs+3];
+    const keyname = buf[offs+4];
+
+    const evt = {
+        keyCode: keycode,
+        altKey: flags & 8 ? true : false,
+        ctrlKey: flags & 4 ? true : false,
+        shiftKey: flags & 2 ? true : false,
+        metaKey: flags & 16 ? true : false,
+        repeat: flags & 1 ? true : false,
+    };
+    dispatch_event(name, evt);
+}
+
+function send_KeyDown(buf, offs){
+    send_Keyevent("keydown", buf, offs);
+}
+
+function send_KeyUp(buf,offs){
+    send_Keyevent("keyup", buf, offs);
+}
+
 function send_MouseDown(buf, offs){
     send_Mouseevent("mousedown", buf, offs);
 }
@@ -251,6 +275,12 @@ function process_events(evtbuf, term){
                 break;
             case 102: /* ControllerAxis */
                 set_axisstate(evtbuf, offs);
+                break;
+            case 200:
+                send_KeyDown(evtbuf, offs);
+                break;
+            case 201:
+                send_KeyUp(evtbuf, offs);
                 break;
             default:
                 /* Do nothing */
