@@ -217,26 +217,66 @@ function do_genfs(FS, ROOT){
         }
     }
     /* mknod(dir) */
-    function dir_mknod(parent, name, mode, dev){
-        throw "ROFS";
+    function dir_mknod(parent, name, mode, dev){ // => node
+        const is_dir = mode & 16384 ? true : false;
+        const node = is_dir ?
+            newnode_dir(parent, name) :
+            newnode_file(parent, name);
+        const path = pathexpand(node);
+        console.log("FS create", path);
+        try {
+            if(is_dir){
+                fs.mkdirSync(path, node.mode);
+            }else{
+                fs.writeFileSync(path, "");
+            }
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* rename(dir) */
     function dir_rename(old_node, new_dir, new_name){
-        throw "ROFS";
+        const from = pathexpand(old_node);
+        const to = pathexpand(new_dir) + "/" + new_name;
+        console.log("FS Rename", from, to);
+        try {
+            fs.renameSync(from, to);
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* unlink(dir) */
     function dir_unlink(parent, name){
-        throw "ROFS";
+        const path = pathexpand(parent);
+        const target = path + "/" + name;
+        console.log("FS unlink", target);
+        try {
+            fs.unlinkSync(target);
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* rmdir(dir) */
     function dir_rmdir(parent, name){
-        throw "ROFS";
+        const path = pathexpand(parent);
+        const target = path + "/" + name;
+        console.log("FS rmdir", target);
+        try {
+            fs.rmdirSync(target);
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* readdir(dir) */
     function dir_readdir(node){
-        console.log("Dir readdir", node);
+        const path = pathexpand(node);
+        console.log("Dir readdir", path);
         try {
-          return fs.readdirSync(pathexpand(node));
+          return fs.readdirSync(path);
         } catch (e) {
           if (!e.code) throw e;
           throw new FS.ErrnoError(ERRNO_CODES[e.code]);
@@ -307,8 +347,13 @@ function do_genfs(FS, ROOT){
         return fs.readSync(stream.NativeFD, buffer, offset, length, pos);
     }
     /* write(file) */
-    function file_write(stream, buffer, length, position, canOwn){
-        throw "ROFS";
+    function file_write(stream, buffer, length, pos, canOwn){
+        try {
+          return fs.writeSync(stream.NativeFD, buffer, offset, length, pos);
+        } catch (e) {
+          if (!e.code) throw e;
+          throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+        }
     }
     /* allocate(file) */
     function file_allocate(stream, offset, length){
@@ -325,17 +370,19 @@ function do_genfs(FS, ROOT){
 
     const dir_nodeops = {
         getattr: dir_getattr,
-        //setattr: dir_setattr,
         lookup: dir_lookup,
-        //mknod: dir_mknod,
-        //rename: dir_rename,
-        //unlink: dir_unlink,
-        //rmdir: dir_rmdir,
         readdir: dir_readdir,
+        /* Write OPs */
+        //setattr: dir_setattr,
+        mknod: dir_mknod,
+        rename: dir_rename,
+        unlink: dir_unlink,
+        rmdir: dir_rmdir,
         //symlink: dir_symlink,
     };
     const file_nodeops = {
         getattr: file_getattr,
+        /* Write OPs */
         //setattr: file_setattr,
     };
     const dir_streamops = {
@@ -346,6 +393,7 @@ function do_genfs(FS, ROOT){
         close: file_close,
         llseek: file_llseek,
         read: file_read,
+        /* Write OPs */
         write: file_write,
         //allocate: file_allocate,
         //mmap: file_mmap,
