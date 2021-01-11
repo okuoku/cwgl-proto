@@ -163,11 +163,13 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
     out[2] = callinfo_count;
 }
 
+#define TOTALINDEX_EXPORT(sym) (SYM_ ## sym ## _EXPORTIDX + TOTAL_IMPORTS)
 #define LIBEX(sym) \
     case SYM_ ## sym ## _EXPORTIDX: \
       res = 0; \
       name = SYM_ ## sym ## _EXPORTNAME; \
       is_variable = SYM_ ## sym ## _IS_VARIABLE; \
+      callinfoidx = TOTALINDEX_EXPORT(sym); \
       break; 
 
 #define LIBEX_FUNC(_,__,sym) \
@@ -183,12 +185,13 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
     int is_variable = 0;
     uint64_t res;
     uint64_t value;
-    // TODO: type
+    uint64_t callinfoidx;
     switch(idx){
         EXPORT_EXPAND(LIBEX)
         default:
             res = -1;
             value = -1;
+            callinfoidx = -1;
             break;
     }
     if(is_variable){
@@ -208,15 +211,17 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
     }
     out[0] = res;
     out[1] = (uintptr_t)name;
-    out[2] = 0; // TYPE
-    out[3] = value;
+    out[2] = value;
+    out[3] = callinfoidx;
 }
 
+#define TOTALINDEX_IMPORT(sym) (SYM_ ## sym ## _IMPORTIDX)
 #define LIBIM(sym) \
     case SYM_ ## sym ## _IMPORTIDX: \
       res = 0; \
       name0 = SYM_ ## sym ## _IMPORTNAME1; \
       name1 = SYM_ ## sym ## _IMPORTNAME2; \
+      callinfoidx = TOTALINDEX_IMPORT(sym); \
       break;
 
 void
@@ -224,18 +229,19 @@ stub_library_get_import(const uint64_t* in, uint64_t* out){
     const uint64_t idx = in[0];
     const char* name0 = NULL;
     const char* name1 = NULL;
+    uint64_t callinfoidx;
     uint64_t res;
-    // TODO: type
     switch(idx){
         IMPORT_EXPAND(LIBIM)
         default:
             res = -1;
+            callinfoidx = -1;
             break;
     }
     out[0] = res;
     out[1] = (uintptr_t)name0;
     out[2] = (uintptr_t)name1;
-    out[3] = 0; // TYPE
+    out[3] = callinfoidx;
 }
 
 #define LIBIMSET(sym) \
@@ -257,9 +263,6 @@ stub_library_set_import(const uint64_t* in, uint64_t* out){
     }
     out[0] = res;
 }
-
-#define TOTALINDEX_IMPORT(sym) (SYM_ ## sym ## _IMPORTIDX)
-#define TOTALINDEX_EXPORT(sym) (SYM_ ## sym ## _EXPORTIDX + TOTAL_IMPORTS)
 
 #define CIIM_COUNT(_,__,sym) \
     case TOTALINDEX_IMPORT(sym): \

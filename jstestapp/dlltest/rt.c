@@ -89,7 +89,7 @@ void stub_callinfo_get_types(const uint64_t*, uint64_t*);
 
 static void
 wasm_library_info(const uint64_t* in, uint64_t* out){
-    // [library_index] => [export_count import_count]
+    // [library_index] => [export_count import_count callinfo_count]
     stub_wasm_library_info(in, out);
 }
 
@@ -101,7 +101,7 @@ wasm_library_get_export(const uint64_t* in, uint64_t* out){
 
 static void
 wasm_library_get_import(const uint64_t* in, uint64_t* out){ // Get import metadata
-    // [idx] => [res name0 name1 type]
+    // [idx] => [res name0 name1 callinfoidx]
     stub_library_get_import(in, out);
 }
 
@@ -113,11 +113,13 @@ wasm_library_set_import(const uint64_t* in, uint64_t* out){
 
 static void
 wasm_callinfo_get_counts(const uint64_t* in, uint64_t* out){
+    // [idx] => [res argcount retcount]
     stub_callinfo_get_counts(in, out);
 }
 
 static void
 wasm_callinfo_get_types(const uint64_t* in, uint64_t* out){
+    // [idx] => [res argcount retcount args ... rets ...]
     stub_callinfo_get_types(in, out);
 }
 
