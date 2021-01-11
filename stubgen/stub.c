@@ -152,6 +152,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
     const uint64_t library_index = in[0];
     const uint64_t export_count = TOTAL_EXPORTS;
     const uint64_t import_count = TOTAL_IMPORTS;
+    const uint64_t callinfo_count = TOTAL_EXPORTS + TOTAL_IMPORTS;
 
     if(library_index != 0){
         __builtin_trap();
@@ -159,6 +160,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
 
     out[0] = export_count;
     out[1] = import_count;
+    out[2] = callinfo_count;
 }
 
 #define LIBEX(sym) \
@@ -256,3 +258,105 @@ stub_library_set_import(const uint64_t* in, uint64_t* out){
     out[0] = res;
 }
 
+#define TOTALINDEX_IMPORT(sym) (SYM_ ## sym ## _IMPORTIDX)
+#define TOTALINDEX_EXPORT(sym) (SYM_ ## sym ## _EXPORTIDX + TOTAL_IMPORTS)
+
+#define CIIM_COUNT(_,__,sym) \
+    case TOTALINDEX_IMPORT(sym): \
+      res = 0; \
+      incount = SYM_ ## sym ## _ARG_COUNT; \
+      outcount = SYM_ ## sym ## _RET_COUNT; \
+      break;
+
+#define CIEX_COUNT_FUNC(_,__,sym) \
+    case TOTALINDEX_EXPORT(sym): \
+      res = 0; \
+      incount = SYM_ ## sym ## _ARG_COUNT; \
+      outcount = SYM_ ## sym ## _RET_COUNT; \
+      break;
+
+#define CIEX_COUNT_VAR(sym) \
+    case TOTALINDEX_EXPORT(sym): \
+      res = 0; \
+      incount = 0; \
+      outcount = 1; \
+      break;
+
+void
+stub_callinfo_get_counts(const uint64_t* in, uint64_t* out){
+    const uint64_t idx = in[0];
+    uint64_t res;
+    uint64_t incount;
+    uint64_t outcount;
+    switch(idx){
+        IMPORTFUNC_EXPAND(CIIM_COUNT)
+        EXPORTFUNC_EXPAND(CIEX_COUNT_FUNC)
+        EXPORTVAR_EXPAND(CIEX_COUNT_VAR)
+        default:
+            res = -1;
+            incount = 0;
+            outcount = 0;
+            break;
+    }
+    out[0] = res;
+    out[1] = incount;
+    out[2] = outcount;
+}
+
+#define CIEXP(x,y) y(x)
+#define CITYPE(x) CITYPE_VALUE_ ## x
+#define CITYPE_VALUE_u32 0
+#define CITYPE_VALUE_u64 1
+#define CITYPE_VALUE_f32 2
+#define CITYPE_VALUE_f64 3
+#define CITYPE_VALUE_wasm_rt_memory_t -1
+#define CITYPE_VALUE_wasm_rt_table_t -2
+
+#define CI_TYPES_SET(idx,_,type) \
+    out[3+idx] = CITYPE(type);
+
+#define CIFILLRET_void(sym)
+
+#define CIFILLRET_val(sym) \
+    out[3+SYM_ ## sym ## _ARG_COUNT] = CIEXP(SYM_ ## sym ## _DATATYPE,CITYPE); 
+
+#define CIIM_TYPES(_,ret,sym) \
+    case TOTALINDEX_IMPORT(sym): \
+      res = 0; \
+      out[1] = SYM_ ## sym ## _ARG_COUNT; \
+      out[2] = SYM_ ## sym ## _RET_COUNT; \
+      SYM_ ## sym ## _ARG_EXPAND(CI_TYPES_SET) \
+      CIFILLRET_ ## ret(sym) \
+      break;
+
+#define CIEX_TYPES_FUNC(_,ret,sym) \
+    case TOTALINDEX_EXPORT(sym): \
+      res = 0; \
+      out[1] = SYM_ ## sym ## _ARG_COUNT; \
+      out[2] = SYM_ ## sym ## _RET_COUNT; \
+      SYM_ ## sym ## _ARG_EXPAND(CI_TYPES_SET) \
+      CIFILLRET_ ## ret(sym) \
+      break;
+
+#define CIEX_TYPES_VAR(sym) \
+    case TOTALINDEX_EXPORT(sym): \
+      res = 0; \
+      out[1] = 0; \
+      out[2] = 1; \
+      out[3] = CIEXP(SYM_ ## sym ## _DATATYPE,CITYPE); \
+      break;
+
+void
+stub_callinfo_get_types(const uint64_t* in, uint64_t* out){
+    const uint64_t idx = in[0];
+    uint64_t res;
+    switch(idx){
+        IMPORTFUNC_EXPAND(CIIM_TYPES)
+        EXPORTFUNC_EXPAND(CIEX_TYPES_FUNC)
+        EXPORTVAR_EXPAND(CIEX_TYPES_VAR)
+        default:
+            res = -1;
+            break;
+    }
+    out[0] = res;
+}
