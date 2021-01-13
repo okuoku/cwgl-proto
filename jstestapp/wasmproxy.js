@@ -27,9 +27,10 @@ function fakeinstance(imports){
         wasm_boot_allocate_memory: function(instance_id, initial, max){
             max_pages = max;
             //memory.buffer = new Buffer(max * 64 * 1024);
-            memory.buffer = new Buffer(initial * 64 * 1024);
+            me.heapobject = new Uint8Array(initial * 64 * 1024);
+            memory.buffer = me.heapobject.buffer;
             console.log("Alloc memory", memory.buffer);
-            return [REF.address(memory.buffer), initial];
+            return [REF.address(me.heapobject), initial];
         },
         wasm_boot_allocate_table: function(instance_id, initial, max){
             console.log("Allocate table", initial, max);
