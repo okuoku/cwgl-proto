@@ -124,7 +124,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             if(outcount == 0){
                 return;
             }else if(outcount == 1){
-                if(rt){ // rt can be undefined (e.g. _emscripten_memcpy_big)
+                if(rt !== undefined){ // rt can be undefined (e.g. _emscripten_memcpy_big)
                     outmapper[0](outp, rt);
                 }
             }else{
