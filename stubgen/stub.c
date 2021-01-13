@@ -173,10 +173,14 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
       break; 
 
 #define LIBEX_FUNC(_,__,sym) \
-    value = (uintptr_t)nccc_ ## sym;
+    case SYM_ ## sym ## _EXPORTIDX: \
+      value = (uintptr_t)nccc_ ## sym; \
+      break; 
 
 #define LIBEX_VAR(sym) \
-    value = (uintptr_t)WASM_RT_ADD_PREFIX(sym);
+    case SYM_ ## sym ## _EXPORTIDX: \
+      value = (uintptr_t)&WASM_RT_ADD_PREFIX(sym); \
+      break; 
 
 void
 stub_library_get_export(const uint64_t* in, uint64_t* out){
@@ -196,14 +200,14 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
     }
     if(is_variable){
         switch(idx){
-            EXPORTFUNC_EXPAND(LIBEX_FUNC)
+            EXPORTVAR_EXPAND(LIBEX_VAR)
             default:
                 __builtin_trap();
                 break;
         }
     }else{
         switch(idx){
-            EXPORTVAR_EXPAND(LIBEX_VAR)
+            EXPORTFUNC_EXPAND(LIBEX_FUNC)
             default:
                 __builtin_trap();
                 break;
@@ -213,6 +217,7 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
     out[1] = (uintptr_t)name;
     out[2] = value;
     out[3] = callinfoidx;
+    out[4] = is_variable;
 }
 
 #define TOTALINDEX_IMPORT(sym) (SYM_ ## sym ## _IMPORTIDX)

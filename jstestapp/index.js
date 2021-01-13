@@ -6,11 +6,11 @@ const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
 */
 
-/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app/example_emscripten_opengl3.js";
 const BOOTWASM = "app/example_emscripten_opengl3.wasm";
-*/
+const BOOTARGS = [];
+const APPFS_DIR = false;
 
 /*
 const BOOTPROTOCOL = "godot";
@@ -20,11 +20,13 @@ const GODOT_ARGS = ["--main-pack","webgl.pck"]; // target path
 const APPFS_DIR = "app5/appfs";
 */
 
+/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app6/pp.dosbox-x.js";
 const BOOTWASM = "app6/dosbox-x.wasm";
 const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
+*/
 
 const process = require("process");
 const fs = require("fs");
@@ -34,6 +36,7 @@ const audioctx_mini = require("./audioctx-mini.js");
 const performance = require('perf_hooks').performance;
 const storage = require("./storage.js");
 const EmuCanvas = require("./emucanvas.js");
+//const WebAssembly = require("./wasmproxy.js");
 
 const nav = {};
 const doc = {};
@@ -487,6 +490,7 @@ wnd.document.addEventListener = fake_aEL(1, "Document"); // specialHTMLTargets[1
 wnd.document.getElementById = fake_gEBI;
 wnd.document.createElement = fake_cEl;
 wnd.addEventListener = fake_aEL(0, "Window"); // specialHTMLTargets[2]
+//wnd.removeEventListener = fake_rEL(0, "Window");
 wnd.navigator.userAgent = "bogus";
 wnd.navigator.appVersion = "bogus";
 

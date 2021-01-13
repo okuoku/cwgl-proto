@@ -11,13 +11,15 @@ static uintptr_t cb_wasm_boot_allocate_memory = 0;
 static uintptr_t cb_wasm_boot_allocate_table = 0;
 static uintptr_t cb_wasm_boot_grow_memory = 0;
 
-static void
+__declspec(dllexport)
+void
 short_circuit(const uint64_t* in, uint64_t* out){
     nccc_call_t cb = (nccc_call_t)(uintptr_t)in[0];
     cb(&in[1], out);
 }
 
-static void
+__declspec(dllexport)
+void
 shufflecall_ptr(uint64_t* cmd0, uint64_t* ret, uint64_t cmdoffset,
                 const void* p0, const void* p1, const void* p2, const void* p3){
     uint64_t* cmd = &cmd0[cmdoffset];
