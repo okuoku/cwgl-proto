@@ -2,6 +2,7 @@
 #include "dll.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
@@ -10,6 +11,7 @@ static nccc_call_t the_callback;
 static uintptr_t cb_wasm_boot_allocate_memory = 0;
 static uintptr_t cb_wasm_boot_allocate_table = 0;
 static uintptr_t cb_wasm_boot_grow_memory = 0;
+static uintptr_t cb_wasm_boot_register_func_type = 0;
 
 __declspec(dllexport)
 void
@@ -91,6 +93,9 @@ wasm_set_bootstrap(const uint64_t* in, uint64_t* out){
         case 3:
             cb_wasm_boot_grow_memory = ctx;
             break;
+        case 4:
+            cb_wasm_boot_register_func_type = ctx;
+            break;
         default:
             __builtin_trap();
             break;
@@ -108,27 +113,12 @@ wasm_read_table(const uint64_t* in, uint64_t* out){
     // [instance_id index] => [res functype funcobj]
     wasm_rt_table_t* table = (wasm_rt_table_t*)(uintptr_t)in[0];
     uint64_t index = in[1];
-    wasm_rt_type_t type;
     if(index >= table->size){
         out[0] = -1;
     }else{
         out[0] = 0;
-        out[1] = (uintptr_t)table->data[index].func;
-        type = table->data[index].func_type;
-        switch(type){
-            case WASM_RT_I32:
-                out[2] = 0;
-                break;
-            case WASM_RT_I64:
-                out[2] = 1;
-                break;
-            case WASM_RT_F32:
-                out[2] = 2;
-                break;
-            case WASM_RT_F64:
-                out[2] = 3;
-                break;
-        }
+        out[1] = table->data[index].func_type;
+        out[2] = (uintptr_t)table->data[index].func;
     }
 }
 
@@ -239,13 +229,51 @@ uint32_t
 wasm_rt_register_func_type(uint32_t params,
                            uint32_t results,
                            ...){
-    // FIXME: Implement this
-    return 1;
+    int i;
+    size_t total;
+    uint64_t args[32+2];
+    uint64_t res;
+    wasm_rt_type_t type;
+    uint64_t x;
+    va_list ap;
+    total = params + results;
+    // FIXME: Currently we have static MAX of 32 arguments
+    if(total > 32){
+        printf("Too complex function type\n");
+        __builtin_trap();
+    }
+    args[0] = cb_wasm_boot_register_func_type;
+    args[1] = params;
+    args[2] = results;
+    va_start(ap, results);
+    for(i=0;i!=total;i++){
+        type = va_arg(ap, wasm_rt_type_t);
+        switch(type){
+            case WASM_RT_I32:
+                x = 0;
+                break;
+            case WASM_RT_I64:
+                x = 1;
+                break;
+            case WASM_RT_F32:
+                x = 2;
+                break;
+            case WASM_RT_F64:
+                x = 3;
+                break;
+            default:
+                __builtin_trap();
+                break;
+        }
+        args[3+i] = x;
+    }
+    nccc_callback(args, &res);
+    return (uint32_t)res;
 }
 
 void
 wasm_rt_trap(wasm_rt_trap_t x){
-    printf("DLLTEST: Trap halt!");
+    printf("DLLTEST: Trap halt!\n");
     __builtin_trap();
 }
 

@@ -12,8 +12,7 @@ function fakeinstance(imports){
             return length;
         },
         get: function(index){
-            console.log("WASM Table Get (fake)", index);
-            return null;
+            return nccc.get_table(index);
         },
         set: function(index, value){
             console.log("WASM Table Set (fake)", index, value);
@@ -26,14 +25,10 @@ function fakeinstance(imports){
     const wasmrt = {
         wasm_boot_allocate_memory: function(instance_id, initial, max){
             max_pages = max;
-            //memory.buffer = new Buffer(max * 64 * 1024);
-            me.heapobject = new Uint8Array(initial * 64 * 1024);
+            me.heapobject = new Uint8Array(max * 64 * 1024);
             memory.buffer = me.heapobject.buffer;
             console.log("Alloc memory", memory.buffer);
-            return [REF.address(me.heapobject), initial];
-        },
-        wasm_boot_allocate_table: function(instance_id, initial, max){
-            console.log("Allocate table", initial, max);
+            return [REF.address(me.heapobject), max];
         },
         wasm_boot_grow_memory: function(instance_id, pages){
             console.log("Grow memory");

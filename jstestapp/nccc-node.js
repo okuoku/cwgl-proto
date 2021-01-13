@@ -137,6 +137,28 @@ function make_callsite(shortcircuit, shufflecall_ptr){
         return FFI.Callback("void", ["size_t", "size_t"], cb);
     }
 
+    function gen_nccc_cb_varargs2(debugname, proc){
+        // Special gen_nccc_cb for register_func_type callback
+        const inmapper = [];
+        let i;
+        const put_result = gen_outmapper(0, "u32");
+        for(i=0;i!=32+2;i++){
+            inmapper[i] = gen_inmapper(i, "u32");
+        }
+        function cb(inp, outp){
+            let x = 0;
+            const incount0 = inmapper[0](inp);
+            const incount1 = inmapper[1](inp);
+            const arg = [incount0, incount1];
+            for(x=0;x!=incount0+incount1;x++){
+                arg.push(inmapper[x+2](inp));
+            }
+            const rt = proc.apply(null, arg);
+            put_result(outp, rt);
+        }
+        return FFI.Callback("void", ["size_t", "size_t"], cb);
+    }
+
     /* shufflecall */
     // void shufflecall_ptr(uint64_t* cmd, uint64_t* ret,uint64_t cmdoffset,
     //                      void* p0, void* p1, void* p2, void* p3);
@@ -294,7 +316,8 @@ function make_callsite(shortcircuit, shufflecall_ptr){
 
     return {
         make_nccc_call: gen_nccc_call,
-        make_nccc_cb: gen_nccc_cb
+        make_nccc_cb: gen_nccc_cb,
+        make_nccc_cb_varargs2: gen_nccc_cb_varargs2
     };
 }
 
@@ -369,6 +392,20 @@ function nccc(){
         in0[0] = 1n;
         in0[1] = 3n;
         callroot();
+    }
+    function read_table(instance_id, index){
+        in0[0] = 1n;
+        in0[1] = 4n;
+        in0[2] = BigInt(instance_id);
+        in0[3] = BigInt(index);
+        callroot();
+        const res = Number(out0[0]);
+        if(res == -1){
+            return false;
+        }
+        const functype = Number(out0[1]);
+        const funcobj = Number(out0[2]);
+        return [functype, funcobj];
     }
 
     function library_get_export(idx){
@@ -480,6 +517,58 @@ function nccc(){
         return [argv, resv];
     }
 
+
+    let typecount = 0;
+    const typestore = {};
+    const typelookup = {};
+    // FIXME: perhaps we should move this elsewhere
+    function register_func_type(params, results, ...data){
+        const paramv = data.slice(0,params);
+        const resultv = data.slice(params,params+results);
+        const typename = paramv.toString() + "::" + resultv.toString();
+        if(!typestore[typename]){
+            typecount++;
+            typestore[typename] = {
+                params: paramv.map(typeenum),
+                results: resultv.map(typeenum),
+                idx: typecount
+            };
+            typelookup[typecount] = typestore[typename];
+            //console.log(typestore[typename]);
+            return typecount;
+        }else{
+            return typestore[typename].idx;
+        }
+    }
+    const tablecache = {};
+    let table_instance = false;
+    function allocate_table(instance_id, initial, max){
+        if(table_instance){
+            throw "two or more tables...";
+        }
+        table_instance = instance_id;
+    }
+
+    function realize_callable(addr, typeidx){
+        const params = typelookup[typeidx].params;
+        const results = typelookup[typeidx].results;
+        return callsite.make_nccc_call("table", addr, params, results);
+    }
+
+    function get_table(tableidx){
+        const r = read_table(table_instance, tableidx);
+        console.log("Table", r);
+        const functype = r[0];
+        const addr = r[1];
+        if(tablecache[tableidx]){
+            return tablecache[tableidx];
+        }else{
+            const cb = realize_callable(addr, functype);
+            tablecache[tableidx] = cb;
+            return cb;
+        }
+    }
+
     const shortcircuit_ptr = get_callback(1);
     //const shufflecall_ptr = get_callback(2);
     const callsite = make_callsite(root.short_circuit, shufflecall_ptr);
@@ -524,26 +613,37 @@ function nccc(){
                 if(! import_cbs[name0]){
                     import_cbs[name0] = {};
                 }
+                // To keep reference:
                 import_cbs[name0][name1] = buf;
                 library_set_import(idx, REF.address(buf));
             }
         };
     }
+
     
     const bootimports = [
         [1, "wasm_boot_allocate_memory", ["u64", "u64", "u64"], ["u64", "u64"]],
         [2, "wasm_boot_allocate_table", ["u64", "u64", "u64"], []],
-        [3, "wasm_boot_grow_memory", ["u64", "u64"], ["u64", "u64"]]
+        [3, "wasm_boot_grow_memory", ["u64", "u64"], ["u64", "u64"]],
+        [4, "wasm_boot_register_func_type", false, false]
     ];
     return {
         bootstrap: function(imports){
+            imports.wasm_boot_allocate_table = allocate_table;
+            imports.wasm_boot_register_func_type = register_func_type;
             bootimports.forEach(e => {
                 const idx = e[0];
                 const name = e[1];
                 const intypes = e[2];
                 const outtypes = e[3];
-                const ptr = callsite.make_nccc_cb(name, imports[name], 
-                                                  intypes, outtypes);
+                let ptr = false;
+                if(!intypes){
+                    // Only for: wasm_boot_register_func_type
+                    ptr = callsite.make_nccc_cb_varargs2(name, imports[name]);
+                }else{
+                    ptr = callsite.make_nccc_cb(name, imports[name], 
+                                                      intypes, outtypes);
+                }
                 // To keep reference:
                 import_cbs["internal:" + name] = ptr;
                 set_bootstrap(idx, ptr.address());
@@ -552,7 +652,8 @@ function nccc(){
             init_module();
         },
         exports: exports,
-        imports: imports
+        imports: imports,
+        get_table: get_table
     };
 }
 
