@@ -87,12 +87,12 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             case "f32":
                 return function(base, v){
                     const addr = base + idx * 8;
-                    return REF.set(REF.NULL, addr, v, REF.types.float);
+                    return REF.set(make_pointer(addr), 0, v, REF.types.float);
                 };
             case "f64":
                 return function(base, v){
                     const addr = base + idx * 8;
-                    return REF.set(REF.NULL, addr, v, REF.types.double);
+                    return REF.set(make_pointer(addr), 0, v, REF.types.double);
                 };
             default:
                 throw "Invalid function type";
