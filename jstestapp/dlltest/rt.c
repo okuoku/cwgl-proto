@@ -128,10 +128,12 @@ void stub_library_get_import(const uint64_t*, uint64_t*);
 void stub_library_set_import(const uint64_t*, uint64_t*);
 void stub_callinfo_get_counts(const uint64_t*, uint64_t*);
 void stub_callinfo_get_types(const uint64_t*, uint64_t*);
+void stub_typebridge_get_counts(const uint64_t*, uint64_t*);
+void stub_typebridge_get_types(const uint64_t*, uint64_t*);
 
 static void
 wasm_library_info(const uint64_t* in, uint64_t* out){
-    // [library_index] => [export_count import_count callinfo_count]
+    // [library_index] => [export_count import_count callinfo_count type_count]
     stub_wasm_library_info(in, out);
 }
 
@@ -163,6 +165,18 @@ static void
 wasm_callinfo_get_types(const uint64_t* in, uint64_t* out){
     // [idx] => [res argcount retcount args ... rets ...]
     stub_callinfo_get_types(in, out);
+}
+
+static void
+wasm_typebridge_get_counts(const uint64_t* in, uint64_t* out){
+    // [idx] => [res argcount retcount]
+    stub_typebridge_get_counts(in, out);
+}
+
+static void
+wasm_typebridge_get_types(const uint64_t* in, uint64_t* out){
+    // [idx] => [res stubctx argcount retcount args ... rets ...]
+    stub_typebridge_get_types(in, out);
 }
 
 // WASM2C runtime
@@ -336,6 +350,12 @@ the_module_root(const uint64_t* in, uint64_t* out){
                     break;
                 case 9:
                     wasm_callinfo_get_types(&in[2], out);
+                    break;
+                case 10:
+                    wasm_typebridge_get_counts(&in[2], out);
+                    break;
+                case 11:
+                    wasm_typebridge_get_types(&in[2], out);
                     break;
                 default:
                     __builtin_trap();

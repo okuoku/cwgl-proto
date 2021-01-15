@@ -43,7 +43,6 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym); \
 
-
 #define EXP_DECL_EXPORT_FUNC_void_val(sym) \
     static void nccc_ ## sym (const uint64_t* in, uint64_t* out) { \
         SYM_ ## sym ## _DATATYPE ret; \
@@ -69,7 +68,79 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym);
 
+/* Function types (implicit exports) */
+
+#define EXP_BRIDGETYPE(sym) functype_ ## sym ## _t
+#define EXP_DECL_BRIDGE_ARGS_ITR(_,pos,typ) \
+    typ EXP_COMMA_ ## pos
+#define EXP_DECL_BRIDGE_ARGS(sym) \
+    ( TYPE_ ## sym ## _ARG_EXPAND(EXP_DECL_BRIDGE_ARGS_ITR) )
+#define EXP_DECL_BRIDGETYPE(sym) \
+    typedef TYPE_ ## sym ## _DATATYPE \
+    (*EXP_BRIDGETYPE(sym)) EXP_DECL_BRIDGE_ARGS(sym)
+#define EXP_DECL_BRIDGETYPE_void(sym) \
+    typedef TYPE_ ## sym ## _DATATYPE \
+    (*EXP_BRIDGETYPE(sym))(void)
+
+#define EXP_DECL_BRIDGE_INARGS_ITR(idx,_,typ) \
+    const typ arg ## idx = *(typ *)&in[idx+1];
+#define EXP_DECL_BRIDGE_INARGS(sym) \
+    TYPE_ ## sym ## _ARG_EXPAND(EXP_DECL_BRIDGE_INARGS_ITR)
+
+#define EXP_BRIDGE_CALLARGS_ITR(idx,pos,_) \
+    arg ## idx EXP_COMMA_ ## pos
+#define EXP_BRIDGE_CALLARGS(sym) \
+    ( TYPE_ ## sym ## _ARG_EXPAND(EXP_BRIDGE_CALLARGS_ITR) )
+
+#define EXP_DECL_TYPE_BRIDGE_arg_val(sym) \
+    EXP_DECL_BRIDGETYPE(sym); \
+    static void \
+    typestub_ ## sym (const uint64_t* in, uint64_t* out) { \
+        const EXP_BRIDGETYPE(sym) func = \
+        (EXP_BRIDGETYPE(sym))(intptr_t)in[0]; \
+        EXP_DECL_BRIDGE_INARGS(sym) \
+        TYPE_ ## sym ## _DATATYPE ret; \
+        ret = func \
+        EXP_BRIDGE_CALLARGS(sym) ; \
+        *((TYPE_ ## sym ## _DATATYPE *)out) = ret; \
+    }
+
+#define EXP_DECL_TYPE_BRIDGE_arg_void(sym) \
+    EXP_DECL_BRIDGETYPE(sym); \
+    static void \
+    typestub_ ## sym (const uint64_t* in, uint64_t* out) { \
+        const EXP_BRIDGETYPE(sym) func = \
+        (EXP_BRIDGETYPE(sym))(intptr_t)in[0]; \
+        EXP_DECL_BRIDGE_INARGS(sym) \
+        func \
+        EXP_BRIDGE_CALLARGS(sym) ; \
+    }
+
+#define EXP_DECL_TYPE_BRIDGE_void_val(sym) \
+    EXP_DECL_BRIDGETYPE_void(sym); \
+    static void \
+    typestub_ ## sym (const uint64_t* in, uint64_t* out) { \
+        const EXP_BRIDGETYPE(sym) func = \
+        (EXP_BRIDGETYPE(sym))(intptr_t)in[0]; \
+        TYPE_ ## sym ## _DATATYPE ret; \
+        ret = func(); \
+        *((TYPE_ ## sym ## _DATATYPE *)out) = ret; \
+    }
+
+#define EXP_DECL_TYPE_BRIDGE_void_void(sym) \
+    EXP_DECL_BRIDGETYPE_void(sym); \
+    static void \
+    typestub_ ## sym (const uint64_t* in, uint64_t* out) { \
+        EXP_BRIDGETYPE(sym) func = \
+        (EXP_BRIDGETYPE(sym))(intptr_t)in[0]; \
+        func(); \
+    }
+
+#define EXP_DECL_TYPE_BRIDGE(in,out,sym) \
+    EXP_DECL_TYPE_BRIDGE_ ## in ## _ ## out (sym)
+
 /* EXPORT VARIABLEs */
+
 #define EXP_DECL_EXPORT_VAR(sym) \
     SYM_ ## sym ## _DATATYPE * WASM_RT_ADD_PREFIX(sym);
 
@@ -141,9 +212,11 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     void (*sym) (void) = \
     instub_ ## sym;
 
+
 IMPORTFUNC_EXPAND(EXP_DECL_IMPORT_FUNC)
 EXPORTFUNC_EXPAND(EXP_DECL_EXPORT_FUNC)
 EXPORTVAR_EXPAND(EXP_DECL_EXPORT_VAR) 
+TYPE_EXPAND(EXP_DECL_TYPE_BRIDGE)
 
 uint32_t wasm_rt_call_stack_depth;
 
@@ -153,6 +226,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
     const uint64_t export_count = TOTAL_EXPORTS;
     const uint64_t import_count = TOTAL_IMPORTS;
     const uint64_t callinfo_count = TOTAL_EXPORTS + TOTAL_IMPORTS;
+    const uint64_t type_count = TOTAL_TYPES;
 
     if(library_index != 0){
         __builtin_trap();
@@ -161,6 +235,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
     out[0] = export_count;
     out[1] = import_count;
     out[2] = callinfo_count;
+    out[3] = type_count;
 }
 
 #define TOTALINDEX_EXPORT(sym) (SYM_ ## sym ## _EXPORTIDX + TOTAL_IMPORTS)
@@ -362,6 +437,64 @@ stub_callinfo_get_types(const uint64_t* in, uint64_t* out){
         IMPORTFUNC_EXPAND(CIIM_TYPES)
         EXPORTFUNC_EXPAND(CIEX_TYPES_FUNC)
         EXPORTVAR_EXPAND(CIEX_TYPES_VAR)
+        default:
+            res = -1;
+            break;
+    }
+    out[0] = res;
+}
+
+#define TBGC_ITR(_,__,sym) \
+    case TYPE_ ## sym ## _IDX: \
+      res = 0; \
+      argcount = TYPE_ ## sym ## _INCOUNT; \
+      retcount = TYPE_ ## sym ## _OUTCOUNT; \
+      break;
+
+void
+stub_typebridge_get_counts(const uint64_t* in, uint64_t* out){
+    const uint64_t idx = in[0];
+    uint64_t res;
+    uint64_t argcount;
+    uint64_t retcount;
+
+    switch(idx){
+        TYPE_EXPAND(TBGC_ITR)
+        default:
+            res = -1;
+            argcount = 0;
+            retcount = 0;
+            break;
+    }
+
+    out[0] = res;
+    out[1] = argcount;
+    out[2] = retcount;
+}
+
+#define TGBT_RET_void(sym)
+#define TGBT_RET_val(sym) \
+    out[4 + TYPE_ ## sym ## _INCOUNT] = CIEXP(TYPE_ ## sym ## _DATATYPE,CITYPE);
+
+#define TGBT_ARG_ITR(pos,_,type) \
+      out[4+pos] = CITYPE(type);
+
+#define TBGT_ITR(_,ret,sym) \
+    case TYPE_ ## sym ## _IDX: \
+      res = 0; \
+      out[1] = (uintptr_t)typestub_ ## sym; \
+      out[2] = TYPE_ ## sym ## _INCOUNT; \
+      out[3] = TYPE_ ## sym ## _OUTCOUNT; \
+      TYPE_ ## sym ## _ARG_EXPAND(TGBT_ARG_ITR) \
+      TGBT_RET_ ## ret(sym) \
+      break;
+
+void
+stub_typebridge_get_types(const uint64_t* in, uint64_t* out){
+    const uint64_t idx = in[0];
+    uint64_t res;
+    switch(idx){
+        TYPE_EXPAND(TBGT_ITR)
         default:
             res = -1;
             break;

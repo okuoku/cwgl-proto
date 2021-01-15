@@ -7,13 +7,16 @@ function fakeinstance(imports){
     let me = {};
     let memory = {};
     let table = {
+        /*
         grow: function(delta){
             console.log("WASM Table Grow (fake)", delta);
             return length;
         },
+        */
         get: function(index){
             return nccc.get_table(index);
         },
+        /*
         set: function(index, value){
             console.log("WASM Table Set (fake)", index, value);
         },
@@ -21,6 +24,7 @@ function fakeinstance(imports){
             console.log("WASM Table length getter (fake)", length);
             return len;
         }
+        */
     };
     const wasmrt = {
         wasm_boot_allocate_memory: function(instance_id, initial, max){

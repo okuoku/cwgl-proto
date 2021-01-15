@@ -75,13 +75,13 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             case "u32":
                 return function(base, v){
                     const addr = base + idx * 8;
-                    console.log("Write",v);
+                    //console.log("Write",v);
                     return REF.writeInt64LE(REF.NULL, addr, v);
                 };
             case "u64":
                 return function(base, v){
                     const addr = base + idx * 8;
-                    console.log("Write",v);
+                    //console.log("Write",v);
                     return REF.writeInt64LE(REF.NULL, addr, v);
                 };
             case "f32":
@@ -112,15 +112,31 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             outmapper[i] = gen_outmapper(i, outtypes[i]);
         }
         function cb(inp, outp){
+            //console.log("Called", debugname);
             const ina = new Array(incount);
-            console.log("In", inp, outp, debugname);
+            //console.log("In", inp, outp, debugname);
             inmapper.forEach((p,idx) => {
-                console.log("Inp", idx, intypes[idx]);
+                //console.log("Inp", idx, intypes[idx]);
                 ina[idx] = p(inp);
             });
-            console.log("Call", ina);
-            const rt = proc.apply(null, ina);
-            console.log("Ret", rt);
+            //console.log("Call", ina);
+            let rt = null;
+            try{
+                rt = proc.apply(null, ina);
+            }catch(e){
+                if(e == "unwind"){
+                    // Emscripten unwind exception
+                    console.log("ignored unwind exception");
+                }else{
+                    throw e;
+                }
+            }
+            //console.log("Ret", rt);
+            if(rt === false){
+                rt = 0;
+            }else if(rt === true){
+                rt = 1;
+            }
             if(outcount == 0){
                 return;
             }else if(outcount == 1){
@@ -129,11 +145,12 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                 }
             }else{
                 outmapper.forEach((p,idx) => {
-                    console.log("Out", idx, rt[idx]);
+                    //console.log("Out", idx, rt[idx]);
                     p(outp, rt[idx]);
                 });
             }
         }
+        console.log("Generated",debugname,proc,intypes,outtypes);
         return FFI.Callback("void", ["size_t", "size_t"], cb);
     }
 
@@ -199,13 +216,12 @@ function make_callsite(shortcircuit, shufflecall_ptr){
         }
         shufflecalls[sel](inaddr, outaddr, cmdoffs, a, b, c, d);
     }
-    function gen_nccc_call(debugname, addr, intypes, outtypes){
+    function gen_nccc_call(debugname, bridge, addr, intypes, outtypes){
         const incount = intypes.length; // ["f32", "u32", ...]
         const outcount = outtypes.length;
         const callable = 
             FFI.ForeignFunction(REF._reinterpret(REF.NULL,0,addr),
                                 "void", ["void*", "void*"]);
-
 
         function fetchout(type,idx){
             switch(type){
@@ -245,6 +261,11 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             if(objcnt != 0){
                 inargs += 12;
             }
+            let bridge0 = false;
+            if(bridge){
+                bridge0 = alloc(1);
+                sitestack[bridge0] = BigInt(bridge);
+            }
             let in0 = alloc(inargs);
             let out0 = alloc(outcount);
             
@@ -271,6 +292,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             });
             /* Perform call */
             if(objcnt != 0){
+                // FIXME: Handle bridge call
                 /* Fill objargs if needed */
                 const in1 = in0 + incount;
                 sitestack[in1+0] = 0; /* C call */
@@ -294,11 +316,16 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                 console.log("DOSHUFFLE_call end");
 
             }else{
-                console.log("DO_call", stackptr, outcount, args, debugname);
+                //console.log("DO_call", stackptr, outcount, args, debugname);
                 /* Call directly */
-                callable(REF._reinterpret(sitestack, 0, in0 * 8),
-                         REF._reinterpret(sitestack, 0, out0 * 8));
-                console.log("DO_call end");
+                if(bridge){
+                    callable(REF._reinterpret(sitestack, 0, bridge0 * 8),
+                             REF._reinterpret(sitestack, 0, out0 * 8));
+                }else{
+                    callable(REF._reinterpret(sitestack, 0, in0 * 8),
+                             REF._reinterpret(sitestack, 0, out0 * 8));
+                }
+                //console.log("DO_call end");
             }
             /* Fetch outvals */
             let r = true;
@@ -310,6 +337,9 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             /* Free stack area */
             free(outcount);
             free(inargs);
+            if(bridge){
+                free(1);
+            }
             return r;
         };
     }
@@ -376,8 +406,9 @@ function nccc(){
         callroot();
         const exports = Number(out0[0]);
         const imports = Number(out0[1]);
-        const callinfos = Number(out0[2]);
-        const r = [exports, imports, callinfos];
+        const totalidx = Number(out0[2]);
+        const callinfos = Number(out0[3]);
+        const r = [exports, imports, totalidx /* Unused? */, callinfos];
         console.log("Library", r);
         return r;
     }
@@ -517,28 +548,59 @@ function nccc(){
         return [argv, resv];
     }
 
+    function typebridge_get_counts(idx){
+        in0[0] = 1n;
+        in0[1] = 10n;
+        in0[2] = BigInt(idx);
+        callroot();
+        const res = Number(out0[0]);
+        if(res != 0){
+            return false;
+        }
+        const argcount = Number(out0[1]);
+        const retcount = Number(out0[2]);
+        return [argcount, retcount];
+    }
 
-    let typecount = 0;
+    function typebridge_get_types(idx){
+        const counts = typebridge_get_counts(idx);
+        const args = counts[0];
+        const rets = counts[1];
+        const buf = new BigInt64Array(args+rets+4);
+        in0[0] = 1n;
+        in0[1] = 11n;
+        callroot_buf(buf);
+        const res = Number(buf[0]);
+        if(res != 0){
+            throw "Invalid typeid";
+        }
+        const bridgeaddr = Number(buf[1]);
+        const argv = new Array(args);
+        const resv = new Array(rets);
+        argv.fill(false);
+        resv.fill(false);
+        argv.forEach((_,idx) => {
+            const t = Number(buf[4+idx]);
+            argv[idx] = typeenum(t);
+        });
+        resv.forEach((_,idx) => {
+            const t = Number(buf[4+args+idx]);
+            resv[idx] = typeenum(t);
+        });
+        console.log("Typebridge",idx,bridgeaddr,argv,"=>",resv);
+        return [bridgeaddr, argv, resv];
+    }
+
     const typestore = {};
     const typelookup = {};
     // FIXME: perhaps we should move this elsewhere
     function register_func_type(params, results, ...data){
-        const paramv = data.slice(0,params);
-        const resultv = data.slice(params,params+results);
+        const paramv = data.slice(0,params).map(typeenum);
+        const resultv = data.slice(params,params+results).map(typeenum);
         const typename = paramv.toString() + "::" + resultv.toString();
-        if(!typestore[typename]){
-            typecount++;
-            typestore[typename] = {
-                params: paramv.map(typeenum),
-                results: resultv.map(typeenum),
-                idx: typecount
-            };
-            typelookup[typecount] = typestore[typename];
-            //console.log(typestore[typename]);
-            return typecount;
-        }else{
-            return typestore[typename].idx;
-        }
+        console.log("Types",params,results,data,paramv,resultv);
+        console.log("Lookup type", typename, typestore[typename]);
+        return typestore[typename].idx;
     }
     const tablecache = {};
     let table_instance = false;
@@ -552,12 +614,15 @@ function nccc(){
     function realize_callable(addr, typeidx){
         const params = typelookup[typeidx].params;
         const results = typelookup[typeidx].results;
-        return callsite.make_nccc_call("table", addr, params, results);
+        const bridgeaddr = typelookup[typeidx].bridgeaddr;
+        console.log("Realize", typeidx, params, results);
+        return callsite.make_nccc_call("table", addr, bridgeaddr, params, results);
     }
 
     function get_table(tableidx){
+        //console.log("Table", tableidx);
         const r = read_table(table_instance, tableidx);
-        console.log("Table", r);
+        //console.log("Table", r);
         const functype = r[0];
         const addr = r[1];
         if(tablecache[tableidx]){
@@ -578,9 +643,11 @@ function nccc(){
     const libinfo = library_info();
     const exportcount = libinfo[0];
     const importcount = libinfo[1];
+    const typecount = libinfo[3];
     const exports = {};
     const imports = {};
     const import_cbs = {};
+
     for(i=0;i!=exportcount;i++){
         const c = library_get_export(i);
         const name = c[0];
@@ -589,7 +656,7 @@ function nccc(){
         const is_variable = c[3];
         let proc = false;
         if(! is_variable){
-            proc = callsite.make_nccc_call(name, addr,types[0],types[1]);
+            proc = callsite.make_nccc_call(name, false, addr,types[0],types[1]);
         }
         exports[name] = {
             proc: proc,
@@ -620,6 +687,27 @@ function nccc(){
         };
     }
 
+    for(i=0;i!=typecount;i++){
+        console.log("Check",i,typecount);
+        const c = typebridge_get_types(i);
+        const bridgeaddr = c[0];
+        const paramv = c[1];
+        const resultv = c[2];
+        const typename = paramv.toString() + "::" + resultv.toString();
+        console.log(typename);
+        console.log(paramv);
+        console.log(resultv);
+        if(!typestore[typename]){
+            typestore[typename] = {
+                bridgeaddr: bridgeaddr,
+                params: paramv,
+                results: resultv,
+                idx: i
+            };
+            typelookup[i] = typestore[typename];
+            console.log("Type", typestore[typename]);
+        }
+    }
     
     const bootimports = [
         [1, "wasm_boot_allocate_memory", ["u64", "u64", "u64"], ["u64", "u64"]],
@@ -641,14 +729,17 @@ function nccc(){
                     // Only for: wasm_boot_register_func_type
                     ptr = callsite.make_nccc_cb_varargs2(name, imports[name]);
                 }else{
+                    console.log("CB", imports[name], intypes, outtypes);
                     ptr = callsite.make_nccc_cb(name, imports[name], 
                                                       intypes, outtypes);
                 }
                 // To keep reference:
                 import_cbs["internal:" + name] = ptr;
-                set_bootstrap(idx, ptr.address());
+                console.log("Set bootstrap",idx,REF.address(ptr));
+                set_bootstrap(idx, REF.address(ptr));
             });
             set_callback(shortcircuit_ptr);
+            console.log("Init DLL");
             init_module();
         },
         exports: exports,

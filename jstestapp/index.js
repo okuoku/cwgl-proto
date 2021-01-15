@@ -36,7 +36,7 @@ const audioctx_mini = require("./audioctx-mini.js");
 const performance = require('perf_hooks').performance;
 const storage = require("./storage.js");
 const EmuCanvas = require("./emucanvas.js");
-//const WebAssembly = require("./wasmproxy.js");
+const WebAssembly = require("./wasmproxy.js");
 
 const nav = {};
 const doc = {};
