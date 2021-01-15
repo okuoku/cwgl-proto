@@ -25,6 +25,11 @@ foreach(l ${header})
     # Import Function:
     #   extern void (*Z_envZ_glClearColorZ_vffff)(f32, f32, f32, f32);
     #
+    # Import Variable:
+    #   extern wasm_rt_memory_t (*Z_envZ_memory);
+    #   extern wasm_rt_table_t (*Z_envZ_table);
+    #   extern f64 (*Z_globalZ_InfinityZ_d);
+    #
     # Export Function:
     #   extern u32 (*WASM_RT_ADD_PREFIX(Z_mainZ_iii))(u32, u32);
     #
@@ -45,10 +50,16 @@ foreach(l ${header})
             set(symtype EXPORT)
             set(name ${CMAKE_MATCH_1})
             set(args ${CMAKE_MATCH_2})
+        elseif(decl MATCHES "^..([^)]+).$")
+            set(symtype IMPORT)
+            set(name ${CMAKE_MATCH_1})
+            set(args ${CMAKE_MATCH_2})
+            message(STATUS "IMPORT variable: ${name}/${args}")
         elseif(decl MATCHES "..([^)]+).(.+)")
             set(symtype IMPORT)
             set(name ${CMAKE_MATCH_1})
             set(args ${CMAKE_MATCH_2})
+            message(STATUS "IMPORT: ${name}/${args}")
         endif()
         if(args)
             set(symtype ${symtype}_FUNCTION)
