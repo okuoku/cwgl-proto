@@ -136,7 +136,7 @@ endfunction()
 
 # Export symbol info
 foreach(s ${exports})
-    set(nam ${sym_${s}_jsname})
+    set(nam ${sym_${s}_exportname})
     set(idx ${sym_${s}_exportidx})
     set(type ${sym_${s}_datatype})
     file(APPEND ${OUT} "#define SYM_${s}_EXPORTNAME \"${nam}\"\n")

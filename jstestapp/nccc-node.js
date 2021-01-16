@@ -112,14 +112,14 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             outmapper[i] = gen_outmapper(i, outtypes[i]);
         }
         function cb(inp, outp){
-            //console.log("Called", debugname);
+            console.log("Called", debugname);
             const ina = new Array(incount);
-            //console.log("In", inp, outp, debugname);
+            console.log("In", inp, outp, debugname);
             inmapper.forEach((p,idx) => {
                 //console.log("Inp", idx, intypes[idx]);
                 ina[idx] = p(inp);
             });
-            //console.log("Call", ina);
+            console.log("Call", ina);
             let rt = null;
             try{
                 rt = proc.apply(null, ina);
@@ -316,7 +316,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                 console.log("DOSHUFFLE_call end");
 
             }else{
-                //console.log("DO_call", stackptr, outcount, args, debugname);
+                console.log("DO_call", stackptr, outcount, args, debugname);
                 /* Call directly */
                 if(bridge){
                     callable(REF._reinterpret(sitestack, 0, bridge0 * 8),
@@ -325,7 +325,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                     callable(REF._reinterpret(sitestack, 0, in0 * 8),
                              REF._reinterpret(sitestack, 0, out0 * 8));
                 }
-                //console.log("DO_call end");
+                console.log("DO_call end");
             }
             /* Fetch outvals */
             let r = true;
@@ -471,11 +471,37 @@ function nccc(){
         const name1 = fetchstring(Number(out0[2]));
         const callinfoidx = Number(out0[3]);
         const types = callinfo_get_types(callinfoidx);
-        const r = [name0, name1, types];
+        const is_variable = Number(out0[4]) ? true : false;
+        const r = [name0, name1, types, is_variable];
         console.log("Import", r);
         return r;
     }
     
+    function library_set_import_f32(idx, value){
+        in0[0] = 1n;
+        in0[1] = 7n;
+        in0[2] = BigInt(idx);
+        //in0[3] = BigInt(value);
+        REF.set(in0, 3 * 8, value, REF.types.float);
+        callroot();
+        if(Number(out0[0]) != 0){
+            throw "set_import error";
+        }
+    }
+
+    function library_set_import_f64(idx, value){
+        in0[0] = 1n;
+        in0[1] = 7n;
+        in0[2] = BigInt(idx);
+        //in0[3] = BigInt(value);
+        const ptr = REF._reinterpret(in0, 8, 3 * 8);
+        REF.set(ptr, 0, value, REF.types.double);
+        callroot();
+        if(Number(out0[0]) != 0){
+            throw "set_import error";
+        }
+    }
+
     function library_set_import(idx, value){
         in0[0] = 1n;
         in0[1] = 7n;
@@ -544,7 +570,7 @@ function nccc(){
             const t = Number(buf[3+args+idx]);
             resv[idx] = typeenum(t);
         });
-        console.log("Func",idx,argv,"=>",resv);
+        //console.log("Func",idx,argv,"=>",resv);
         return [argv, resv];
     }
 
@@ -587,8 +613,30 @@ function nccc(){
             const t = Number(buf[4+args+idx]);
             resv[idx] = typeenum(t);
         });
-        console.log("Typebridge",idx,bridgeaddr,argv,"=>",resv);
+        //console.log("Typebridge",idx,bridgeaddr,argv,"=>",resv);
         return [bridgeaddr, argv, resv];
+    }
+
+    function init_memory(current_pages, max_pages, native_addr){
+        // => instance_id
+        in0[0] = 1n;
+        in0[1] = 12n;
+        in0[2] = BigInt(current_pages);
+        in0[3] = BigInt(max_pages);
+        in0[4] = BigInt(native_addr);
+        callroot();
+        const instance_id = Number(out0[0]);
+        return instance_id;
+    }
+    function init_table(elements, max_elements){
+        // => instance_id
+        in0[0] = 1n;
+        in0[1] = 13n;
+        in0[2] = BigInt(elements);
+        in0[3] = BigInt(max_elements);
+        callroot();
+        const instance_id = Number(out0[0]);
+        return instance_id;
     }
 
     const typestore = {};
@@ -598,8 +646,8 @@ function nccc(){
         const paramv = data.slice(0,params).map(typeenum);
         const resultv = data.slice(params,params+results).map(typeenum);
         const typename = paramv.toString() + "::" + resultv.toString();
-        console.log("Types",params,results,data,paramv,resultv);
-        console.log("Lookup type", typename, typestore[typename]);
+        //console.log("Types",params,results,data,paramv,resultv);
+        //console.log("Lookup type", typename, typestore[typename]);
         return typestore[typename].idx;
     }
     const tablecache = {};
@@ -671,32 +719,76 @@ function nccc(){
         const name0 = c[0];
         const name1 = c[1];
         const types = c[2];
+        const is_variable = c[3];
         if(! imports[name0]){
             imports[name0] = {};
         }
-        imports[name0][name1] = {
-            attach: function(proc){
-                const buf = callsite.make_nccc_cb(name1, proc, types[0], types[1]);
-                if(! import_cbs[name0]){
-                    import_cbs[name0] = {};
-                }
-                // To keep reference:
-                import_cbs[name0][name1] = buf;
-                library_set_import(idx, REF.address(buf));
+        let attach = null;
+        function attach_function(proc){
+            const buf = callsite.make_nccc_cb(name1, proc, types[0], types[1]);
+            if(! import_cbs[name0]){
+                import_cbs[name0] = {};
             }
+            // To keep reference:
+            import_cbs[name0][name1] = buf;
+            library_set_import(idx, REF.address(buf));
+        }
+        function attach_memory(mem){
+            const current_pages = mem.__wasmproxy_current_page();
+            const max_pages = 32768;
+            const native_addr = REF.address(mem.__wasmproxy_heap);
+            const memory_instance = init_memory(current_pages, max_pages, native_addr);
+            console.log("Attach memory",mem,native_addr);
+            library_set_import(idx, memory_instance);
+        }
+        function attach_table(tbl){
+            table_instance = init_table(tbl.__wasmproxy_tablesize, tbl.__wasmproxy_tablesize);
+            console.log("Attach table",tbl,table_instance);
+            library_set_import(idx, table_instance);
+        }
+        function attach_f32(obj){
+            library_set_import_f32(idx, obj);
+        }
+        function attach_f64(obj){
+            library_set_import_f64(idx, obj);
+        }
+        function attach_variable(obj){
+            library_set_import(idx, obj);
+        }
+        if(is_variable){
+            switch(types[1][0]){
+                case "memory":
+                    attach = attach_memory;
+                    break;
+                case "table":
+                    attach = attach_table;
+                    break;
+                case "f32":
+                    attach = attach_f32;
+                    break;
+                case "f64":
+                    attach = attach_f64;
+                    break;
+                default:
+                    attach = attach_variable;
+                    break;
+            }
+        }else{
+            attach = attach_function;
+        }
+
+        imports[name0][name1] = {
+            attach: attach
         };
     }
 
     for(i=0;i!=typecount;i++){
-        console.log("Check",i,typecount);
+        //console.log("Check",i,typecount);
         const c = typebridge_get_types(i);
         const bridgeaddr = c[0];
         const paramv = c[1];
         const resultv = c[2];
         const typename = paramv.toString() + "::" + resultv.toString();
-        console.log(typename);
-        console.log(paramv);
-        console.log(resultv);
         if(!typestore[typename]){
             typestore[typename] = {
                 bridgeaddr: bridgeaddr,
@@ -705,7 +797,7 @@ function nccc(){
                 idx: i
             };
             typelookup[i] = typestore[typename];
-            console.log("Type", typestore[typename]);
+            //console.log("Type", typestore[typename]);
         }
     }
     

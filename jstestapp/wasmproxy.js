@@ -1,6 +1,38 @@
 const REF = require("ref-napi");
 const nccc = require("./nccc-node.js")();
 
+function wasmtable(opts){
+    const initial = opts.initial;
+    const maximum = opts.maximum ? opts.maximum : opts.initial;
+    return {
+        __wasmproxy_tablesize: maximum,
+        get: function(index){
+            return nccc.get_table(index);
+        }
+    };
+}
+
+function wasmmemory(opts){
+    const initial_pages = opts.initial;
+    const max_pages = opts.maximum ? opts.maximum : 32768;
+    let current_pages = 32768;
+    //const heap = new Uint8Array(initial_pages * 64 * 1024);
+    const heap = new Uint8Array(32768 * 64 * 1024);
+    const the_buffer = heap.buffer;
+
+    /* Unity has instanceof check */
+    this.grow = function(delta){
+            console.log("Memory grow request", delta);
+            const cursize = current_pages;
+            return cursize;
+    }
+    this.__wasmproxy_current_page = function(){
+            return current_pages;
+    }
+    this.buffer = the_buffer;
+    this.__wasmproxy_heap = heap;
+}
+
 function fakeinstance(imports){
     let current_pages = 0;
     let max_pages = 0;
@@ -39,7 +71,6 @@ function fakeinstance(imports){
             return [0, max_pages];
         }
     };
-    nccc.bootstrap(wasmrt);
     memory.grow = function(){
         throw "Cannot grow memory!";
     };
@@ -51,10 +82,12 @@ function fakeinstance(imports){
                 console.log("Import",name0,name1,imports[name0][name1]);
                 nccc.imports[name0][name1].attach(imports[name0][name1]);
             }else{
-                console.log("Skip import",name0,name1);
+                //console.log("Skip import",name0,name1);
             }
         });
     });
+
+    nccc.bootstrap(wasmrt);
 
     /* Construct export tables */
     me.instance = {};
@@ -109,6 +142,8 @@ wasm = {
         //console.log("WASM instantiate (fake)", obj, imports);
         return fakeinstance(imports);
     },
+    Memory: wasmmemory,
+    Table: wasmtable
 };
 
 module.exports = wasm;

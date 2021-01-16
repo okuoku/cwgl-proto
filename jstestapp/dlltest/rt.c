@@ -139,13 +139,13 @@ wasm_library_info(const uint64_t* in, uint64_t* out){
 
 static void
 wasm_library_get_export(const uint64_t* in, uint64_t* out){
-    // [idx] => [res name type addr]
+    // [idx] => [res name type addr callinfoidx is_variable]
     stub_library_get_export(in, out);
 }
 
 static void
 wasm_library_get_import(const uint64_t* in, uint64_t* out){ // Get import metadata
-    // [idx] => [res name0 name1 callinfoidx]
+    // [idx] => [res name0 name1 callinfoidx is_variable]
     stub_library_get_import(in, out);
 }
 

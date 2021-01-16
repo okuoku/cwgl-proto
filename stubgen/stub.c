@@ -319,12 +319,22 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
 }
 
 #define TOTALINDEX_IMPORT(sym) (SYM_ ## sym ## _IMPORTIDX)
-#define LIBIM(sym) \
+#define LIBIM_FUNC(_,__,sym) \
     case SYM_ ## sym ## _IMPORTIDX: \
       res = 0; \
       name0 = SYM_ ## sym ## _IMPORTNAME1; \
       name1 = SYM_ ## sym ## _IMPORTNAME2; \
       callinfoidx = TOTALINDEX_IMPORT(sym); \
+      is_variable = 0; \
+      break;
+
+#define LIBIM_VAR(_,sym) \
+    case SYM_ ## sym ## _IMPORTIDX: \
+      res = 0; \
+      name0 = SYM_ ## sym ## _IMPORTNAME1; \
+      name1 = SYM_ ## sym ## _IMPORTNAME2; \
+      callinfoidx = TOTALINDEX_IMPORT(sym); \
+      is_variable = 1; \
       break;
 
 void
@@ -334,8 +344,10 @@ stub_library_get_import(const uint64_t* in, uint64_t* out){
     const char* name1 = NULL;
     uint64_t callinfoidx;
     uint64_t res;
+    int is_variable = 0;
     switch(idx){
-        IMPORT_EXPAND(LIBIM)
+        IMPORTVAR_EXPAND(LIBIM_VAR)
+        IMPORTFUNC_EXPAND(LIBIM_FUNC)
         default:
             res = -1;
             callinfoidx = -1;
@@ -345,6 +357,7 @@ stub_library_get_import(const uint64_t* in, uint64_t* out){
     out[1] = (uintptr_t)name0;
     out[2] = (uintptr_t)name1;
     out[3] = callinfoidx;
+    out[4] = is_variable;
 }
 
 #define LIBIMSETVAR_table(sym) \
