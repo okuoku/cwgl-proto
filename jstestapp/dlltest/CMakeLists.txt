@@ -5,7 +5,7 @@ include_directories(.)
 
 add_custom_command(OUTPUT 
     ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
-    COMMAND clang -c -emit-llvm -O0
+    COMMAND clang -g3 -c -emit-llvm -O0
     -o ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
     dll.c
     DEPENDS dll.c
@@ -14,7 +14,7 @@ add_custom_command(OUTPUT
 
 add_custom_command(OUTPUT 
     ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.o
-    COMMAND clang -O0 -c
+    COMMAND clang -g3 -O0 -c
     -o ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.o
     ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
