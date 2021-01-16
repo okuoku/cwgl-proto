@@ -140,9 +140,14 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     EXP_DECL_TYPE_BRIDGE_ ## in ## _ ## out (sym)
 
 /* EXPORT VARIABLEs */
-
-#define EXP_DECL_EXPORT_VAR(sym) \
+#define EXP_DECL_EXPORT_VAR_obj(sym) \
     SYM_ ## sym ## _DATATYPE * WASM_RT_ADD_PREFIX(sym);
+#define EXP_DECL_EXPORT_VAR_table(sym) \
+    EXP_DECL_EXPORT_VAR_obj(sym)
+#define EXP_DECL_EXPORT_VAR_memory(sym) \
+    EXP_DECL_EXPORT_VAR_obj(sym)
+#define EXP_DECL_EXPORT_VAR(type,sym) \
+    EXP_DECL_EXPORT_VAR_ ## type(sym)
 
 /* IMPORT FUNCs */
 
@@ -212,7 +217,25 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     void (*sym) (void) = \
     instub_ ## sym;
 
+/* IMPORT VARIABLEs */
+#define EXP_DECL_IMPORT_VAR_val(sym) \
+    SYM_ ## sym ## _DATATYPE stubstore_ ## sym; \
+    SYM_ ## sym ## _DATATYPE* sym = & stubstore_ ## sym;
 
+#define EXP_DECL_IMPORT_VAR_obj(sym) \
+    SYM_ ## sym ## _DATATYPE* sym = 0;
+
+#define EXP_DECL_IMPORT_VAR_memory(sym) \
+    EXP_DECL_IMPORT_VAR_obj(sym)
+
+#define EXP_DECL_IMPORT_VAR_table(sym) \
+    EXP_DECL_IMPORT_VAR_obj(sym)
+
+#define EXP_DECL_IMPORT_VAR(type,sym) \
+    EXP_DECL_IMPORT_VAR_ ## type(sym)
+
+
+IMPORTVAR_EXPAND(EXP_DECL_IMPORT_VAR)
 IMPORTFUNC_EXPAND(EXP_DECL_IMPORT_FUNC)
 EXPORTFUNC_EXPAND(EXP_DECL_EXPORT_FUNC)
 EXPORTVAR_EXPAND(EXP_DECL_EXPORT_VAR) 
@@ -252,7 +275,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
       value = (uintptr_t)nccc_ ## sym; \
       break; 
 
-#define LIBEX_VAR(sym) \
+#define LIBEX_VAR(_,sym) \
     case SYM_ ## sym ## _EXPORTIDX: \
       value = (uintptr_t)&WASM_RT_ADD_PREFIX(sym); \
       break; 
@@ -324,7 +347,25 @@ stub_library_get_import(const uint64_t* in, uint64_t* out){
     out[3] = callinfoidx;
 }
 
-#define LIBIMSET(sym) \
+#define LIBIMSETVAR_table(sym) \
+    LIBIMSETVAR_obj(sym)
+#define LIBIMSETVAR_memory(sym) \
+    LIBIMSETVAR_obj(sym)
+#define LIBIMSETVAR_obj(sym) \
+    case SYM_ ## sym ## _IMPORTIDX: \
+      res = 0; \
+      sym = (SYM_ ## sym ## _DATATYPE *)(uintptr_t)value; \
+      break;
+#define LIBIMSETVAR_val(sym) \
+    case SYM_ ## sym ## _IMPORTIDX: \
+      res = 0; \
+      stubstore_ ## sym = *(SYM_ ## sym ## _DATATYPE *)&value; \
+      break;
+
+#define LIBIMSETVAR(type,sym) \
+    LIBIMSETVAR_ ## type(sym)
+
+#define LIBIMSETFUNC(_,__,sym) \
     case SYM_ ## sym ## _IMPORTIDX: \
       res = 0; \
       nccc_ ## sym = (uintptr_t)value; \
@@ -336,7 +377,8 @@ stub_library_set_import(const uint64_t* in, uint64_t* out){
     const uint64_t value = in[1];
     uint64_t res;
     switch(idx){
-        IMPORT_EXPAND(LIBIMSET)
+        IMPORTVAR_EXPAND(LIBIMSETVAR)
+        IMPORTFUNC_EXPAND(LIBIMSETFUNC)
         default:
             res = -1;
             break;
@@ -351,6 +393,13 @@ stub_library_set_import(const uint64_t* in, uint64_t* out){
       outcount = SYM_ ## sym ## _RET_COUNT; \
       break;
 
+#define CIIM_COUNT_VAR(_,sym) \
+    case TOTALINDEX_IMPORT(sym): \
+      res = 0; \
+      incount = 0; \
+      outcount = 1; \
+      break;
+
 #define CIEX_COUNT_FUNC(_,__,sym) \
     case TOTALINDEX_EXPORT(sym): \
       res = 0; \
@@ -358,7 +407,7 @@ stub_library_set_import(const uint64_t* in, uint64_t* out){
       outcount = SYM_ ## sym ## _RET_COUNT; \
       break;
 
-#define CIEX_COUNT_VAR(sym) \
+#define CIEX_COUNT_VAR(_,sym) \
     case TOTALINDEX_EXPORT(sym): \
       res = 0; \
       incount = 0; \
@@ -373,6 +422,7 @@ stub_callinfo_get_counts(const uint64_t* in, uint64_t* out){
     uint64_t outcount;
     switch(idx){
         IMPORTFUNC_EXPAND(CIIM_COUNT)
+        IMPORTVAR_EXPAND(CIIM_COUNT_VAR)
         EXPORTFUNC_EXPAND(CIEX_COUNT_FUNC)
         EXPORTVAR_EXPAND(CIEX_COUNT_VAR)
         default:
@@ -403,13 +453,21 @@ stub_callinfo_get_counts(const uint64_t* in, uint64_t* out){
 #define CIFILLRET_val(sym) \
     out[3+SYM_ ## sym ## _ARG_COUNT] = CIEXP(SYM_ ## sym ## _DATATYPE,CITYPE); 
 
-#define CIIM_TYPES(_,ret,sym) \
+#define CIIM_TYPES_FUNC(_,ret,sym) \
     case TOTALINDEX_IMPORT(sym): \
       res = 0; \
       out[1] = SYM_ ## sym ## _ARG_COUNT; \
       out[2] = SYM_ ## sym ## _RET_COUNT; \
       SYM_ ## sym ## _ARG_EXPAND(CI_TYPES_SET) \
       CIFILLRET_ ## ret(sym) \
+      break;
+
+#define CIIM_TYPES_VAR(_,sym) \
+    case TOTALINDEX_IMPORT(sym): \
+      res = 0; \
+      out[1] = 0; \
+      out[2] = 1; \
+      out[3] = CIEXP(SYM_ ## sym ## _DATATYPE,CITYPE); \
       break;
 
 #define CIEX_TYPES_FUNC(_,ret,sym) \
@@ -421,7 +479,7 @@ stub_callinfo_get_counts(const uint64_t* in, uint64_t* out){
       CIFILLRET_ ## ret(sym) \
       break;
 
-#define CIEX_TYPES_VAR(sym) \
+#define CIEX_TYPES_VAR(_,sym) \
     case TOTALINDEX_EXPORT(sym): \
       res = 0; \
       out[1] = 0; \
@@ -434,7 +492,8 @@ stub_callinfo_get_types(const uint64_t* in, uint64_t* out){
     const uint64_t idx = in[0];
     uint64_t res;
     switch(idx){
-        IMPORTFUNC_EXPAND(CIIM_TYPES)
+        IMPORTFUNC_EXPAND(CIIM_TYPES_FUNC)
+        IMPORTVAR_EXPAND(CIIM_TYPES_VAR)
         EXPORTFUNC_EXPAND(CIEX_TYPES_FUNC)
         EXPORTVAR_EXPAND(CIEX_TYPES_VAR)
         default:
