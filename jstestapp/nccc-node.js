@@ -112,14 +112,14 @@ function make_callsite(shortcircuit, shufflecall_ptr){
             outmapper[i] = gen_outmapper(i, outtypes[i]);
         }
         function cb(inp, outp){
-            console.log("Called", debugname);
+            //console.log("Called", debugname);
             const ina = new Array(incount);
-            console.log("In", inp, outp, debugname);
+            //console.log("In", inp, outp, debugname);
             inmapper.forEach((p,idx) => {
                 //console.log("Inp", idx, intypes[idx]);
                 ina[idx] = p(inp);
             });
-            console.log("Call", ina);
+            //console.log("Call", ina);
             let rt = null;
             try{
                 rt = proc.apply(null, ina);
@@ -239,10 +239,11 @@ function make_callsite(shortcircuit, shufflecall_ptr){
         return function(...args){
             let objcnt = 0;
             let objq = [null, null, null, null];
-            let objpos = [false, false, false, false];
+            let objpos = [-1, -1, -1, -1];
             /* check arg count */
             if(args.length != incount){
-                throw "argument count unmatched";
+                console.log("Unmatch argument", debugname, args, intypes);
+                args = args.slice(0,incount);
             }
             /* Scan argument for objects: that need to be filled with
              * shufflecall_ptr */
@@ -316,7 +317,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                 console.log("DOSHUFFLE_call end");
 
             }else{
-                console.log("DO_call", stackptr, outcount, args, debugname);
+                //console.log("DO_call", stackptr, outcount, args, debugname);
                 /* Call directly */
                 if(bridge){
                     callable(REF._reinterpret(sitestack, 0, bridge0 * 8),
@@ -325,7 +326,7 @@ function make_callsite(shortcircuit, shufflecall_ptr){
                     callable(REF._reinterpret(sitestack, 0, in0 * 8),
                              REF._reinterpret(sitestack, 0, out0 * 8));
                 }
-                console.log("DO_call end");
+                //console.log("DO_call end");
             }
             /* Fetch outvals */
             let r = true;
