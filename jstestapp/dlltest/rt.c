@@ -179,6 +179,30 @@ wasm_typebridge_get_types(const uint64_t* in, uint64_t* out){
     stub_typebridge_get_types(in, out);
 }
 
+static void
+wasm_init_memory(const uint64_t* in, uint64_t* out){
+    // [current_pages max_pages native_addr] => [instance_id]
+    wasm_rt_memory_t* mem;
+    mem = malloc(sizeof(wasm_rt_memory_t));
+    mem->data = (void*)(uintptr_t)in[2];
+    mem->pages = in[0];
+    mem->max_pages = in[1];
+    mem->size = in[0] * (64*1024);
+    out[0] = (uintptr_t)mem;
+}
+
+static void
+wasm_init_table(const uint64_t* in, uint64_t* out){
+    // [elements max_elements] => [instance_id]
+    uint32_t max_elements = in[1];
+    wasm_rt_table_t* tbl;
+    tbl = malloc(sizeof(wasm_rt_table_t));
+    tbl->data = malloc(sizeof(wasm_rt_elem_t) * max_elements);
+    tbl->max_size = max_elements;
+    tbl->size = max_elements;
+    out[0] = (uintptr_t)tbl;
+}
+
 // WASM2C runtime
 void
 wasm_rt_allocate_table(wasm_rt_table_t* table,
@@ -356,6 +380,12 @@ the_module_root(const uint64_t* in, uint64_t* out){
                     break;
                 case 11:
                     wasm_typebridge_get_types(&in[2], out);
+                    break;
+                case 12:
+                    wasm_init_memory(&in[2], out);
+                    break;
+                case 13:
+                    wasm_init_table(&in[2], out);
                     break;
                 default:
                     __builtin_trap();
