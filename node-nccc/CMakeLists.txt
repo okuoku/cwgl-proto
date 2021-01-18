@@ -8,6 +8,9 @@ add_library(node-nccc SHARED
     node-nccc.c
     )
 
+add_library(testlib SHARED
+    testlib.c)
+
 if(WIN32)
     target_link_libraries(node-nccc node)
 endif()
