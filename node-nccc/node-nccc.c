@@ -72,7 +72,6 @@ struct cb_params_s {
     /* For nccc_call */
     uint64_t addr;
     /* For nccc_cb */
-    napi_value cb;
     napi_ref cb_ref;
     napi_env env;
 };
@@ -229,6 +228,7 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     napi_value vout,v;
     napi_value* argbuf;
     napi_value glbl;
+    napi_value cb;
     cb_params_t* ctx = (cb_params_t*)(uintptr_t)in[0];
     const uint64_t* in_next = (uint64_t*)(uintptr_t)in[1];
     int i;
@@ -252,13 +252,17 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     if(status != napi_ok){
         abort();
     }
+    status = napi_get_reference_value(ctx->env, ctx->cb_ref, &cb);
+    if(status != napi_ok){
+        abort();
+    }
     napi_valuetype typ;
-    status = napi_typeof(ctx->env, ctx->cb, &typ);
+    status = napi_typeof(ctx->env, cb, &typ);
     if(typ != napi_function){
         abort();
     }
     // FIXME: Throw C++ exception on error?
-    status = napi_call_function(ctx->env, glbl, ctx->cb, 
+    status = napi_call_function(ctx->env, glbl, cb, 
                                 ctx->incount /* FIXME: varargs? */,
                                 argbuf,
                                 &vout);
@@ -332,7 +336,6 @@ make_nccc_cb(napi_env env, napi_callback_info info){
     /* Fill context */
     params = malloc(sizeof(cb_params_t));
     params->env = env; // FIXME: Is that safe?
-    params->cb = cb;
     params->cb_ref = cb_ref;
     /* 1:intypes */
     status = napi_get_value_string_utf8(env, args[1], typestringbuf,
