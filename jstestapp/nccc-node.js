@@ -1,7 +1,66 @@
 const DLLPATH = "./dlltest/out/build/x64-Debug/appdll.dll";
+const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
 const FFI = require("ffi-napi");
 const REF = require("ref-napi");
 const node_nccc = require("../node-nccc/out/build/x64-Debug/node-nccc");
+
+const utildll = FFI.DynamicLibrary(DLLUTIL, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
+
+const util_rawcall_addr = utildll.get("util_rawcall").address();
+const util_peek_u64_addr = utildll.get("util_peek_u64").address();
+const util_poke_u64_addr = utildll.get("util_poke_u64").address();
+const util_peek_u32_addr = utildll.get("util_peek_u32").address();
+const util_poke_u32_addr = utildll.get("util_poke_u32").address();
+const util_malloc_addr = utildll.get("util_malloc").address();
+
+const util_rawcall = node_nccc.make_nccc_call("rawcall",
+                                              0, util_rawcall_addr,
+                                              "lll", "");
+const util_malloc = node_nccc.make_nccc_call("malloc",
+                                             0, util_malloc_addr,
+                                             "l", "l");
+const util_peek_u64 = node_nccc.make_nccc_call("peek_u64",
+                                               0, util_peek_u64_addr,
+                                               "l", "l");
+const util_peek_f64 = node_nccc.make_nccc_call("peek_f64", // reinterpret
+                                               0, util_peek_u64_addr,
+                                               "l", "d");
+const util_peek_f32 = node_nccc.make_nccc_call("peek_f32", // reinterpret
+                                               0, util_peek_u32_addr,
+                                               "l", "f");
+const util_poke_u64 = node_nccc.make_nccc_call("poke_u64",
+                                               0, util_poke_u64_addr,
+                                               "ll", "");
+const util_poke_f64 = node_nccc.make_nccc_call("poke_f64", // reinterpret
+                                               0, util_poke_u64_addr,
+                                               "ld", "");
+const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
+                                               0, util_poke_u32_addr,
+                                               "lf", "");
+
+const rawcallbuf_in = util_malloc(8*8);
+const rawcallbuf_out = util_malloc(8*8);
+function rawcall_set_u64(idx, val){
+    util_poke_u64(rawcallbuf_in + 8*idx, val);
+}
+function rawcall_set_f32(idx, val){
+    util_poke_f32(rawcallbuf_in + 8*idx, val);
+}
+function rawcall_set_f64(idx, val){
+    util_poke_f64(rawcallbuf_in + 8*idx, val);
+}
+function rawcall(addr){
+    util_rawcall(addr, rawcallbuf_in, rawcallbuf_out);
+}
+function rawcall_get_u64(idx){
+    return util_peek_u64(rawcallbuf_out + 8*idx);
+}
+function rawcall_get_f32(idx){
+    return util_peek_f32(rawcallbuf_out + 8*idx);
+}
+function rawcall_get_f64(idx){
+    return util_peek_f64(rawcallbuf_out + 8*idx);
+}
 
 function typechar(typename){
     switch(typename){
@@ -209,39 +268,31 @@ function nccc(){
     const out0 = new BigInt64Array(8);
     const dllfile = FFI.DynamicLibrary(DLLPATH, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
     const root = {};
+    const rootaddr = dllfile.get("the_module_root").address();
+
     root.the_module_root = FFI.ForeignFunction(dllfile.get("the_module_root"),
                                                VOID, [VOIDP, VOIDP]);
     root.short_circuit = FFI.ForeignFunction(dllfile.get("short_circuit"),
                                              VOID, [VOIDP, VOIDP]);
     const shufflecall_ptr = dllfile.get("shufflecall_ptr");
 
-    /*
-    const root = FFI.Library(DLLPATH,
-                             {
-                                 the_module_root: [VOID, [VOIDP, VOIDP]]
-                                 short_circuit: [VOID, [VOIDP, VOIDP]]
-                             });
-                             */
     function callroot_buf(buf){
         root.the_module_root(in0, buf);
     }
-    function callroot(){
-        root.the_module_root(in0, out0);
-    }
 
     function get_callback(idx){
-        in0[0] = 0n;
-        in0[1] = 0n;
-        in0[2] = BigInt(idx);
-        callroot();
-        return Number(out0[0]);
+        rawcall_set_u64(0, 0);
+        rawcall_set_u64(1, 0);
+        rawcall_set_u64(2, idx);
+        rawcall(rootaddr);
+        return rawcall_get_u64(0);
     }
 
     function set_callback(val){
-        in0[0] = 0n;
-        in0[1] = 1n;
-        in0[2] = BigInt(val);
-        callroot();
+        rawcall_set_u64(0, 0);
+        rawcall_set_u64(1, 1);
+        rawcall_set_u64(2, val);
+        rawcall(rootaddr);
     }
 
     // String access
@@ -251,145 +302,146 @@ function nccc(){
 
     // WASM Generic
     function library_info(){
-        in0[0] = 1n;
-        in0[1] = 1n;
-        in0[2] = 0n;
-        callroot();
-        const exports = Number(out0[0]);
-        const imports = Number(out0[1]);
-        const totalidx = Number(out0[2]);
-        const callinfos = Number(out0[3]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 1);
+        rawcall_set_u64(2, 0);
+        rawcall(rootaddr);
+        const exports = rawcall_get_u64(0);
+        const imports = rawcall_get_u64(1);
+        const totalidx = rawcall_get_u64(2);
+        const callinfos = rawcall_get_u64(3);
         const r = [exports, imports, totalidx /* Unused? */, callinfos];
         console.log("Library", r);
         return r;
     }
     function set_bootstrap(idx, ptr){
-        in0[0] = 1n;
-        in0[1] = 2n;
-        in0[2] = BigInt(idx);
-        in0[3] = BigInt(ptr);
-        callroot();
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 2);
+        rawcall_set_u64(2, idx);
+        rawcall_set_u64(3, ptr);
+        rawcall(rootaddr);
     }
     function init_module(){
-        in0[0] = 1n;
-        in0[1] = 3n;
-        callroot();
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 3);
+        rawcall(rootaddr);
     }
     function read_table(instance_id, index){
-        in0[0] = 1n;
-        in0[1] = 4n;
-        in0[2] = BigInt(instance_id);
-        in0[3] = BigInt(index);
-        callroot();
-        const res = Number(out0[0]);
-        if(res == -1){
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 4);
+        rawcall_set_u64(2, instance_id);
+        rawcall_set_u64(3, index);
+        rawcall(rootaddr);
+        const res = rawcall_get_u64(0);
+        if(res != 0){
             return false;
         }
-        const functype = Number(out0[1]);
-        const funcobj = Number(out0[2]);
+        const functype = rawcall_get_u64(1);
+        const funcobj = rawcall_get_u64(2);
         return [functype, funcobj];
     }
 
     function library_get_export(idx){
-        in0[0] = 1n;
-        in0[1] = 5n;
-        in0[2] = BigInt(idx);
-        callroot();
-        const res = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 5);
+        rawcall_set_u64(2, idx);
+        rawcall(rootaddr);
+        const res = rawcall_get_u64(0);
         if(res != 0){
             return false;
         }
-        const name = fetchstring(Number(out0[1]));
-        const addr = Number(out0[2]);
-        const callinfoidx = Number(out0[3]);
+        const name = fetchstring(rawcall_get_u64(1));
+        const addr = rawcall_get_u64(2);
+        const callinfoidx = rawcall_get_u64(3);
+        const is_variable = rawcall_get_u64(4) ? true : false;
         const types = callinfo_get_types(callinfoidx);
-        const is_variable = Number(out0[4]) ? true : false;
         const r = [name, addr, types, is_variable];
-        console.log("Export", r);
+        //console.log("Export", r);
         return r;
     }
 
     function library_get_import(idx){
-        in0[0] = 1n;
-        in0[1] = 6n;
-        in0[2] = BigInt(idx);
-        callroot();
-        const res = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 6);
+        rawcall_set_u64(2, idx);
+        rawcall(rootaddr);
+        const res = rawcall_get_u64(0);
         if(res != 0){
             return false;
         }
-        const name0 = fetchstring(Number(out0[1]));
-        const name1 = fetchstring(Number(out0[2]));
-        const callinfoidx = Number(out0[3]);
+        const name0 = fetchstring(rawcall_get_u64(1));
+        const name1 = fetchstring(rawcall_get_u64(2));
+        const callinfoidx = rawcall_get_u64(3);
+        const is_variable = rawcall_get_u64(4) ? true : false;
         const types = callinfo_get_types(callinfoidx);
-        const is_variable = Number(out0[4]) ? true : false;
         const r = [name0, name1, types, is_variable];
-        console.log("Import", r);
+        //console.log("Import", r);
         return r;
     }
     
     function library_set_import_f32(idx, value){
-        in0[0] = 1n;
-        in0[1] = 7n;
-        in0[2] = BigInt(idx);
-        in0[3] = 0n;
-        //in0[4] = BigInt(value);
-        REF.set(in0, 4 * 8, value, REF.types.float);
-        callroot();
-        if(Number(out0[0]) != 0){
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 7);
+        rawcall_set_u64(2, idx);
+        rawcall_set_u64(3, 0);
+        rawcall_set_f32(4, value);
+        rawcall(rootaddr);
+
+        if(rawcall_get_u64(0) != 0){
             throw "set_import error";
         }
     }
 
     function library_set_import_f64(idx, value){
-        in0[0] = 1n;
-        in0[1] = 7n;
-        in0[2] = BigInt(idx);
-        in0[3] = 0n;
-        //in0[4] = BigInt(value);
-        const ptr = REF._reinterpret(in0, 8, 4 * 8);
-        REF.set(ptr, 0, value, REF.types.double);
-        callroot();
-        if(Number(out0[0]) != 0){
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 7);
+        rawcall_set_u64(2, idx);
+        rawcall_set_u64(3, 0);
+        rawcall_set_f64(4, value);
+        rawcall(rootaddr);
+
+        if(rawcall_get_u64(0) != 0){
             throw "set_import error";
         }
     }
 
     function library_set_import(idx, value){
-        in0[0] = 1n;
-        in0[1] = 7n;
-        in0[2] = BigInt(idx);
-        in0[3] = 0n;
-        in0[4] = BigInt(value);
-        callroot();
-        if(Number(out0[0]) != 0){
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 7);
+        rawcall_set_u64(2, idx);
+        rawcall_set_u64(3, 0);
+        rawcall_set_u64(4, value);
+        rawcall(rootaddr);
+
+        if(rawcall_get_u64(0) != 0){
             throw "set_import error";
         }
     }
 
     function library_set_import_fn(idx, dispatch, value){
-        in0[0] = 1n;
-        in0[1] = 7n;
-        in0[2] = BigInt(idx);
-        in0[3] = BigInt(dispatch);
-        in0[4] = BigInt(value);
-        callroot();
-        if(Number(out0[0]) != 0){
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 7);
+        rawcall_set_u64(2, idx);
+        rawcall_set_u64(3, dispatch);
+        rawcall_set_u64(4, value);
+        rawcall(rootaddr);
+
+        if(rawcall_get_u64(0) != 0){
             throw "set_import error";
         }
     }
 
     function callinfo_get_counts(idx){
-        in0[0] = 1n;
-        in0[1] = 8n;
-        in0[2] = BigInt(idx);
-        callroot();
-        const res = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 8);
+        rawcall_set_u64(2, idx);
+        rawcall(rootaddr);
+        const res = rawcall_get_u64(0);
         if(res != 0){
             return false;
         }
-        const argcount = Number(out0[1]);
-        const retcount = Number(out0[2]);
+        const argcount = rawcall_get_u64(1);
+        const retcount = rawcall_get_u64(2);
         return [argcount, retcount];
     }
 
@@ -419,6 +471,7 @@ function nccc(){
         const buf = new BigInt64Array(args+rets+3);
         in0[0] = 1n;
         in0[1] = 9n;
+        in0[2] = BigInt(idx);
         callroot_buf(buf);
         const res = Number(buf[0]);
         if(res != 0){
@@ -441,16 +494,16 @@ function nccc(){
     }
 
     function typebridge_get_counts(idx){
-        in0[0] = 1n;
-        in0[1] = 10n;
-        in0[2] = BigInt(idx);
-        callroot();
-        const res = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 10);
+        rawcall_set_u64(2, idx);
+        rawcall(rootaddr);
+        const res = rawcall_get_u64(0);
         if(res != 0){
             return false;
         }
-        const argcount = Number(out0[1]);
-        const retcount = Number(out0[2]);
+        const argcount = rawcall_get_u64(1);
+        const retcount = rawcall_get_u64(2);
         return [argcount, retcount];
     }
 
@@ -461,6 +514,7 @@ function nccc(){
         const buf = new BigInt64Array(args+rets+4);
         in0[0] = 1n;
         in0[1] = 11n;
+        in0[2] = BigInt(idx);
         callroot_buf(buf);
         const res = Number(buf[0]);
         if(res != 0){
@@ -485,23 +539,23 @@ function nccc(){
 
     function init_memory(current_pages, max_pages, native_addr){
         // => instance_id
-        in0[0] = 1n;
-        in0[1] = 12n;
-        in0[2] = BigInt(current_pages);
-        in0[3] = BigInt(max_pages);
-        in0[4] = BigInt(native_addr);
-        callroot();
-        const instance_id = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 12);
+        rawcall_set_u64(2, current_pages);
+        rawcall_set_u64(3, max_pages);
+        rawcall_set_u64(4, native_addr);
+        rawcall(rootaddr);
+        const instance_id = rawcall_get_u64(0);
         return instance_id;
     }
     function init_table(elements, max_elements){
         // => instance_id
-        in0[0] = 1n;
-        in0[1] = 13n;
-        in0[2] = BigInt(elements);
-        in0[3] = BigInt(max_elements);
-        callroot();
-        const instance_id = Number(out0[0]);
+        rawcall_set_u64(0, 1);
+        rawcall_set_u64(1, 13);
+        rawcall_set_u64(2, elements);
+        rawcall_set_u64(3, max_elements);
+        rawcall(rootaddr);
+        const instance_id = rawcall_get_u64(0);
         return instance_id;
     }
 
