@@ -6,6 +6,7 @@ include_directories(.)
 add_custom_command(OUTPUT 
     ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
     COMMAND clang -g3 -c -emit-llvm -O0
+    -DWASM_RT_MEMCHECK_SIGNAL_HANDLER=1
     -o ${CMAKE_CURRENT_BINARY_DIR}/dll_bc.bc
     dll.c
     DEPENDS dll.c

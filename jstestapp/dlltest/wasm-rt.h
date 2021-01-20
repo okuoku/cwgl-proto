@@ -35,6 +35,8 @@ extern "C" {
 #define WASM_RT_MAX_CALL_STACK_DEPTH 500
 #endif
 
+#if 0 //temp
+
 /** Enable memory checking via a signal handler via the following definition:
  *
  * #define WASM_RT_MEMCHECK_SIGNAL_HANDLER 1
@@ -67,6 +69,8 @@ extern "C" {
 #define WASM_RT_MEMCHECK_SIGNAL_HANDLER_POSIX 0
 
 #endif
+
+#endif // temp
 
 /** Reason a trap occurred. Provide this to `wasm_rt_trap`. */
 typedef enum {
