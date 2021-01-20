@@ -6,11 +6,18 @@ const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
 */
 
+/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app/example_emscripten_opengl3.js";
 const BOOTWASM = "app/example_emscripten_opengl3.wasm";
 const BOOTARGS = [];
 const APPFS_DIR = false;
+*/
+
+const BOOTPROTOCOL = "unity";
+const BOOTSTRAP = "app2/gltest2.framework.js";
+const BOOTWASM = "app2/gltest2.wasm";
+const APPFS_DIR = "app2/appfs";
 
 /*
 const BOOTPROTOCOL = "godot";
