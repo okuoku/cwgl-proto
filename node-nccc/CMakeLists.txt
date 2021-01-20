@@ -8,6 +8,10 @@ add_library(node-nccc SHARED
     node-nccc.c
     )
 
+add_library(nccc-utils SHARED
+    ncccutils.c
+    )
+
 add_library(testlib SHARED
     testlib.c)
 
