@@ -6,6 +6,16 @@
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 UTILLIB_API void
+util_rawcall(const uint64_t* in, uint64_t* out){
+    // [addr inbuf outbuf] => []
+    const nccc_call_t addr = (nccc_call_t)in[0];
+    const uint64_t* inbuf = (uintptr_t)in[1];
+    uint64_t* const outbuf = (uintptr_t)in[2];
+
+    addr(inbuf,outbuf);
+}
+
+UTILLIB_API void
 util_peek_u64(const uint64_t* in, uint64_t* out){
     // [addr] => [v]
     const uint64_t* addr = (uintptr_t)in[0];
