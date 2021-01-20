@@ -36,7 +36,7 @@ util_poke_u64(const uint64_t* in, uint64_t* out){
     // [addr v] => []
     uint64_t* const dest = (uintptr_t)in[0];
     (void) out;
-    *dest = in[0];
+    *dest = in[1];
 }
 
 UTILLIB_API void
@@ -44,7 +44,7 @@ util_poke_u32(const uint64_t* in, uint64_t* out){
     // [addr v] => []
     uint32_t* const dest = (uintptr_t)in[0];
     (void) out;
-    *dest = in[0];
+    *dest = in[1];
 }
 
 UTILLIB_API void
