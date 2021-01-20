@@ -151,7 +151,7 @@ wasm_library_get_import(const uint64_t* in, uint64_t* out){ // Get import metada
 
 static void
 wasm_library_set_import(const uint64_t* in, uint64_t* out){
-    // [idx v] => [res]
+    // [idx dispatch v] => [res]
     stub_library_set_import(in, out);
 }
 

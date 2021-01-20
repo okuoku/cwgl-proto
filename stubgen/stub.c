@@ -3,7 +3,6 @@
 #include <dll.h>
 #include "stubdata.h"
 
-void nccc_callback(const uint64_t* in, uint64_t* out);
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 #define EXP_COMMA_arg ,
@@ -155,64 +154,75 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
     EXP_DECL_IMPORT_FUNC_ ## in ## _ ## out (sym)
 
 #define EXP_DECL_INBUF_BODY_arg(_)
-#define EXP_DECL_INBUF_BODY_term(idx) uint64_t in[idx+2]
+#define EXP_DECL_INBUF_BODY_term(idx) uint64_t in[idx+1]
 #define EXP_DECL_INBUF_ITR(idx, pos, type) \
     EXP_DECL_INBUF_BODY_ ## pos (idx)
 #define EXP_DECL_INBUF(sym) \
     SYM_ ## sym ## _ARG_EXPAND(EXP_DECL_INBUF_ITR)
 
 #define EXP_ASSIGN_INBUF_ITR(idx,_,__) \
-    in[idx+1] = *(uint64_t*)&arg ## idx;
+    in[idx] = *(uint64_t*)&arg ## idx;
 
 #define EXP_ASSIGN_INBUF(sym) \
     SYM_ ## sym ## _ARG_EXPAND(EXP_ASSIGN_INBUF_ITR)
 
 #define EXP_DECL_IMPORT_FUNC_arg_val(sym) \
+    static nccc_call_t ncccdispatch_ ## sym; \
     static uintptr_t nccc_ ## sym; \
     static SYM_ ## sym ## _DATATYPE \
     instub_ ## sym EXP_DECL_ARGS(sym) { \
+        uint64_t callargs[2]; \
         uint64_t out; \
         EXP_DECL_INBUF(sym); \
         EXP_ASSIGN_INBUF(sym); \
-        in[0] = nccc_ ## sym; \
-        nccc_callback(in, &out); \
+        callargs[0] = (uintptr_t)nccc_ ## sym; \
+        callargs[1] = (uintptr_t)in; \
+        ncccdispatch_ ## sym(callargs, &out); \
         return *(SYM_ ## sym ## _DATATYPE *)&out; \
     } \
     SYM_ ## sym ## _DATATYPE (*sym) EXP_DECL_ARGS(sym) = \
-    instub_ ## sym;
+    instub_ ## sym; 
+    
 
 #define EXP_DECL_IMPORT_FUNC_void_val(sym) \
+    static nccc_call_t ncccdispatch_ ## sym; \
     static uintptr_t nccc_ ## sym; \
     static SYM_ ## sym ## _DATATYPE \
     instub_ ## sym (void) { \
-        uint64_t in[1]; \
+        uint64_t callargs[2]; \
         uint64_t out; \
-        in[0] = nccc_ ## sym; \
-        nccc_callback(in, &out); \
+        callargs[0] = (uintptr_t)nccc_ ## sym; \
+        callargs[1] = 0; \
+        ncccdispatch_ ## sym(callargs, &out); \
         return *(SYM_ ## sym ## _DATATYPE *)&out; \
     } \
     SYM_ ## sym ## _DATATYPE (*sym) EXP_DECL_ARGS(sym) = \
     instub_ ## sym;
 
 #define EXP_DECL_IMPORT_FUNC_arg_void(sym) \
+    static nccc_call_t ncccdispatch_ ## sym; \
     static uintptr_t nccc_ ## sym; \
     static void \
     instub_ ## sym EXP_DECL_ARGS(sym) { \
+        uint64_t callargs[2]; \
         EXP_DECL_INBUF(sym); \
         EXP_ASSIGN_INBUF(sym); \
-        in[0] = nccc_ ## sym; \
-        nccc_callback(in, NULL); \
+        callargs[0] = nccc_ ## sym; \
+        callargs[1] = (uintptr_t)in; \
+        ncccdispatch_ ## sym(callargs, NULL); \
     } \
     void (*sym) EXP_DECL_ARGS(sym) = \
     instub_ ## sym;
 
 #define EXP_DECL_IMPORT_FUNC_void_void(sym) \
+    static nccc_call_t ncccdispatch_ ## sym; \
     static uintptr_t nccc_ ## sym; \
     static void \
     instub_ ## sym (void) { \
-        uint64_t in[1]; \
-        in[0] = nccc_ ## sym; \
-        nccc_callback(in, NULL); \
+        uint64_t callargs[2]; \
+        callargs[0] = (uintptr_t)nccc_ ## sym; \
+        callargs[1] = 0; \
+        ncccdispatch_ ## sym(callargs, NULL); \
     } \
     void (*sym) (void) = \
     instub_ ## sym;
@@ -381,13 +391,15 @@ stub_library_get_import(const uint64_t* in, uint64_t* out){
 #define LIBIMSETFUNC(_,__,sym) \
     case SYM_ ## sym ## _IMPORTIDX: \
       res = 0; \
+      ncccdispatch_ ## sym = (nccc_call_t)dispatch; \
       nccc_ ## sym = (uintptr_t)value; \
       break;
 
 void
 stub_library_set_import(const uint64_t* in, uint64_t* out){
     const uint64_t idx = in[0];
-    const uint64_t value = in[1];
+    const uint64_t dispatch = in[1];
+    const uint64_t value = in[2];
     uint64_t res;
     switch(idx){
         IMPORTVAR_EXPAND(LIBIMSETVAR)
