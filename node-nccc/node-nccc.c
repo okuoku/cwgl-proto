@@ -39,6 +39,8 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
 static void
 value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
     napi_status status;
+    napi_valuetype typ;
+    bool bvalue;
     status = napi_invalid_arg;
     double d;
     switch(type){
@@ -60,7 +62,24 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
             break;
     }
     if(status != napi_ok){
-        abort();
+        // 2nd chance, fill zero for undefined
+        status = napi_typeof(env, vin, &typ);
+        if(typ == napi_undefined){
+            *vout = 0;
+        }else if(typ == napi_boolean){
+            status = napi_get_value_bool(env, vin, &bvalue);
+            if(status != napi_ok){
+                abort();
+            }
+            if(bvalue){
+                // FIXME: Ignore type
+                *vout = 1;
+            }else{
+                *vout = 0;
+            }
+        }else{
+            abort();
+        }
     }
 }
 
@@ -71,6 +90,7 @@ struct cb_params_s {
     size_t outcount;
     /* For nccc_call */
     uint64_t addr;
+    uint64_t dispatch;
     /* For nccc_cb */
     napi_ref cb_ref;
     napi_env env;
@@ -91,6 +111,7 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
     nccc_call_t fn;
     napi_value r;
     napi_value retbuf;
+    uint64_t dispatch;
 
     argc = 0;
     /* Pass1: Collect ctx */
@@ -98,6 +119,7 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
     if(status != napi_ok){
         abort();
     }
+    dispatch = ctx->dispatch;
     /* Pass2: Fill argument */
     argc = ctx->incount;
     argbuf = alloca(sizeof(napi_value)*ctx->incount);
@@ -105,15 +127,30 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
     if(status != napi_ok){
         abort();
     }
-    inbuf = alloca(sizeof(uint64_t)*ctx->incount);
+    if(dispatch){
+        inbuf = alloca(sizeof(uint64_t)*ctx->incount+1);
+    }else{
+        inbuf = alloca(sizeof(uint64_t)*ctx->incount);
+    }
     outbuf = alloca(sizeof(uint64_t)*ctx->outcount);
     /* Setup arguments */
-    for(i=0;i!=ctx->incount;i++){
-        value_out(env,&inbuf[i],ctx->intypes[i],argbuf[i]);
+    if(dispatch){
+        inbuf[0] = ctx->addr;
+        for(i=0;i!=ctx->incount;i++){
+            value_out(env,&inbuf[i+1],ctx->intypes[i],argbuf[i]);
+        }
+    }else{
+        for(i=0;i!=ctx->incount;i++){
+            value_out(env,&inbuf[i],ctx->intypes[i],argbuf[i]);
+        }
     }
 
     /* Call */
-    fn = (nccc_call_t)ctx->addr;
+    if(dispatch){
+        fn = (nccc_call_t)ctx->dispatch;
+    }else{
+        fn = (nccc_call_t)ctx->addr;
+    }
     fn(inbuf,outbuf);
 
     /* Receive data */
@@ -139,10 +176,10 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
 
 static napi_value
 make_nccc_call(napi_env env, napi_callback_info info){
-    // [debugstring, addr, intypes, outtypes] => closure
+    // [debugstring, dispatch, addr, intypes, outtypes] => closure
     napi_value cb;
     size_t argc;
-    napi_value args[4];
+    napi_value args[5];
     napi_value ctx_this;
     void* bogus;
     napi_status status;
@@ -153,7 +190,7 @@ make_nccc_call(napi_env env, napi_callback_info info){
     cb_params_t* ctx;
     uint64_t addr;
     
-    argc = 4;
+    argc = 5;
     status = napi_get_cb_info(env, info, &argc, args, &ctx_this, &bogus);
     if(status != napi_ok){
         abort();
@@ -172,15 +209,22 @@ make_nccc_call(napi_env env, napi_callback_info info){
         /* FIXME: Free params, etc */
         abort();
     }
-    /* 1:addr */
+    /* 1:dispatch */
     status = napi_get_value_int64(env, args[1], (int64_t*)&addr);
+    if(status != napi_ok){
+        abort();
+    }
+    ctx->dispatch = addr;
+
+    /* 2:addr */
+    status = napi_get_value_int64(env, args[2], (int64_t*)&addr);
     if(status != napi_ok){
         abort();
     }
     ctx->addr = addr;
 
-    /* 2:intype */
-    status = napi_get_value_string_utf8(env, args[2], typestringbuf,
+    /* 3:intype */
+    status = napi_get_value_string_utf8(env, args[3], typestringbuf,
                                         sizeof(typestringbuf), 
                                         &typestringlen);
     if(status != napi_ok){
@@ -191,8 +235,8 @@ make_nccc_call(napi_env env, napi_callback_info info){
     memcpy(ctx->intypes, typestringbuf, typestringlen);
     ctx->intypes[typestringlen] = 0;
 
-    /* 3:outtype */
-    status = napi_get_value_string_utf8(env, args[3], typestringbuf,
+    /* 4:outtype */
+    status = napi_get_value_string_utf8(env, args[4], typestringbuf,
                                         sizeof(typestringbuf), 
                                         &typestringlen);
     if(status != napi_ok){
