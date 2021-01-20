@@ -1,6 +1,26 @@
 const DLLPATH = "./dlltest/out/build/x64-Debug/appdll.dll";
 const FFI = require("ffi-napi");
 const REF = require("ref-napi");
+const node_nccc = require("../node-nccc/out/build/x64-Debug/node-nccc");
+
+function typechar(typename){
+    switch(typename){
+        case "f32":
+            return "f";
+        case "f64":
+            return "d";
+        case "u32":
+            return "i";
+        case "u64":
+            return "l";
+        default:
+            throw "unknown typename" + typename;
+    }
+}
+
+function types2string(types){
+    return types.reduce((acc, e) => acc + typechar(e), "");
+}
 
 function make_callsite(shortcircuit, shufflecall_ptr){
     const STACK_SIZE = 1024;
@@ -482,8 +502,9 @@ function nccc(){
         in0[0] = 1n;
         in0[1] = 7n;
         in0[2] = BigInt(idx);
-        //in0[3] = BigInt(value);
-        REF.set(in0, 3 * 8, value, REF.types.float);
+        in0[3] = 0n;
+        //in0[4] = BigInt(value);
+        REF.set(in0, 4 * 8, value, REF.types.float);
         callroot();
         if(Number(out0[0]) != 0){
             throw "set_import error";
@@ -494,8 +515,9 @@ function nccc(){
         in0[0] = 1n;
         in0[1] = 7n;
         in0[2] = BigInt(idx);
-        //in0[3] = BigInt(value);
-        const ptr = REF._reinterpret(in0, 8, 3 * 8);
+        in0[3] = 0n;
+        //in0[4] = BigInt(value);
+        const ptr = REF._reinterpret(in0, 8, 4 * 8);
         REF.set(ptr, 0, value, REF.types.double);
         callroot();
         if(Number(out0[0]) != 0){
@@ -507,7 +529,20 @@ function nccc(){
         in0[0] = 1n;
         in0[1] = 7n;
         in0[2] = BigInt(idx);
-        in0[3] = BigInt(value);
+        in0[3] = 0n;
+        in0[4] = BigInt(value);
+        callroot();
+        if(Number(out0[0]) != 0){
+            throw "set_import error";
+        }
+    }
+
+    function library_set_import_fn(idx, dispatch, value){
+        in0[0] = 1n;
+        in0[1] = 7n;
+        in0[2] = BigInt(idx);
+        in0[3] = BigInt(dispatch);
+        in0[4] = BigInt(value);
         callroot();
         if(Number(out0[0]) != 0){
             throw "set_import error";
@@ -665,7 +700,9 @@ function nccc(){
         const results = typelookup[typeidx].results;
         const bridgeaddr = typelookup[typeidx].bridgeaddr;
         console.log("Realize", typeidx, params, results);
-        return callsite.make_nccc_call("table", addr, bridgeaddr, params, results);
+        return node_nccc.make_nccc_call("table", bridgeaddr, addr, 
+                                        types2string(params),
+                                        types2string(results));
     }
 
     function get_table(tableidx){
@@ -705,7 +742,9 @@ function nccc(){
         const is_variable = c[3];
         let proc = false;
         if(! is_variable){
-            proc = callsite.make_nccc_call(name, false, addr,types[0],types[1]);
+            proc = node_nccc.make_nccc_call(name, 0, addr, 
+                                            types2string(types[0]), 
+                                            types2string(types[1]));
         }
         exports[name] = {
             proc: proc,
@@ -726,13 +765,12 @@ function nccc(){
         }
         let attach = null;
         function attach_function(proc){
-            const buf = callsite.make_nccc_cb(name1, proc, types[0], types[1]);
-            if(! import_cbs[name0]){
-                import_cbs[name0] = {};
-            }
-            // To keep reference:
-            import_cbs[name0][name1] = buf;
-            library_set_import(idx, REF.address(buf));
+            const intypes = types2string(types[0]);
+            const outtypes = types2string(types[1]);
+            console.log("Generating", proc, intypes, outtypes);
+            const cba = node_nccc.make_nccc_cb(proc, intypes, outtypes);
+            // FIXME: Retain reference..?
+            library_set_import_fn(idx, cba[0], cba[1]);
         }
         function attach_memory(mem){
             const current_pages = mem.__wasmproxy_current_page();
