@@ -45,6 +45,13 @@ const storage = require("./storage.js");
 const EmuCanvas = require("./emucanvas.js");
 const WebAssembly = require("./wasmproxy.js");
 
+const orig_setInterval = global.setInterval;
+
+function setInterval(cb, timeout){
+    orig_setInterval(cb, timeout);
+    return -1;
+}
+
 const nav = {};
 const doc = {};
 const wnd = {};
