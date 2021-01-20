@@ -273,6 +273,7 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     napi_value* argbuf;
     napi_value glbl;
     napi_value cb;
+    napi_value err;
     cb_params_t* ctx = (cb_params_t*)(uintptr_t)in[0];
     const uint64_t* in_next = (uint64_t*)(uintptr_t)in[1];
     int i;
@@ -310,7 +311,13 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
                                 ctx->incount /* FIXME: varargs? */,
                                 argbuf,
                                 &vout);
-    if(status != napi_ok){
+    if(status == napi_pending_exception){
+        status = napi_get_and_clear_last_exception(ctx->env, &err);
+        if(status != napi_ok){
+            abort();
+        }
+        status = napi_throw(ctx->env, err);
+    }else if(status != napi_ok){
         abort();
     }
 
