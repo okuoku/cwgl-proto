@@ -15,16 +15,22 @@ function wasmtable(opts){
 function wasmmemory(opts){
     const initial_pages = opts.initial;
     const max_pages = opts.maximum ? opts.maximum : 32768;
-    let current_pages = 32768;
+    let current_pages = initial_pages;
     //const heap = new Uint8Array(initial_pages * 64 * 1024);
     const heap = new Uint8Array(32768 * 64 * 1024);
     const the_buffer = heap.buffer;
+    Object.defineProperty(the_buffer, "byteLength", {
+        get: function(){
+            return current_pages * 65536;
+        }
+    });
 
     /* Unity has instanceof check */
     this.grow = function(delta){
-            console.log("Memory grow request", delta);
-            const cursize = current_pages;
-            return cursize;
+        console.log("Memory grow request", delta);
+        const cursize = current_pages;
+        current_pages += delta;
+        return cursize;
     }
     this.__wasmproxy_current_page = function(){
             return current_pages;
