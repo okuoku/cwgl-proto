@@ -12,6 +12,7 @@ const util_poke_u64_addr = utildll.get("util_poke_u64").address();
 const util_peek_u32_addr = utildll.get("util_peek_u32").address();
 const util_poke_u32_addr = utildll.get("util_poke_u32").address();
 const util_malloc_addr = utildll.get("util_malloc").address();
+const util_free_addr = utildll.get("util_free").address();
 
 const util_rawcall = node_nccc.make_nccc_call("rawcall",
                                               0, util_rawcall_addr,
@@ -19,6 +20,9 @@ const util_rawcall = node_nccc.make_nccc_call("rawcall",
 const util_malloc = node_nccc.make_nccc_call("malloc",
                                              0, util_malloc_addr,
                                              "l", "l");
+const util_free = node_nccc.make_nccc_call("free",
+                                           0, util_free_addr,
+                                           "l", "");
 const util_peek_u64 = node_nccc.make_nccc_call("peek_u64",
                                                0, util_peek_u64_addr,
                                                "l", "l");
@@ -314,11 +318,12 @@ function nccc(){
         console.log("Library", r);
         return r;
     }
-    function set_bootstrap(idx, ptr){
+    function set_bootstrap(idx, dispatch, ptr){
         rawcall_set_u64(0, 1);
         rawcall_set_u64(1, 2);
         rawcall_set_u64(2, idx);
-        rawcall_set_u64(3, ptr);
+        rawcall_set_u64(3, dispatch);
+        rawcall_set_u64(4, ptr);
         rawcall(rootaddr);
     }
     function init_module(){
@@ -739,19 +744,23 @@ function nccc(){
                 const name = e[1];
                 const intypes = e[2];
                 const outtypes = e[3];
-                let ptr = false;
+                let pair = false;
                 if(!intypes){
                     // Only for: wasm_boot_register_func_type
-                    ptr = callsite.make_nccc_cb_varargs2(name, imports[name]);
+                    // "iiii....iiii" => "i"
+                    const instr = "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"; // (32)
+                    const outstr = "i";
+                    pair = node_nccc.make_nccc_cb(imports[name],
+                                                  instr, outstr);
                 }else{
                     console.log("CB", imports[name], intypes, outtypes);
-                    ptr = callsite.make_nccc_cb(name, imports[name], 
-                                                      intypes, outtypes);
+                    pair = node_nccc.make_nccc_cb(imports[name], 
+                                                  types2string(intypes),
+                                                  types2string(outtypes));
                 }
-                // To keep reference:
-                import_cbs["internal:" + name] = ptr;
-                console.log("Set bootstrap",idx,REF.address(ptr));
-                set_bootstrap(idx, REF.address(ptr));
+                // FIXME: Keep reference?
+                console.log("Set bootstrap",pair);
+                set_bootstrap(idx, pair[0], pair[1]);
             });
             set_callback(shortcircuit_ptr);
             console.log("Init DLL");

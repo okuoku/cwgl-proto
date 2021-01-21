@@ -54,3 +54,10 @@ util_malloc(const uint64_t* in, uint64_t* out){
     const void* addr = malloc(size);
     out[0] = addr;
 }
+
+UTILLIB_API void
+util_free(const uint64_t* in, uint64_t* out){
+    // [addr] => []
+    const void* addr = (void*)(uintptr_t)in[0];
+    free(addr);
+}

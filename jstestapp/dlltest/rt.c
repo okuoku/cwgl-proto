@@ -8,6 +8,10 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 /* Globals */
 static nccc_call_t the_callback;
+static nccc_call_t dispatch_wasm_boot_allocate_memory = 0;
+static nccc_call_t dispatch_wasm_boot_allocate_table = 0;
+static nccc_call_t dispatch_wasm_boot_grow_memory = 0;
+static nccc_call_t dispatch_wasm_boot_register_func_type = 0;
 static uintptr_t cb_wasm_boot_allocate_memory = 0;
 static uintptr_t cb_wasm_boot_allocate_table = 0;
 static uintptr_t cb_wasm_boot_grow_memory = 0;
@@ -71,29 +75,28 @@ shufflecall_ptr(uint64_t* cmd0, uint64_t* ret, uint64_t cmdoffset,
     }
 }
 
-void
-nccc_callback(const uint64_t* in, uint64_t* out){
-    // [CB . args] => [...]
-    the_callback(in, out);
-}
-
 static void
 wasm_set_bootstrap(const uint64_t* in, uint64_t* out){
-    // [bootstrap_function_id ctx] => []
+    // [bootstrap_function_id dispatch ctx] => []
     const uint64_t id = in[0];
-    const uint64_t ctx = in[1];
+    const uint64_t dispatch = in[1];
+    const uint64_t ctx = in[2];
 
     switch(id){
         case 1:
+            dispatch_wasm_boot_allocate_memory = (nccc_call_t)dispatch;
             cb_wasm_boot_allocate_memory = ctx;
             break;
         case 2:
+            dispatch_wasm_boot_allocate_table = (nccc_call_t)dispatch;
             cb_wasm_boot_allocate_table = ctx;
             break;
         case 3:
+            dispatch_wasm_boot_grow_memory = (nccc_call_t)dispatch;
             cb_wasm_boot_grow_memory = ctx;
             break;
         case 4:
+            dispatch_wasm_boot_register_func_type = (nccc_call_t)dispatch;
             cb_wasm_boot_register_func_type = ctx;
             break;
         default:
@@ -209,12 +212,14 @@ wasm_rt_allocate_table(wasm_rt_table_t* table,
                        uint32_t elements,
                        uint32_t max_elements){
     wasm_rt_elem_t* elms;
+    uint64_t dargs[2];
     uint64_t args[4];
-    args[0] = cb_wasm_boot_allocate_table;
-    args[1] = (uintptr_t)table;
-    args[2] = elements;
-    args[3] = max_elements;
-    nccc_callback(args, NULL);
+    args[0] = (uintptr_t)table;
+    args[1] = elements;
+    args[2] = max_elements;
+    dargs[0] = cb_wasm_boot_allocate_table;
+    dargs[1] = (uint64_t)(uintptr_t)args;
+    dispatch_wasm_boot_allocate_table(dargs, NULL);
     // Setup mirror table
     elms = malloc(sizeof(wasm_rt_elem_t)*elements);
     table->data = elms;
@@ -226,15 +231,17 @@ void
 wasm_rt_allocate_memory(wasm_rt_memory_t* memory,
                         uint32_t initial_pages,
                         uint32_t max_pages){
+    uint64_t dargs[2];
     uint64_t args[4];
     uint64_t res[2];
-    args[0] = cb_wasm_boot_allocate_memory;
-    args[1] = (uintptr_t)memory;
-    args[2] = initial_pages;
-    args[3] = max_pages;
+    args[0] = (uintptr_t)memory;
+    args[1] = initial_pages;
+    args[2] = max_pages;
     res[0] = 0;
     res[1] = 0;
-    nccc_callback(args, res);
+    dargs[0] = cb_wasm_boot_allocate_memory;
+    dargs[1] = (uint64_t)(uintptr_t)args;
+    dispatch_wasm_boot_allocate_memory(dargs, res);
     memory->data = (void*)(uintptr_t)res[0];
     memory->max_pages = max_pages;
     memory->pages = res[1];
@@ -245,15 +252,17 @@ wasm_rt_allocate_memory(wasm_rt_memory_t* memory,
 uint32_t
 wasm_rt_grow_memory(wasm_rt_memory_t* memory,
                     uint32_t pages){
+    uint64_t dargs[2];
     uint64_t args[3];
     uint64_t res[2];
     const uint32_t prev_pages = memory->pages;
-    args[0] = cb_wasm_boot_grow_memory;
-    args[1] = (uintptr_t)memory;
-    args[2] = pages;
+    args[0] = (uintptr_t)memory;
+    args[1] = pages;
     res[0] = 0;
     res[1] = 0;
-    nccc_callback(args, res);
+    dargs[0] = cb_wasm_boot_grow_memory;
+    dargs[1] = (uint64_t)(uintptr_t)args;
+    dispatch_wasm_boot_grow_memory(dargs, res);
     if(res[0]){
         return UINT32_MAX;
     }else{
@@ -269,6 +278,7 @@ wasm_rt_register_func_type(uint32_t params,
                            ...){
     int i;
     size_t total;
+    uint64_t dargs[2];
     uint64_t args[32+2];
     uint64_t res;
     wasm_rt_type_t type;
@@ -280,9 +290,10 @@ wasm_rt_register_func_type(uint32_t params,
         printf("Too complex function type\n");
         __builtin_trap();
     }
-    args[0] = cb_wasm_boot_register_func_type;
-    args[1] = params;
-    args[2] = results;
+    dargs[0] = cb_wasm_boot_register_func_type;
+    dargs[1] = (uint64_t)(uintptr_t)args;
+    args[0] = params;
+    args[1] = results;
     va_start(ap, results);
     for(i=0;i!=total;i++){
         type = va_arg(ap, wasm_rt_type_t);
@@ -303,9 +314,9 @@ wasm_rt_register_func_type(uint32_t params,
                 __builtin_trap();
                 break;
         }
-        args[3+i] = x;
+        args[2+i] = x;
     }
-    nccc_callback(args, &res);
+    dispatch_wasm_boot_register_func_type(dargs, &res);
     return (uint32_t)res;
 }
 
