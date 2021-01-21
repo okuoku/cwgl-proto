@@ -7,7 +7,6 @@
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 /* Globals */
-static nccc_call_t the_callback;
 static nccc_call_t dispatch_wasm_boot_allocate_memory = 0;
 static nccc_call_t dispatch_wasm_boot_allocate_table = 0;
 static nccc_call_t dispatch_wasm_boot_grow_memory = 0;
@@ -16,64 +15,6 @@ static uintptr_t cb_wasm_boot_allocate_memory = 0;
 static uintptr_t cb_wasm_boot_allocate_table = 0;
 static uintptr_t cb_wasm_boot_grow_memory = 0;
 static uintptr_t cb_wasm_boot_register_func_type = 0;
-
-__declspec(dllexport)
-void
-short_circuit(const uint64_t* in, uint64_t* out){
-    nccc_call_t cb = (nccc_call_t)(uintptr_t)in[0];
-    cb(&in[1], out);
-}
-
-__declspec(dllexport)
-void
-shufflecall_ptr(uint64_t* cmd0, uint64_t* ret, uint64_t cmdoffset,
-                const void* p0, const void* p1, const void* p2, const void* p3){
-    uint64_t* cmd = &cmd0[cmdoffset];
-    const uint64_t contexttype = cmd[0];
-    const uint64_t next = cmd[1];
-    const int64_t cmd_offset = cmd[2];
-    const int64_t ret_offset = cmd[3];
-    nccc_call_t native_callback;
-    uint64_t p0_enterpos;
-    int64_t p0_offset;
-    uint64_t p1_enterpos;
-    int64_t p1_offset;
-    uint64_t p2_enterpos;
-    int64_t p2_offset;
-    uint64_t p3_enterpos;
-    int64_t p3_offset;
-
-    p0_enterpos = cmd[4];
-    if((int64_t)p0_enterpos != -1){
-        p0_offset = cmd[5];
-        cmd[p0_enterpos] = (uintptr_t)p0 + (intptr_t)p0_offset;
-        p1_enterpos = cmd[6];
-        if((int64_t)p1_enterpos != -1){
-            p1_offset = cmd[7];
-            cmd[p1_enterpos] = (uintptr_t)p1 + (intptr_t)p1_offset;
-            p2_enterpos = cmd[8];
-            if((int64_t)p2_enterpos != -1){
-                p2_offset = cmd[9];
-                cmd[p2_enterpos] = (uintptr_t)p2 + (intptr_t)p2_offset;
-                p3_enterpos = cmd[10];
-                if((int64_t)p3_enterpos != -1){
-                    p3_offset = cmd[11];
-                    cmd[p3_enterpos] = (uintptr_t)p3 + (intptr_t)p3_offset;
-                }
-            }
-        }
-    }
-
-    if(next){
-        if(contexttype == 1){
-            cmd[cmd_offset] = next;
-            the_callback(&cmd[cmd_offset], &ret[ret_offset]);
-        }else{
-            native_callback = (nccc_call_t)next;
-            native_callback(&cmd[cmd_offset], &ret[ret_offset]);
-        }
-    }
-}
 
 static void
 wasm_set_bootstrap(const uint64_t* in, uint64_t* out){
@@ -338,19 +279,10 @@ the_module_root(const uint64_t* in, uint64_t* out){
             switch(code){
                 case 0:
                     switch(in[2]){
-                        case 1:
-                            out[0] = (uintptr_t)short_circuit;
-                            break;
-                        case 2:
-                            out[0] = (uintptr_t)shufflecall_ptr;
-                            break;
                         default:
                             __builtin_trap();
                             break;
                     }
-                    break;
-                case 1:
-                    the_callback = (nccc_call_t)in[2];
                     break;
                 default:
                     __builtin_trap();

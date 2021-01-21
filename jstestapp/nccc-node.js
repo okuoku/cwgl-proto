@@ -85,186 +85,6 @@ function types2string(types){
     return types.reduce((acc, e) => acc + typechar(e), "");
 }
 
-function make_callsite(shortcircuit, shufflecall_ptr){
-    const STACK_SIZE = 1024;
-    const sitestack = new BigInt64Array(STACK_SIZE);
-    const stackaddr = REF.address(sitestack);
-    let stackptr = 0;
-
-    /* stack mgmt */
-    function alloc(count){
-        const r = stackptr;
-        const newptr = stackptr + count;
-        if(newptr >= STACK_SIZE){
-            throw "Stack overflow";
-        }
-        stackptr = newptr;
-        return r;
-    }
-    function free(count){
-        const newptr = stackptr - count;
-        if(newptr < 0){
-            throw "Stack underflow";
-        }
-        stackptr = newptr;
-    }
-    function stack_set_f32(wordoffs, val){
-        REF.set(sitestack, wordoffs * 8, val, REF.types.float);
-    }
-    function stack_set_f64(wordoffs, val){
-        REF.set(sitestack, wordoffs * 8, val, REF.types.double);
-    }
-    function stack_get_f32(wordoffs){
-        return REF.get(sitestack, wordoffs * 8, REF.types.float);
-    }
-    function stack_get_f64(wordoffs){
-        return REF.get(sitestack, wordoffs * 8, REF.types.double);
-    }
-
-    function make_pointer(addr){
-        return REF._reinterpret(REF.NULL, 8, addr);
-    }
-
-    function gen_inmapper(idx, type){
-        switch(type){
-            case "u32":
-                return function(base){
-                    const addr = base + idx * 8;
-                    const r = REF.get(make_pointer(addr), 0, REF.types.int32);
-                    return r;
-                };
-            case "u64":
-                return function(base){
-                    const addr = base + idx * 8;
-                    return REF.readInt64LE(make_pointer(addr));
-                };
-            case "f32":
-                return function(base){
-                    const addr = base + idx * 8;
-                    return REF.get(make_pointer(addr), 0, REF.types.float);
-                };
-            case "f64":
-                return function(base){
-                    const addr = base + idx * 8;
-                    return REF.get(make_pointer(addr), 0, REF.types.double);
-                };
-            default:
-                throw "Invalid function type";
-        }
-    }
-
-    function gen_outmapper(idx, type){
-        switch(type){
-            case "u32":
-                return function(base, v){
-                    const addr = base + idx * 8;
-                    //console.log("Write",v);
-                    return REF.writeInt64LE(REF.NULL, addr, v);
-                };
-            case "u64":
-                return function(base, v){
-                    const addr = base + idx * 8;
-                    //console.log("Write",v);
-                    return REF.writeInt64LE(REF.NULL, addr, v);
-                };
-            case "f32":
-                return function(base, v){
-                    const addr = base + idx * 8;
-                    return REF.set(make_pointer(addr), 0, v, REF.types.float);
-                };
-            case "f64":
-                return function(base, v){
-                    const addr = base + idx * 8;
-                    return REF.set(make_pointer(addr), 0, v, REF.types.double);
-                };
-            default:
-                throw "Invalid function type";
-        }
-    }
-
-    function gen_nccc_cb(debugname, proc, intypes, outtypes){ // => Buffer
-        const incount = intypes.length; // ["f32", "u32", ...]
-        const outcount = outtypes.length;
-        const inmapper = [];
-        const outmapper = [];
-        let i;
-        for(i=0;i!=incount;i++){
-            inmapper[i] = gen_inmapper(i, intypes[i]);
-        }
-        for(i=0;i!=outcount;i++){
-            outmapper[i] = gen_outmapper(i, outtypes[i]);
-        }
-        function cb(inp, outp){
-            //console.log("Called", debugname);
-            const ina = new Array(incount);
-            //console.log("In", inp, outp, debugname);
-            inmapper.forEach((p,idx) => {
-                //console.log("Inp", idx, intypes[idx]);
-                ina[idx] = p(inp);
-            });
-            //console.log("Call", ina);
-            let rt = null;
-            try{
-                rt = proc.apply(null, ina);
-            }catch(e){
-                if(e == "unwind"){
-                    // Emscripten unwind exception
-                    console.log("ignored unwind exception");
-                }else{
-                    throw e;
-                }
-            }
-            //console.log("Ret", rt);
-            if(rt === false){
-                rt = 0;
-            }else if(rt === true){
-                rt = 1;
-            }
-            if(outcount == 0){
-                return;
-            }else if(outcount == 1){
-                if(rt !== undefined){ // rt can be undefined (e.g. _emscripten_memcpy_big)
-                    outmapper[0](outp, rt);
-                }
-            }else{
-                outmapper.forEach((p,idx) => {
-                    //console.log("Out", idx, rt[idx]);
-                    p(outp, rt[idx]);
-                });
-            }
-        }
-        console.log("Generated",debugname,proc,intypes,outtypes);
-        return FFI.Callback("void", ["size_t", "size_t"], cb);
-    }
-
-    function gen_nccc_cb_varargs2(debugname, proc){
-        // Special gen_nccc_cb for register_func_type callback
-        const inmapper = [];
-        let i;
-        const put_result = gen_outmapper(0, "u32");
-        for(i=0;i!=32+2;i++){
-            inmapper[i] = gen_inmapper(i, "u32");
-        }
-        function cb(inp, outp){
-            let x = 0;
-            const incount0 = inmapper[0](inp);
-            const incount1 = inmapper[1](inp);
-            const arg = [incount0, incount1];
-            for(x=0;x!=incount0+incount1;x++){
-                arg.push(inmapper[x+2](inp));
-            }
-            const rt = proc.apply(null, arg);
-            put_result(outp, rt);
-        }
-        return FFI.Callback("void", ["size_t", "size_t"], cb);
-    }
-
-    return {
-        make_nccc_cb: gen_nccc_cb,
-        make_nccc_cb_varargs2: gen_nccc_cb_varargs2
-    };
-}
-
 function nccc(){
     const VOID = REF.types.void;
     const VOIDP = REF.refType(VOID);
@@ -276,9 +96,6 @@ function nccc(){
 
     root.the_module_root = FFI.ForeignFunction(dllfile.get("the_module_root"),
                                                VOID, [VOIDP, VOIDP]);
-    root.short_circuit = FFI.ForeignFunction(dllfile.get("short_circuit"),
-                                             VOID, [VOIDP, VOIDP]);
-    const shufflecall_ptr = dllfile.get("shufflecall_ptr");
 
     function callroot_buf(buf){
         root.the_module_root(in0, buf);
@@ -609,10 +426,7 @@ function nccc(){
         }
     }
 
-    const shortcircuit_ptr = get_callback(1);
-    //const shufflecall_ptr = get_callback(2);
-    const callsite = make_callsite(root.short_circuit, shufflecall_ptr);
-    console.log("DLL Init", shufflecall_ptr);
+    console.log("DLL Init");
 
     let i = 0;
     const libinfo = library_info();
@@ -762,7 +576,6 @@ function nccc(){
                 console.log("Set bootstrap",pair);
                 set_bootstrap(idx, pair[0], pair[1]);
             });
-            set_callback(shortcircuit_ptr);
             console.log("Init DLL");
             init_module();
         },
