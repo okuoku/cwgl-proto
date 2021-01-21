@@ -26,6 +26,9 @@ const util_free = node_nccc.make_nccc_call("free",
 const util_peek_u64 = node_nccc.make_nccc_call("peek_u64",
                                                0, util_peek_u64_addr,
                                                "l", "l");
+const util_peek_u32 = node_nccc.make_nccc_call("peek_u32",
+                                               0, util_peek_u32_addr,
+                                               "l", "l");
 const util_peek_f64 = node_nccc.make_nccc_call("peek_f64", // reinterpret
                                                0, util_peek_u64_addr,
                                                "l", "d");
@@ -41,6 +44,47 @@ const util_poke_f64 = node_nccc.make_nccc_call("poke_f64", // reinterpret
 const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
                                                0, util_poke_u32_addr,
                                                "lf", "");
+
+function fetchbyte(addr){
+    const resid = addr % 4;
+    const peekaddr = addr - resid;
+    const v = util_peek_u32(peekaddr);
+    let out = 0;
+    switch(resid){
+        case 0:
+            out = v & 0xff;
+            break;
+        case 1:
+            out = v >> 8;
+            out = out & 0xff;
+            break;
+        case 2:
+            out = v >> 16;
+            out = out & 0xff;
+            break;
+        case 3:
+            out = v >> 24;
+            out = out & 0xff;
+            break;
+    }
+    return out;
+}
+
+function fetchcstring(addr){
+    let acc = [];
+    let c = 0;
+    let cur = addr;
+    while(1){
+        c = fetchbyte(cur);
+        if(c == 0){
+            break;
+        }
+        acc.push(c);
+        cur++;
+    }
+    const str = String.fromCharCode.apply(null, acc);
+    return str;
+}
 
 const rawcallbuf_in = util_malloc(8*8);
 const rawcallbuf_out = util_malloc(8*8);
@@ -104,11 +148,6 @@ function nccc(){
         rawcall(rootaddr);
     }
 
-    // String access
-    function fetchstring(addr){
-        return REF.readCString(REF.NULL, addr);
-    }
-
     // WASM Generic
     function library_info(){
         rawcall_set_u64(0, 1);
@@ -160,7 +199,7 @@ function nccc(){
         if(res != 0){
             return false;
         }
-        const name = fetchstring(rawcall_get_u64(1));
+        const name = fetchcstring(rawcall_get_u64(1));
         const addr = rawcall_get_u64(2);
         const callinfoidx = rawcall_get_u64(3);
         const is_variable = rawcall_get_u64(4) ? true : false;
@@ -179,8 +218,8 @@ function nccc(){
         if(res != 0){
             return false;
         }
-        const name0 = fetchstring(rawcall_get_u64(1));
-        const name1 = fetchstring(rawcall_get_u64(2));
+        const name0 = fetchcstring(rawcall_get_u64(1));
+        const name1 = fetchcstring(rawcall_get_u64(2));
         const callinfoidx = rawcall_get_u64(3);
         const is_variable = rawcall_get_u64(4) ? true : false;
         const types = callinfo_get_types(callinfoidx);
