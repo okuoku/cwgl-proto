@@ -86,20 +86,8 @@ function types2string(types){
 }
 
 function nccc(){
-    const VOID = REF.types.void;
-    const VOIDP = REF.refType(VOID);
-    const in0 = new BigInt64Array(8);
-    const out0 = new BigInt64Array(8);
     const dllfile = FFI.DynamicLibrary(DLLPATH, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-    const root = {};
     const rootaddr = dllfile.get("the_module_root").address();
-
-    root.the_module_root = FFI.ForeignFunction(dllfile.get("the_module_root"),
-                                               VOID, [VOIDP, VOIDP]);
-
-    function callroot_buf(buf){
-        root.the_module_root(in0, buf);
-    }
 
     function get_callback(idx){
         rawcall_set_u64(0, 0);
@@ -290,12 +278,14 @@ function nccc(){
         const counts = callinfo_get_counts(idx);
         const args = counts[0];
         const rets = counts[1];
-        const buf = new BigInt64Array(args+rets+3);
-        in0[0] = 1n;
-        in0[1] = 9n;
-        in0[2] = BigInt(idx);
-        callroot_buf(buf);
-        const res = Number(buf[0]);
+        const buf = util_malloc(8 * (args+rets+3));
+        const in0 = util_malloc(8 * 3);
+
+        util_poke_u64(in0 + 8*0,1);
+        util_poke_u64(in0 + 8*1,9);
+        util_poke_u64(in0 + 8*2,idx);
+        util_rawcall(rootaddr, in0, buf);
+        const res = util_peek_u64(buf);
         if(res != 0){
             throw "Invalid function";
         }
@@ -304,13 +294,15 @@ function nccc(){
         argv.fill(false);
         resv.fill(false);
         argv.forEach((_,idx) => {
-            const t = Number(buf[3+idx]);
+            const t = util_peek_u64(buf + 8*(3+idx));
             argv[idx] = typeenum(t);
         });
         resv.forEach((_,idx) => {
-            const t = Number(buf[3+args+idx]);
+            const t = util_peek_u64(buf + 8*(3+args+idx));
             resv[idx] = typeenum(t);
         });
+        util_free(buf);
+        util_free(in0);
         //console.log("Func",idx,argv,"=>",resv);
         return [argv, resv];
     }
@@ -333,28 +325,33 @@ function nccc(){
         const counts = typebridge_get_counts(idx);
         const args = counts[0];
         const rets = counts[1];
-        const buf = new BigInt64Array(args+rets+4);
-        in0[0] = 1n;
-        in0[1] = 11n;
-        in0[2] = BigInt(idx);
-        callroot_buf(buf);
-        const res = Number(buf[0]);
+        const buf = util_malloc(8 * (args+rets+4));
+        const in0 = util_malloc(8 * 3);
+
+        util_poke_u64(in0 + 8*0,1);
+        util_poke_u64(in0 + 8*1,11);
+        util_poke_u64(in0 + 8*2,idx);
+        util_rawcall(rootaddr, in0, buf);
+        const res = util_peek_u64(buf);
         if(res != 0){
             throw "Invalid typeid";
         }
-        const bridgeaddr = Number(buf[1]);
+        const bridgeaddr = util_peek_u64(buf+8);
         const argv = new Array(args);
         const resv = new Array(rets);
         argv.fill(false);
         resv.fill(false);
         argv.forEach((_,idx) => {
-            const t = Number(buf[4+idx]);
+            const t = util_peek_u64(buf + 8*(4+idx));
             argv[idx] = typeenum(t);
         });
         resv.forEach((_,idx) => {
-            const t = Number(buf[4+args+idx]);
+            const t = util_peek_u64(buf + 8*(4+args+idx));
             resv[idx] = typeenum(t);
         });
+
+        util_free(buf);
+        util_free(in0);
         //console.log("Typebridge",idx,bridgeaddr,argv,"=>",resv);
         return [bridgeaddr, argv, resv];
     }
