@@ -1,4 +1,3 @@
-const DLLPATH = "./dlltest/out/build/x64-Debug/appdll.dll";
 const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
 const FFI = require("ffi-napi");
 const REF = require("ref-napi");
@@ -129,7 +128,7 @@ function types2string(types){
     return types.reduce((acc, e) => acc + typechar(e), "");
 }
 
-function nccc(){
+function nccc(DLLPATH){
     const dllfile = FFI.DynamicLibrary(DLLPATH, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
     const rootaddr = dllfile.get("the_module_root").address();
 

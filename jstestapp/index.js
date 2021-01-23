@@ -1,9 +1,16 @@
 
+const BOOTPROTOCOL = "unity";
+const BOOTSTRAP = "app3/webgl.framework.js";
+const BOOTWASM = "app3/webgl.wasm";
+const APPFS_DIR = "app3/appfs";
+const DLLFILE = "../apps/out/appdll_app3.dll";
+
 /*
 const BOOTPROTOCOL = "unity";
 const BOOTSTRAP = "app4/webgl.framework.js";
 const BOOTWASM = "app4/webgl.wasm";
 const APPFS_DIR = "app4/appfs";
+const DLLFILE = "../apps/out/appdll_app4.dll";
 */
 
 /*
@@ -14,10 +21,13 @@ const BOOTARGS = [];
 const APPFS_DIR = false;
 */
 
+/*
 const BOOTPROTOCOL = "unity";
 const BOOTSTRAP = "app2/gltest2.framework.js";
 const BOOTWASM = "app2/gltest2.wasm";
 const APPFS_DIR = "app2/appfs";
+const DLLFILE = "../apps/out/appdll_app2.dll";
+*/
 
 /*
 const BOOTPROTOCOL = "godot";
@@ -43,7 +53,7 @@ const audioctx_mini = require("./audioctx-mini.js");
 const performance = require('perf_hooks').performance;
 const storage = require("./storage.js");
 const EmuCanvas = require("./emucanvas.js");
-const WebAssembly = require("./wasmproxy.js");
+const WebAssembly = require("./wasmproxy.js")(DLLFILE);
 
 const orig_setInterval = global.setInterval;
 

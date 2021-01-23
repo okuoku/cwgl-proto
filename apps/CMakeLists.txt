@@ -89,8 +89,8 @@ include_directories(${WASMSTUB} ${CMAKE_CURRENT_BINARY_DIR})
 
 addapp(app ${APPROOT}/app/example_emscripten_opengl3.wasm)
 addapp(app2 ${APPROOT}/app2/gltest2.wasm)
-#addapp(app3 ${APPROOT}/app3/webgl.wasm)
-#addapp(app4 ${APPROOT}/app4/webgl.wasm)
+addapp(app3 ${APPROOT}/app3/webgl.wasm)
+addapp(app4 ${APPROOT}/app4/webgl.wasm)
 #addapp(app5 ${APPROOT}/app5/webgl.wasm)
 #addapp(app6 ${APPROOT}/app6/dosbox-x.wasm)
 
