@@ -73,15 +73,24 @@ function(translate_wasm proj wasmpath)
     configure_file(${WASMSTUB}/_stub.c.in ${stubcpath} @ONLY)
 endfunction()
 
-set(APPROOT "${CMAKE_CURRENT_LIST_DIR}/../jstestapp")
-translate_wasm(app2 ${APPROOT}/app2/gltest2.wasm)
+function(addapp app wasmpath)
+    set(base ${CMAKE_CURRENT_BINARY_DIR}/${app})
+    translate_wasm(${app} ${wasmpath})
+    add_library(appdll_${app} SHARED
+        ${base}_wasm.o
+        ${base}_stub.c
+        ${base}_stubdata.h
+        ${WASMSTUB}/rt.c)
+endfunction()
 
-set(base ${CMAKE_CURRENT_BINARY_DIR}/app2)
+set(APPROOT "${CMAKE_CURRENT_LIST_DIR}/../jstestapp")
+
 include_directories(${WASMSTUB} ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(appdll SHARED
-    ${base}_wasm.o
-    ${base}_stub.c
-    ${base}_stubdata.h
-    ${WASMSTUB}/rt.c)
+addapp(app ${APPROOT}/app/example_emscripten_opengl3.wasm)
+addapp(app2 ${APPROOT}/app2/gltest2.wasm)
+#addapp(app3 ${APPROOT}/app3/webgl.wasm)
+#addapp(app4 ${APPROOT}/app4/webgl.wasm)
+#addapp(app5 ${APPROOT}/app5/webgl.wasm)
+#addapp(app6 ${APPROOT}/app6/dosbox-x.wasm)
 
