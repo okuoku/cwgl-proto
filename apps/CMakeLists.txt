@@ -53,7 +53,7 @@ function(translate_wasm proj wasmpath)
         COMMENT "STUBGEN: Reading import/exports (${proj})")
     add_custom_command(OUTPUT ${base}_src.cmake
         COMMAND ${CMAKE_COMMAND} -DIN=${wasmcpath}
-        -DOUT=${base}_hdr.cmake -P ${STUBGEN}/NcccParseW2cSource.cmake
+        -DOUT=${base}_src.cmake -P ${STUBGEN}/NcccParseW2cSource.cmake
         DEPENDS ${STUBGEN}/NcccParseW2cSource.cmake ${wasmcpath}
         COMMENT "STUBGEN: Reading table (${proj})")
     add_custom_command(OUTPUT ${base}_sym.cmake

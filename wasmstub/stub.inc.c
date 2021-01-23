@@ -1,8 +1,5 @@
 #include <stdint.h>
 
-#include <dll.h>
-#include "stubdata.h"
-
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 #define EXP_COMMA_arg ,
