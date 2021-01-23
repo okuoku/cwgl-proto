@@ -13,6 +13,9 @@ if(NOT OUT)
     message(FATAL_ERROR "Huh?")
 endif()
 
+set(trueout "${OUT}")
+set(OUT "${OUT}.temp")
+
 include(${IN})
 
 set(imports)
@@ -133,3 +136,5 @@ endforeach()
 file(APPEND ${OUT} "\n\n")
 file(APPEND ${OUT} "set(symtotal_imports ${importidx})\n")
 file(APPEND ${OUT} "set(symtotal_exports ${exportidx})\n")
+
+file(RENAME ${OUT} ${trueout})

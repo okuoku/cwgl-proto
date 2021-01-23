@@ -18,6 +18,9 @@ if(NOT OUT)
     message(FATAL_ERROR "Huh?")
 endif()
 
+set(trueout "${OUT}")
+set(OUT "${OUT}.temp")
+
 include(${IN_HDR})
 include(${IN_SYM})
 include(${IN_SRC})
@@ -218,3 +221,5 @@ foreach(t ${typenames})
     endforeach()
     file(APPEND ${OUT} "\n")
 endforeach()
+
+file(RENAME ${OUT} ${trueout})

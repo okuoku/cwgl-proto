@@ -12,6 +12,10 @@ if(NOT OUT)
     message(FATAL_ERROR "Huh?")
 endif()
 
+set(trueout "${OUT}")
+set(OUT "${OUT}.temp")
+
+
 file(STRINGS ${IN} source REGEX wasm_rt_register_func_type)
 
 # always generate [] => [] because I didn't wanted to write an extra REGEX...
@@ -114,3 +118,5 @@ foreach(t ${typenames})
     file(APPEND ${OUT} "set(type_${t}_incount ${TYPE_${t}_INCOUNT})\n")
     file(APPEND ${OUT} "set(type_${t}_outcount ${TYPE_${t}_OUTCOUNT})\n\n")
 endforeach()
+
+file(RENAME ${OUT} ${trueout})
