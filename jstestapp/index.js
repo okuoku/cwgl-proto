@@ -15,13 +15,12 @@ const APPFS_DIR = "app4/appfs";
 const DLLFILE = "../apps/out/appdll_app4.dll";
 */
 
-/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app/example_emscripten_opengl3.js";
 const BOOTWASM = "app/example_emscripten_opengl3.wasm";
 const BOOTARGS = [];
 const APPFS_DIR = false;
-*/
+const DLLFILE = "../apps/out/appdll_app.dll";
 
 /*
 const BOOTPROTOCOL = "unity";
@@ -40,12 +39,14 @@ const APPFS_DIR = "app5/appfs";
 const DLLFILE = "../apps/out/appdll_app5.dll";
 */
 
+/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app6/pp.dosbox-x.js";
 const BOOTWASM = "app6/dosbox-x.wasm";
 const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
 const DLLFILE = "../apps/out/appdll_app6.dll";
+*/
 
 const process = require("process");
 const fs = require("fs");
