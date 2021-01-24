@@ -128,7 +128,7 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
         abort();
     }
     if(dispatch){
-        inbuf = alloca(sizeof(uint64_t)*ctx->incount+1);
+        inbuf = alloca(sizeof(uint64_t)*(ctx->incount+1));
     }else{
         inbuf = alloca(sizeof(uint64_t)*ctx->incount);
     }
