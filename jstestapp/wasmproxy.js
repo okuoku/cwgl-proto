@@ -22,13 +22,15 @@ wasm = function(DLLFILE){
         const max_pages = opts.maximum ? opts.maximum : 32768;
         let current_pages = initial_pages;
         //const heap = new Uint8Array(initial_pages * 64 * 1024);
-        const heap = new Uint8Array(32768 * 64 * 1024);
+        const heap = new Uint8Array(max_pages * 64 * 1024);
         const the_buffer = heap.buffer;
         Object.defineProperty(the_buffer, "byteLength", {
             get: function(){
                 return current_pages * 65536;
             }
         });
+
+        console.log("Creating wasmmemory",opts);
 
         /* Unity has instanceof check */
         this.grow = function(delta){

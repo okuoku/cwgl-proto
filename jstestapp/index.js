@@ -1,9 +1,11 @@
 
+/*
 const BOOTPROTOCOL = "unity";
 const BOOTSTRAP = "app3/webgl.framework.js";
 const BOOTWASM = "app3/webgl.wasm";
 const APPFS_DIR = "app3/appfs";
 const DLLFILE = "../apps/out/appdll_app3.dll";
+*/
 
 /*
 const BOOTPROTOCOL = "unity";
@@ -35,15 +37,15 @@ const BOOTSTRAP = "app5/pp.webgl.js";
 const BOOTWASM = "app5/webgl.wasm";
 const GODOT_ARGS = ["--main-pack","webgl.pck"]; // target path
 const APPFS_DIR = "app5/appfs";
+const DLLFILE = "../apps/out/appdll_app5.dll";
 */
 
-/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app6/pp.dosbox-x.js";
 const BOOTWASM = "app6/dosbox-x.wasm";
 const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
-*/
+const DLLFILE = "../apps/out/appdll_app6.dll";
 
 const process = require("process");
 const fs = require("fs");
