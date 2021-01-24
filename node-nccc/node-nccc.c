@@ -317,6 +317,7 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
             abort();
         }
         status = napi_throw(ctx->env, err);
+        status = napi_get_undefined(ctx->env, &vout);
     }else if(status != napi_ok){
         abort();
     }
