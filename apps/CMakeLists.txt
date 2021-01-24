@@ -1,6 +1,6 @@
 # NB: It's not compatible with MSVC for now
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0) # FIXME: Hex notation in MATH?
 project(apps)
 
 if(NOT WITH_WASM2C)
@@ -32,6 +32,7 @@ function(translate_wasm proj wasmpath)
     # .c => .bc
     add_custom_command(OUTPUT ${bcpath}
         COMMAND clang -g3 -c -emit-llvm -O0
+        -Xclang -disable-O0-optnone
         -DWASM_RT_MEMCHECK_SIGNAL_HANDLER=1
         -I${WASMSTUB}
         -o ${bcpath} ${wasmcpath}
@@ -40,7 +41,7 @@ function(translate_wasm proj wasmpath)
 
     # .bc => .o
     add_custom_command(OUTPUT ${outpath}
-        COMMAND clang -g3 -O0 -c
+        COMMAND clang -g3 -O1 -c
         -o ${outpath} ${bcpath}
         DEPENDS ${bcpath}
         COMMENT "WASM: Generating machine code LLVM => bin (${proj})")
