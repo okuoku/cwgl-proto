@@ -7,6 +7,10 @@
 #include <alloca.h>
 #endif
 
+#include <setjmp.h>
+static jmp_buf g_jmpbuf;
+static int calldepth = 0;
+
 static void
 value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
     napi_status status;
@@ -111,6 +115,7 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
     nccc_call_t fn;
     napi_value r;
     napi_value retbuf;
+    napi_value exc;
     uint64_t dispatch;
 
     argc = 0;
@@ -151,7 +156,27 @@ nccc_call_trampoline(napi_env env, napi_callback_info info){
     }else{
         fn = (nccc_call_t)ctx->addr;
     }
+    if(calldepth == 0){
+        /* Root call into native code, save buffer */
+        if(setjmp(g_jmpbuf)){
+            /* Revert back calldepth = 0 */
+            calldepth = 0;
+            status = napi_get_undefined(env, &r);
+            if(status != napi_ok){
+                abort();
+            }
+            status = napi_get_and_clear_last_exception(env, &exc);
+            if(status != napi_ok){
+                abort();
+            }
+            status = napi_throw(env, exc);
+            (void)napi_throw(env, exc);
+            return r;
+        }
+    }
+    calldepth++;
     fn(inbuf,outbuf);
+    calldepth--;
 
     /* Receive data */
     if(ctx->outcount == 0){
@@ -312,12 +337,21 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
                                 argbuf,
                                 &vout);
     if(status == napi_pending_exception){
-        status = napi_get_and_clear_last_exception(ctx->env, &err);
-        if(status != napi_ok){
-            abort();
+        if(calldepth != 0){
+            /* Return back to depth == 0 */
+            status = napi_close_handle_scope(ctx->env, scope);
+            if(status != napi_ok){
+                abort();
+            }
+            longjmp(g_jmpbuf, 1);
+        }else{
+            status = napi_get_and_clear_last_exception(ctx->env, &err);
+            if(status != napi_ok){
+                abort();
+            }
+            status = napi_throw(ctx->env, err);
+            status = napi_get_undefined(ctx->env, &vout);
         }
-        status = napi_throw(ctx->env, err);
-        status = napi_get_undefined(ctx->env, &vout);
     }else if(status != napi_ok){
         abort();
     }
