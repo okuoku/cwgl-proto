@@ -21,9 +21,22 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
+/* Context */
+struct cwgl_ctx_s;
+typedef struct cwgl_ctx_s cwgl_ctx_t;
+YFRM_API int cwgl_init(void); /* Tentative */
+YFRM_API void cwgl_terminate(void); /* Tentative */
+YFRM_API cwgl_ctx_t* cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved, int32_t flags);
+YFRM_API void cwgl_ctx_release(cwgl_ctx_t* ctx);
+
+/* Events */
 YFRM_API int yfrm_query0(int32_t slot, int32_t* buf, size_t buflen);
+
+/* Frame */
 YFRM_API void yfrm_frame_begin0(void*);
 YFRM_API void yfrm_frame_end0(void*);
+
+/* Audio */
 YFRM_API void yfrm_audio_enqueue0(float* ch0, float* ch1, int32_t samples);
 YFRM_API void yfrm_audio_pause0(void);
 

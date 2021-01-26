@@ -21,13 +21,10 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-/* Context, Platform */
+/* Context */
 struct cwgl_ctx_s;
 typedef struct cwgl_ctx_s cwgl_ctx_t;
-CWGL_API int cwgl_init(void); /* Tentative */
-CWGL_API void cwgl_terminate(void); /* Tentative */
-CWGL_API cwgl_ctx_t* cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved, int32_t flags);
-CWGL_API void cwgl_ctx_release(cwgl_ctx_t* ctx);
+
 #define CWGL_CTX_FLAG_HAS_ALPHA (1<<0)
 #define CWGL_CTX_FLAG_HAS_DEPTH (1<<1)
 #define CWGL_CTX_FLAG_HAS_STENCIL (1<<2)

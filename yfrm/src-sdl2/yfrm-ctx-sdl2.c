@@ -1,4 +1,3 @@
-#include "cwgl-gles2-priv.h"
 #include <yfrm.h>
 
 #include <string.h>
@@ -9,13 +8,13 @@
 static SDL_Window* wnd;
 static cwgl_ctx_t* cur;
 
-CWGL_API int
+YFRM_API int
 cwgl_init(void){
     wnd = NULL;
     cur = NULL;
 }
 
-CWGL_API void
+YFRM_API void
 cwgl_terminate(void){
     if(wnd){
         SDL_Quit();
@@ -29,7 +28,7 @@ struct cwgl_ctx_s {
     SDL_GLContext glc;
 };
 
-CWGL_API cwgl_ctx_t*
+YFRM_API cwgl_ctx_t*
 cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
                 int32_t flags){
     SDL_GLContext glc;
@@ -77,7 +76,7 @@ cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
     return r;
 }
 
-CWGL_API void
+YFRM_API void
 cwgl_ctx_release(cwgl_ctx_t* ctx){
     free(ctx);
 }
