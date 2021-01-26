@@ -6,11 +6,11 @@ main(int argc, char** av){
     int w,h;
     int buf[128];
     cwgl_ctx_t* ctx;
-    cwgl_init();
+    yfrm_init();
 
     w = 1280;
     h = 720;
-    ctx = cwgl_ctx_create(w,h,0,0);
+    ctx = yfrm_cwgl_ctx_create(w,h,0,0);
 
     /* Loop */
     int frame;

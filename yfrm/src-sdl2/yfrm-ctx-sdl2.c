@@ -9,13 +9,13 @@ static SDL_Window* wnd;
 static cwgl_ctx_t* cur;
 
 YFRM_API int
-cwgl_init(void){
+yfrm_init(void){
     wnd = NULL;
     cur = NULL;
 }
 
 YFRM_API void
-cwgl_terminate(void){
+yfrm_terminate(void){
     if(wnd){
         SDL_Quit();
         wnd = NULL;
@@ -29,8 +29,8 @@ struct cwgl_ctx_s {
 };
 
 YFRM_API cwgl_ctx_t*
-cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
-                int32_t flags){
+yfrm_cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
+                     int32_t flags){
     SDL_GLContext glc;
     cwgl_ctx_t* r;
 
@@ -77,7 +77,7 @@ cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved,
 }
 
 YFRM_API void
-cwgl_ctx_release(cwgl_ctx_t* ctx){
+yfrm_cwgl_ctx_release(cwgl_ctx_t* ctx){
     free(ctx);
 }
 

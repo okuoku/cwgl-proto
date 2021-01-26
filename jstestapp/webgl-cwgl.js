@@ -15,7 +15,7 @@ function freectx(ptr){
 }
 
 function GL(w, h, attr){
-    const ctx = CWGL.cwgl_ctx_create(w, h, 0, 0);
+    const ctx = CWGL.yfrm_cwgl_ctx_create(w, h, 0, 0);
     const evtbuf = new Int32Array(128);
 
     let shadowDepthRenderbuffer = null;
@@ -1265,6 +1265,6 @@ function GL(w, h, attr){
     };
 }
 
-CWGL.cwgl_init();
+CWGL.yfrm_init();
 
 module.exports = GL;

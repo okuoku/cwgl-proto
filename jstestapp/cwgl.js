@@ -20,17 +20,15 @@ function genlibdef() {
     const C = cwglCtx;
     return {
         /* Yuniframe */
+        yfrm_init: [Int, []],
+        yfrm_terminate: [_, []],
+        yfrm_cwgl_ctx_create: [C, [Int,Int,Int,Int]],
+        yfrm_cwgl_ctx_release: [_, [C]],
         yfrm_query0: [Int, [Int, "void *", Int]],
         yfrm_frame_begin0: [_, [C]],
         yfrm_frame_end0: [_, [C]],
         yfrm_audio_enqueue0: [_, ["void *", "void *", Int]],
         yfrm_audio_pause0: [_, []],
-
-        /* Context, Platform */
-        cwgl_init: [Int, []],
-        cwgl_terminate: [_, []],
-        cwgl_ctx_create: [C, [Int,Int,Int,Int]],
-        cwgl_ctx_release: [_, [C]],
 
         /* Heap Objects */
         cwgl_string_size: ["size_t", [C, cwglString]],

@@ -24,10 +24,10 @@ extern "C" {
 /* Context */
 struct cwgl_ctx_s;
 typedef struct cwgl_ctx_s cwgl_ctx_t;
-YFRM_API int cwgl_init(void); /* Tentative */
-YFRM_API void cwgl_terminate(void); /* Tentative */
-YFRM_API cwgl_ctx_t* cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved, int32_t flags);
-YFRM_API void cwgl_ctx_release(cwgl_ctx_t* ctx);
+YFRM_API int yfrm_init(void); /* Tentative */
+YFRM_API void yfrm_terminate(void); /* Tentative */
+YFRM_API cwgl_ctx_t* yfrm_cwgl_ctx_create(int32_t width, int32_t height, int32_t reserved, int32_t flags);
+YFRM_API void yfrm_cwgl_ctx_release(cwgl_ctx_t* ctx);
 
 /* Events */
 YFRM_API int yfrm_query0(int32_t slot, int32_t* buf, size_t buflen);
