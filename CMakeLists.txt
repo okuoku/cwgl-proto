@@ -33,6 +33,7 @@ endif()
 include_directories(include angle/include)
 
 add_library(cwgl SHARED
+    yfrm/src-sdl2/yfrm-audio-sdl2.c
     yfrm/src-sdl2/yfrm-ctx-sdl2.c
     src-gles2/cwgl-gles2-objstr.c
     src-gles2/cwgl-gles2-snone.c
