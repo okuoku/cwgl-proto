@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(cwgl C)
 
+add_subdirectory(ncccstubs)
+
 # SDL2
 if(WIN32)
     # Vulkan SDK and SDL2
