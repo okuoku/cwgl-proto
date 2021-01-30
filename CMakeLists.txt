@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(cwgl C)
 
-add_subdirectory(ncccstubs)
 
 # SDL2
 if(WIN32)
@@ -74,6 +73,9 @@ add_custom_command(TARGET cwgl
     ${emu_lib}/libGLESv2.dll
     ${CMAKE_CURRENT_BINARY_DIR}
     )
+
+# NCCC stub
+add_subdirectory(ncccstubs)
 
 # TestApp
 add_executable(testapp
