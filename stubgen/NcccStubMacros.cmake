@@ -60,7 +60,7 @@ function(nccc_stub_generate nam)
         if(api_${nam}_${e}_outlen EQUAL 0)
             set(outd void)
         else()
-            set(outd arg)
+            set(outd ret)
         endif()
         string(CONCAT acc "${acc}" 
             "    x(${ind},${outd},${e}) \\\n")
