@@ -44,6 +44,9 @@ const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
                                                "lf", "");
 
 function fetchbyte(addr){
+    if(addr == 0){
+        throw "Invalid address";
+    }
     const resid = addr % 4;
     const peekaddr = addr - resid;
     const v = util_peek_u32(peekaddr);
@@ -84,6 +87,131 @@ function fetchcstring(addr){
     return str;
 }
 
+function do_rawcall(addr, ina, outcount){
+    const out = [];
+    const inbuf = util_malloc(8 * ina.length);
+    const outbuf = util_malloc(8 * outcount);
+    let i = 0;
+    for(i=0;i!=ina.length;i++){
+        util_poke_u64(inbuf + i*8, ina[i]);
+    }
+    util_rawcall(addr, inbuf, outbuf);
+    for(i=0;i!=outcount;i++){
+        out.push(util_peek_u64(outbuf + i*8));
+    }
+    util_free(inbuf);
+    util_free(outbuf);
+    return out;
+}
+
+function nccctypechar(nr){
+    switch(nr){
+        case 0:
+            return "i";
+        case 1:
+            return "l";
+        case 2:
+            return "f";
+        case 3:
+            return "d";
+        case 6:
+            return "p";
+        default:
+            throw "Unknown";
+    }
+}
+
+function nccctypes2string(types){
+    return types.reduce((acc, e) => acc + nccctypechar(e), "");
+}
+
+function opendll(path, modname){ // => {libs: {<lib>: {exports: ...}}}
+    const dllfile = FFI.DynamicLibrary(path,
+                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
+    const rootaddr = dllfile.get(modname + "_nccc_root_00").address();
+    console.log("Module",path,rootaddr);
+    function collection_info(){
+        const out = do_rawcall(rootaddr, [0, 0, 1], 4);
+        const r = {
+            max_libs: out[2],
+            max_version: out[3]
+        };
+        return r;
+    }
+    function library_info(lib){
+        const out = do_rawcall(rootaddr, [1, lib, 1], 6);
+        const r = {
+            name0: fetchcstring(out[0]),
+            name1: out[1] == 0 ? false : fetchcstring(out[1]),
+            max_exports: out[2],
+            max_imports: out[3],
+            max_variables: out[4],
+            max_stubs: out[5]
+        };
+        return r;
+    }
+    function get_export(lib, exportid){
+        // library_export_info
+        const out = do_rawcall(rootaddr, [1, lib, 2, exportid], 8);
+        if(out[0] != 0){
+            throw "Invalid res";
+        }
+        const info = {
+            objid: out[1],
+            name: fetchcstring(out[2]),
+            stubtype: out[3],
+            addr0: out[4],
+            addr1: out[5],
+            incount: out[6],
+            outcount: out[7]
+        };
+        // library_arg_info
+        const arga = do_rawcall(rootaddr, [1, lib, 6, info.objid],
+                                info.incount + info.outcount + 3);
+        if(arga[0] != 0){
+            throw "Invalid res";
+        }
+        const inc = arga[1]; // Use return value
+        const outc = arga[2]; // Use return value
+        const parama = nccctypes2string(arga.slice(3,3+inc));
+        const resulta = nccctypes2string(arga.slice(3+inc,3+inc+outc));
+        console.log("Generating",modname,info.name,info.addr1,parama,resulta);
+        info.proc = node_nccc.make_nccc_call(info.name, info.addr0, info.addr1,
+                                             parama, resulta);
+        return info;
+    }
+
+    const col = collection_info();
+    const lib = {libs: {}};
+    function setlib(l, exp){
+        if(l.name1){
+            if(! lib.libs[l.name0]){
+                lib.libs[l.name0] = {};
+            }
+            if(! lib.libs[l.name0][l.name1]){
+                lib.libs[l.name0][l.name1] = {};
+            }
+            lib.libs[l.name0][l.name1][exp.name] = exp;
+        }else{
+            if(! lib.libs[l.name0]){
+                lib.libs[l.name0] = {};
+            }
+            lib.libs[l.name0][exp.name] = exp;
+        }
+    }
+    let libi = 0;
+    for(libi = 0; libi != col.max_libs; libi++){
+        const libinfo = library_info(libi);
+        console.log("Library", libinfo);
+        let expi;
+        for(expi = 0; expi != libinfo.max_exports; expi++){
+            const exp = get_export(libi, expi);
+            console.log("Export", exp);
+            setlib(libinfo, exp);
+        }
+    }
+    return lib;
+}
 
 function opendll_raw(path, rootsym){ // => addr
     const dllfile = FFI.DynamicLibrary(path, 
@@ -92,9 +220,17 @@ function opendll_raw(path, rootsym){ // => addr
     return rootaddr;
 }
 
+function opendll_null(path){ // => something
+    const dllfile = FFI.DynamicLibrary(path, 
+                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
+    return dllfile;
+}
+
 
 module.exports = {
+    opendll: opendll,
     opendll_raw: opendll_raw,
+    opendll_null: opendll_null,
     fetchcstring: fetchcstring,
     node_nccc: node_nccc,
     rawcall: util_rawcall,
