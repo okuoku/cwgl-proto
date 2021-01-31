@@ -1,48 +1,18 @@
-const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
 const FFI = require("ffi-napi");
 const REF = require("ref-napi");
-const node_nccc = require("../node-nccc/out/build/x64-Debug/node-nccc");
+const ncccutil = require("./ncccutil.js");
 
-const utildll = FFI.DynamicLibrary(DLLUTIL, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-
-const util_rawcall_addr = utildll.get("util_rawcall").address();
-const util_peek_u64_addr = utildll.get("util_peek_u64").address();
-const util_poke_u64_addr = utildll.get("util_poke_u64").address();
-const util_peek_u32_addr = utildll.get("util_peek_u32").address();
-const util_poke_u32_addr = utildll.get("util_poke_u32").address();
-const util_malloc_addr = utildll.get("util_malloc").address();
-const util_free_addr = utildll.get("util_free").address();
-
-const util_rawcall = node_nccc.make_nccc_call("rawcall",
-                                              0, util_rawcall_addr,
-                                              "lll", "");
-const util_malloc = node_nccc.make_nccc_call("malloc",
-                                             0, util_malloc_addr,
-                                             "l", "l");
-const util_free = node_nccc.make_nccc_call("free",
-                                           0, util_free_addr,
-                                           "l", "");
-const util_peek_u64 = node_nccc.make_nccc_call("peek_u64",
-                                               0, util_peek_u64_addr,
-                                               "l", "l");
-const util_peek_u32 = node_nccc.make_nccc_call("peek_u32",
-                                               0, util_peek_u32_addr,
-                                               "l", "l");
-const util_peek_f64 = node_nccc.make_nccc_call("peek_f64", // reinterpret
-                                               0, util_peek_u64_addr,
-                                               "l", "d");
-const util_peek_f32 = node_nccc.make_nccc_call("peek_f32", // reinterpret
-                                               0, util_peek_u32_addr,
-                                               "l", "f");
-const util_poke_u64 = node_nccc.make_nccc_call("poke_u64",
-                                               0, util_poke_u64_addr,
-                                               "ll", "");
-const util_poke_f64 = node_nccc.make_nccc_call("poke_f64", // reinterpret
-                                               0, util_poke_u64_addr,
-                                               "ld", "");
-const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
-                                               0, util_poke_u32_addr,
-                                               "lf", "");
+const node_nccc = ncccutil.node_nccc;
+const util_rawcall = ncccutil.rawcall;
+const util_malloc = ncccutil.malloc;
+const util_free = ncccutil.free;
+const util_peek_u64 = ncccutil.peek_u64;
+const util_peek_u32 = ncccutil.peek_u32;
+const util_peek_f64 = ncccutil.peek_f64;
+const util_peek_f32 = ncccutil.peek_f32;
+const util_poke_u64 = ncccutil.poke_u64;
+const util_poke_f64 = ncccutil.poke_f64;
+const util_poke_f32 = ncccutil.poke_f32;
 
 function fetchbyte(addr){
     const resid = addr % 4;
