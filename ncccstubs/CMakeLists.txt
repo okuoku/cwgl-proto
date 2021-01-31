@@ -12,3 +12,9 @@ add_library(yfrm_stubs SHARED
     stublead.c)
 
 target_link_libraries(yfrm_stubs cwgl)
+
+add_custom_command(TARGET yfrm_stubs POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+    $<TARGET_FILE:yfrm_stubs> ../
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
