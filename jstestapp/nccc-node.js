@@ -1,4 +1,3 @@
-const FFI = require("ffi-napi");
 const REF = require("ref-napi");
 const ncccutil = require("./ncccutil.js");
 
@@ -59,8 +58,7 @@ function types2string(types){
 }
 
 function nccc(DLLPATH){
-    const dllfile = FFI.DynamicLibrary(DLLPATH, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-    const rootaddr = dllfile.get("the_module_root").address();
+    const rootaddr = ncccutil.opendll_raw(DLLPATH, "the_module_root");
 
     function get_callback(idx){
         rawcall_set_u64(0, 0);

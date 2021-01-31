@@ -85,8 +85,16 @@ function fetchcstring(addr){
 }
 
 
+function opendll_raw(path, rootsym){ // => addr
+    const dllfile = FFI.DynamicLibrary(path, 
+                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
+    const rootaddr = dllfile.get(rootsym).address();
+    return rootaddr;
+}
+
 
 module.exports = {
+    opendll_raw: opendll_raw,
     fetchcstring: fetchcstring,
     node_nccc: node_nccc,
     rawcall: util_rawcall,
