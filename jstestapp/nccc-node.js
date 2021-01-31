@@ -13,47 +13,7 @@ const util_peek_f32 = ncccutil.peek_f32;
 const util_poke_u64 = ncccutil.poke_u64;
 const util_poke_f64 = ncccutil.poke_f64;
 const util_poke_f32 = ncccutil.poke_f32;
-
-function fetchbyte(addr){
-    const resid = addr % 4;
-    const peekaddr = addr - resid;
-    const v = util_peek_u32(peekaddr);
-    let out = 0;
-    switch(resid){
-        case 0:
-            out = v & 0xff;
-            break;
-        case 1:
-            out = v >> 8;
-            out = out & 0xff;
-            break;
-        case 2:
-            out = v >> 16;
-            out = out & 0xff;
-            break;
-        case 3:
-            out = v >> 24;
-            out = out & 0xff;
-            break;
-    }
-    return out;
-}
-
-function fetchcstring(addr){
-    let acc = [];
-    let c = 0;
-    let cur = addr;
-    while(1){
-        c = fetchbyte(cur);
-        if(c == 0){
-            break;
-        }
-        acc.push(c);
-        cur++;
-    }
-    const str = String.fromCharCode.apply(null, acc);
-    return str;
-}
+const fetchcstring = ncccutil.fetchcstring;
 
 const rawcallbuf_in = util_malloc(8*8);
 const rawcallbuf_out = util_malloc(8*8);

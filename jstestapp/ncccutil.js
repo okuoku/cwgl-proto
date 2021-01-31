@@ -43,7 +43,51 @@ const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
                                                0, util_poke_u32_addr,
                                                "lf", "");
 
+function fetchbyte(addr){
+    const resid = addr % 4;
+    const peekaddr = addr - resid;
+    const v = util_peek_u32(peekaddr);
+    let out = 0;
+    switch(resid){
+        case 0:
+            out = v & 0xff;
+            break;
+        case 1:
+            out = v >> 8;
+            out = out & 0xff;
+            break;
+        case 2:
+            out = v >> 16;
+            out = out & 0xff;
+            break;
+        case 3:
+            out = v >> 24;
+            out = out & 0xff;
+            break;
+    }
+    return out;
+}
+
+function fetchcstring(addr){
+    let acc = [];
+    let c = 0;
+    let cur = addr;
+    while(1){
+        c = fetchbyte(cur);
+        if(c == 0){
+            break;
+        }
+        acc.push(c);
+        cur++;
+    }
+    const str = String.fromCharCode.apply(null, acc);
+    return str;
+}
+
+
+
 module.exports = {
+    fetchcstring: fetchcstring,
     node_nccc: node_nccc,
     rawcall: util_rawcall,
     malloc: util_malloc,
