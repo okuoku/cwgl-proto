@@ -15,6 +15,7 @@ static void
 value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
     napi_status status;
     status = napi_invalid_arg;
+    napi_value arraybuf;
     switch(type){
         case 'i':
             status = napi_create_int32(env, vin, vout);
@@ -23,16 +24,21 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
             status = napi_create_int64(env, vin, vout);
             break;
         case 'p':
-            // For REF.address() compatibility...
-            status = napi_create_external_buffer(env, 1, 
-                                                 (void*)(uintptr_t)vin, 
-                                                 NULL,
-                                                 NULL,
-                                                 vout);
-            /*
-            status = napi_create_arraybuffer(env, 1, 
-                                             (void*)(uintptr_t)vin, vout);
-                                             */
+            status = napi_create_external_arraybuffer(env, 
+                                                      (void*)(uintptr_t)vin, 
+                                                      1, 
+                                                      NULL,
+                                                      NULL,
+                                                      &arraybuf);
+            if(status != napi_ok){
+                abort();
+            }
+            status = napi_create_typedarray(env,
+                                            napi_uint8_array, 
+                                            1,
+                                            arraybuf,
+                                            0,
+                                            vout);
             break;
         case 'f':
             status = napi_create_double(env, *((float *)&vin), vout);
