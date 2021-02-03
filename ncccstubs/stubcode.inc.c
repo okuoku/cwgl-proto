@@ -1,5 +1,12 @@
 /* Stubs */
 
+#define STUBNAME_STR STUBNAME_STR0(STUBNAME, STUBNAME_STR1)
+#define STUBNAME_STR0(x,y) y(x)
+#define STUBNAME_STR1(x) #x
+#define STUBFUNC(x) STUBFUNC0(STUBNAME,_ ## x,STUBFUNC1)
+#define STUBFUNC0(x,y,z)  z(x,y)
+#define STUBFUNC1(x,y) lib_ ## x ## y
+
 typedef void* ptr;
 typedef uint64_t u64;
 typedef int64_t s64;
@@ -54,8 +61,8 @@ typedef double f64;
 FORWARD_0_STUB_EXPAND(ITR_F0_STUBS)
 
 static void 
-lib_yfrm_library_info(const uint64_t* in, uint64_t* out){
-    out[0] = (uintptr_t)"yfrm";
+STUBFUNC(library_info)(const uint64_t* in, uint64_t* out){
+    out[0] = (uintptr_t) STUBNAME_STR;
     out[1] = 0;
     out[2] = FORWARD_0_STUB_COUNT;
     out[3] = 0;
@@ -76,7 +83,7 @@ lib_yfrm_library_info(const uint64_t* in, uint64_t* out){
       return;
 
 static void
-lib_yfrm_library_export_info(const uint64_t* in, uint64_t* out){
+STUBFUNC(library_export_info)(const uint64_t* in, uint64_t* out){
     switch(in[0] /* fnid */ ){
         FORWARD_0_STUB_EXPAND(ITR_EXPORT_INFO_F0)
         default:
@@ -110,7 +117,7 @@ lib_yfrm_library_export_info(const uint64_t* in, uint64_t* out){
       return;
 
 static void
-lib_yfrm_library_arg_info(const uint64_t* in, uint64_t* out){
+STUBFUNC(library_arg_info)(const uint64_t* in, uint64_t* out){
     size_t outoffs;
     switch(in[0] /* objid */){
         FORWARD_0_STUB_EXPAND(ITR_ARG_INFO_F0)
@@ -121,16 +128,16 @@ lib_yfrm_library_arg_info(const uint64_t* in, uint64_t* out){
 }
 
 void
-lib_yfrm_dispatch(const uint64_t* in, uint64_t* out){
+STUBFUNC(dispatch)(const uint64_t* in, uint64_t* out){
     switch(in[0]){
         case 1:
-            lib_yfrm_library_info(NULL, out);
+            STUBFUNC(library_info)(NULL, out);
             return;
         case 2:
-            lib_yfrm_library_export_info(&in[1], out);
+            STUBFUNC(library_export_info)(&in[1], out);
             return;
         case 6:
-            lib_yfrm_library_arg_info(&in[1], out);
+            STUBFUNC(library_arg_info)(&in[1], out);
             return;
         default:
             abort();
