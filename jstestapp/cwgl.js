@@ -1,3 +1,8 @@
+const ncccutil = require("./ncccutil.js");
+const cwgl0 = ncccutil.opendll_null("../out/build/x64-Debug/cwgl.dll");
+const yfrmdll = ncccutil.opendll("../out/build/x64-Debug/ncccstubs/yfrm_stubs.dll", "yfrm"); /* Both yfrm and cwgl */
+
+
 const DLLPATH = "../out/build/x64-Debug/cwgl.dll";
 const FFI = require("ffi-napi");
 const REF = require("ref-napi");
@@ -12,23 +17,14 @@ const cwglTexture = REF.refType(REF.types.void);
 const cwglFramebuffer = REF.refType(REF.types.void);
 const cwglRenderbuffer = REF.refType(REF.types.void);
 const cwglUniformLocation = REF.refType(REF.types.void);
+const Int = "int";
+const Float = "float";
+const _ = "void";
+const C = cwglCtx;
 
 function genlibdef() {
-    const Int = "int";
-    const Float = "float";
-    const _ = "void";
-    const C = cwglCtx;
-    return {
-        /* Yuniframe */
-        yfrm_init: [Int, []],
-        yfrm_terminate: [_, []],
-        yfrm_cwgl_ctx_create: [C, [Int,Int,Int,Int]],
-        yfrm_cwgl_ctx_release: [_, [C]],
-        yfrm_query0: [Int, [Int, "void *", Int]],
-        yfrm_frame_begin0: [_, [C]],
-        yfrm_frame_end0: [_, [C]],
-        yfrm_audio_enqueue0: [_, ["void *", "void *", Int]],
-        yfrm_audio_pause0: [_, []],
+
+    const legacy = {
 
         /* Heap Objects */
         cwgl_string_size: ["size_t", [C, cwglString]],
@@ -282,9 +278,32 @@ function genlibdef() {
         // cwgl_getUniform_m3
         // cwgl_getUniform_m4
     };
+
+    return legacy;
 }
+
+const __ported_yfrm = {
+    /* These are already ported to NCCC */
+    /* Yuniframe */
+    yfrm_init: [Int, []],
+    yfrm_terminate: [_, []],
+    yfrm_cwgl_ctx_create: [C, [Int,Int,Int,Int]],
+    yfrm_cwgl_ctx_release: [_, [C]],
+    yfrm_query0: [Int, [Int, "void *", Int]],
+    yfrm_frame_begin0: [_, [C]],
+    yfrm_frame_end0: [_, [C]],
+    yfrm_audio_enqueue0: [_, ["void *", "void *", Int]],
+    yfrm_audio_pause0: [_, []],
+};
+const __names_yfrm = Object.keys(__ported_yfrm);
+
 
 const libdef = genlibdef();
 const CWGL = FFI.Library(DLLPATH, libdef);
+
+// Inject NCCC version of procedures
+__names_yfrm.forEach(e => {
+    CWGL[e] = yfrmdll.libs.yfrm[e].proc;
+});
 
 module.exports = CWGL;
