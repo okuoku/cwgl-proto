@@ -4,6 +4,12 @@ const Weak = require("weak-napi");
 const E = require("./glenums.js");
 const getenumtype = require("./getenumtype.js");
 const NULL = 0;
+const ncccutil = require("./ncccutil.js");
+
+function readcstr(buf){
+    const addr = Ref.address(buf);
+    return ncccutil.fetchcstring(addr);
+}
 
 function wrapPointer(obj, relcb){
     const pval = Ref.address(obj);
@@ -277,7 +283,7 @@ function GL(w, h, attr){
                             const buf = new Uint8Array(ssiz);
                             CWGL.cwgl_string_read(ctx, s, buf, ssiz);
                             CWGL.cwgl_string_release(ctx, s);
-                            return Ref.readCString(buf, 0);
+                            return readcstr(buf);
                         }else{
                             return null;
                         }
@@ -683,7 +689,7 @@ function GL(w, h, attr){
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
             CWGL.cwgl_string_release(ctx, s);
             if(r == 0){
-                return Ref.readCString(buf, 0);
+                return readcstr(buf);
             }else{
                 return null;
             }
@@ -732,7 +738,7 @@ function GL(w, h, attr){
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
             CWGL.cwgl_string_release(ctx, s);
             if(r == 0){
-                return Ref.readCString(buf, 0);
+                return readcstr(buf);
             }else{
                 return null;
             }
@@ -744,7 +750,7 @@ function GL(w, h, attr){
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
             CWGL.cwgl_string_release(ctx, s);
             if(r == 0){
-                return Ref.readCString(buf, 0);
+                return readcstr(buf);
             }else{
                 return null;
             }
@@ -800,7 +806,7 @@ function GL(w, h, attr){
                 const buf = new Uint8Array(ssiz);
                 CWGL.cwgl_string_read(ctx, s, buf, ssiz);
                 CWGL.cwgl_string_release(ctx, s);
-                const name = Ref.readCString(buf, 0);
+                const name = readcstr(buf);
                 return {
                     size: i0[0],
                     type: i1[0],
