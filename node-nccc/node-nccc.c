@@ -111,6 +111,8 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
         status = napi_typeof(env, vin, &typ);
         if(typ == napi_undefined){
             *vout = 0;
+        }else if(typ == napi_null){
+            *vout = 0;
         }else if(typ == napi_boolean){
             status = napi_get_value_bool(env, vin, &bvalue);
             if(status != napi_ok){
