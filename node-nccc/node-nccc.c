@@ -23,8 +23,16 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
             status = napi_create_int64(env, vin, vout);
             break;
         case 'p':
+            // For REF.address() compatibility...
+            status = napi_create_external_buffer(env, 1, 
+                                                 (void*)(uintptr_t)vin, 
+                                                 NULL,
+                                                 NULL,
+                                                 vout);
+            /*
             status = napi_create_arraybuffer(env, 1, 
                                              (void*)(uintptr_t)vin, vout);
+                                             */
             break;
         case 'f':
             status = napi_create_double(env, *((float *)&vin), vout);
