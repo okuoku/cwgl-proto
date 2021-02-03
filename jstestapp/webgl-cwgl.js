@@ -3,6 +3,7 @@ const Ref = require("ref-napi");
 const Weak = require("weak-napi");
 const E = require("./glenums.js");
 const getenumtype = require("./getenumtype.js");
+const NULL = 0;
 
 function wrapPointer(obj, relcb){
     const pval = Ref.address(obj);
@@ -391,7 +392,7 @@ function GL(w, h, attr){
         bindBuffer: function(target, buffer){
             trackbinding_buffer(target, buffer);
             if(! buffer){
-                CWGL.cwgl_bindBuffer(ctx, target, Ref.NULL);
+                CWGL.cwgl_bindBuffer(ctx, target, NULL);
             }else{
                 CWGL.cwgl_bindBuffer(ctx, target, buffer);
             }
@@ -399,7 +400,7 @@ function GL(w, h, attr){
         bufferData: function(target, data_or_size, usage){
             if(Number.isInteger(data_or_size)){
                 const size = data_or_size;
-                CWGL.cwgl_bufferData(ctx, target, size, Ref.NULL, usage);
+                CWGL.cwgl_bufferData(ctx, target, size, NULL, usage);
             }else{
                 const data = data_or_size;
                 CWGL.cwgl_bufferData(ctx, target, data.byteLength, data, usage);
@@ -437,7 +438,7 @@ function GL(w, h, attr){
         bindFramebuffer: function(target, framebuffer){
             trackbinding_Framebuffer(framebuffer);
             if(! framebuffer){
-                CWGL.cwgl_bindFramebuffer(ctx, target, Ref.NULL);
+                CWGL.cwgl_bindFramebuffer(ctx, target, NULL);
             }else{
                 CWGL.cwgl_bindFramebuffer(ctx, target, framebuffer);
             }
@@ -498,7 +499,7 @@ function GL(w, h, attr){
         bindRenderbuffer: function(target, renderbuffer){
             trackbinding_Renderbuffer(renderbuffer);
             if(! renderbuffer){
-                CWGL.cwgl_bindRenderbuffer(ctx, target, Ref.NULL);
+                CWGL.cwgl_bindRenderbuffer(ctx, target, NULL);
             }else{
                 CWGL.cwgl_bindRenderbuffer(ctx, target, renderbuffer);
             }
@@ -562,7 +563,7 @@ function GL(w, h, attr){
         bindTexture: function(target, texture){
             trackbinding_texture(target, texture);
             if(! texture){
-                CWGL.cwgl_bindTexture(ctx, target, Ref.NULL);
+                CWGL.cwgl_bindTexture(ctx, target, NULL);
             }else{
                 currentTexture = texture;
                 CWGL.cwgl_bindTexture(ctx, target, texture);
@@ -608,7 +609,7 @@ function GL(w, h, attr){
         texImage2D: function(target, level, internalformat, width, height, border, format, type, pixels){
             // FIXME: No TexImageSource variant
             if(pixels == null){
-                CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, Ref.NULL, 0);
+                CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, NULL, 0);
             }else{
                 CWGL.cwgl_texImage2D(ctx, target, level, internalformat, width, height, border, format, type, pixels, pixels.byteLength);
             }
