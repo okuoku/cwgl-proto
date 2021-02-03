@@ -23,7 +23,7 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
             status = napi_create_int64(env, vin, vout);
             break;
         case 'p':
-            status = napi_create_arraybuffer(env, 0, 
+            status = napi_create_arraybuffer(env, 1, 
                                              (void*)(uintptr_t)vin, vout);
             break;
         case 'f':
@@ -40,11 +40,41 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
     }
 }
 
+static int // => bool
+get_pointer(napi_env env, napi_value v, uintptr_t* value){
+    napi_status status;
+    bool res;
+    void* p = NULL;
+    size_t s = 0;
+    status = napi_is_arraybuffer(env, v, &res);
+    if(status == napi_ok && res){
+        status = napi_get_arraybuffer_info(env, v, &p, &s);
+        (void)s;
+        if(status != napi_ok){
+            abort();
+        }
+        *value = (uintptr_t)p;
+        return 1;
+    }
+    status = napi_is_buffer(env, v, &res);
+    if(status == napi_ok && res){
+        status = napi_get_buffer_info(env, v, &p, &s);
+        (void)s;
+        if(status != napi_ok){
+            abort();
+        }
+        *value = (uintptr_t)p;
+        return 1;
+    }
+    return 0;
+}
+
 static void
 value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
     napi_status status;
     napi_valuetype typ;
     bool bvalue;
+    uintptr_t pvalue;
     status = napi_invalid_arg;
     double d;
     switch(type){
@@ -81,6 +111,8 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
             }else{
                 *vout = 0;
             }
+        }else if(get_pointer(env, vin, &pvalue)){
+            *vout = pvalue;
         }else{
             abort();
         }
