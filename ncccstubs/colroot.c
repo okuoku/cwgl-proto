@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 void lib_yfrm_dispatch(const uint64_t* in, uint64_t* out);
+void lib_cwgl_dispatch(const uint64_t* in, uint64_t* out);
 
 EXPORT void 
 yfrm_nccc_root_00(const uint64_t* in, uint64_t* out){
