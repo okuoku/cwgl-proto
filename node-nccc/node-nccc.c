@@ -85,6 +85,9 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
     uintptr_t pvalue;
     status = napi_invalid_arg;
     double d;
+    napi_value strbuf;
+    size_t strbuflen;
+    void* strbufptr;
     switch(type){
         case 'i':
         case 'l':
@@ -119,6 +122,33 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
             }else{
                 *vout = 0;
             }
+        }else if(typ == napi_string && type == 'p'){
+            strbuflen = 0;
+            status = napi_get_value_string_utf8(env,
+                                                vin,
+                                                NULL,
+                                                0,
+                                                &strbuflen);
+            if(status != napi_ok){
+                abort();
+            }
+            strbuflen++;
+            status = napi_create_buffer(env,
+                                        strbuflen,
+                                        &strbufptr,
+                                        &strbuf);
+            if(status != napi_ok){
+                abort();
+            }
+            status = napi_get_value_string_utf8(env,
+                                                vin,
+                                                strbufptr,
+                                                strbuflen,
+                                                &strbuflen);
+            if(status != napi_ok){
+                abort();
+            }
+            *vout = (uintptr_t)strbufptr;
         }else if(get_pointer(env, vin, &pvalue)){
             *vout = pvalue;
         }else{
