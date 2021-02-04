@@ -7,7 +7,7 @@ const NULL = 0;
 const ncccutil = require("./ncccutil.js");
 
 function readcstr(buf){
-    const addr = Ref.address(buf);
+    const addr = ncccutil.ptraddr(buf);
     return ncccutil.fetchcstring(addr);
 }
 

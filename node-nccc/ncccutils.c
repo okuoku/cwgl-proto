@@ -61,3 +61,9 @@ util_free(const uint64_t* in, uint64_t* out){
     const void* addr = (void*)(uintptr_t)in[0];
     free(addr);
 }
+
+UTILLIB_API void
+util_ptraddr(const uint64_t* in, uint64_t* out){
+    // [addr] => [addr]
+    out[0] = in[0];
+}

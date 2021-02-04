@@ -11,6 +11,7 @@ const util_peek_u32_addr = utildll.get("util_peek_u32").address();
 const util_poke_u32_addr = utildll.get("util_poke_u32").address();
 const util_malloc_addr = utildll.get("util_malloc").address();
 const util_free_addr = utildll.get("util_free").address();
+const util_ptraddr_addr = utildll.get("util_ptraddr").address();
 
 const util_rawcall = node_nccc.make_nccc_call("rawcall",
                                               0, util_rawcall_addr,
@@ -23,25 +24,28 @@ const util_free = node_nccc.make_nccc_call("free",
                                            "l", "");
 const util_peek_u64 = node_nccc.make_nccc_call("peek_u64",
                                                0, util_peek_u64_addr,
-                                               "l", "l");
+                                               "p", "l");
 const util_peek_u32 = node_nccc.make_nccc_call("peek_u32",
                                                0, util_peek_u32_addr,
-                                               "l", "l");
+                                               "p", "l");
 const util_peek_f64 = node_nccc.make_nccc_call("peek_f64", // reinterpret
                                                0, util_peek_u64_addr,
-                                               "l", "d");
+                                               "p", "d");
 const util_peek_f32 = node_nccc.make_nccc_call("peek_f32", // reinterpret
                                                0, util_peek_u32_addr,
-                                               "l", "f");
+                                               "p", "f");
 const util_poke_u64 = node_nccc.make_nccc_call("poke_u64",
                                                0, util_poke_u64_addr,
-                                               "ll", "");
+                                               "pl", "");
 const util_poke_f64 = node_nccc.make_nccc_call("poke_f64", // reinterpret
                                                0, util_poke_u64_addr,
-                                               "ld", "");
+                                               "pd", "");
 const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
                                                0, util_poke_u32_addr,
-                                               "lf", "");
+                                               "pf", "");
+const util_ptraddr = node_nccc.make_nccc_call("ptraddr",
+                                              0, util_ptraddr_addr,
+                                              "p","l");
 
 function fetchbyte(addr){
     if(addr == 0){
@@ -236,6 +240,7 @@ module.exports = {
     rawcall: util_rawcall,
     malloc: util_malloc,
     free: util_free,
+    ptraddr: util_ptraddr,
     peek_u64: util_peek_u64,
     peek_u32: util_peek_u32,
     peek_f64: util_peek_f64,
