@@ -180,6 +180,138 @@ struct cb_params_s {
 typedef struct cb_params_s cb_params_t;
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
+static void
+free_cb_params_cb(cb_params_t* p){
+    free(p->intypes);
+    free(p->outtypes);
+    (void)napi_delete_reference(p->env, p->cb_ref);
+    free(p);
+}
+
+static napi_value
+nccc_destroy_cb_ctx(napi_env env, napi_callback_info info){
+    // [ctx] => undefined
+    napi_status status;
+    size_t argc;
+    napi_value args[1];
+    napi_value ctx_this;
+    void* bogus;
+    cb_params_t* ctx;
+    napi_value ret;
+    int64_t out;
+    
+    argc = 1;
+    status = napi_get_cb_info(env, info, &argc, args, &ctx_this, &bogus);
+    if(status != napi_ok){
+        abort();
+    }
+    status = napi_get_value_int64(env, args[0], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    ctx = (cb_params_t*)(uintptr_t)out;
+    free_cb_params_cb(ctx);
+    (void)napi_get_undefined(env, &ret);
+
+    return ret;
+}
+
+struct finalizer_params_s {
+    uint64_t dispatch;
+    uint64_t ctx;
+    uint64_t arg;
+};
+
+typedef struct finalizer_params_s finalizer_params_t;
+
+static void
+do_finalize(napi_env env, void* data, void* ctx){
+    nccc_call_t fn;
+    uint64_t in0[2];
+    uint64_t in1[2];
+    finalizer_params_t* params = (finalizer_params_t*)ctx;
+    in0[0] = params->arg;
+    in0[1] = (uint64_t)(uintptr_t)data;
+    if(params->dispatch){
+        fn = (nccc_call_t)params->dispatch;
+        in1[0] = params->ctx;
+        in1[1] = (uint64_t)in0;
+        fn(in1, NULL);
+    }else{
+        fn = (nccc_call_t)params->ctx;
+        fn(in0, NULL);
+    }
+    free(ctx);
+}
+
+static napi_value
+nccc_wrap_pointer(napi_env env, napi_callback_info info){
+    // [ptr size dispatch ctx arg] => ptr
+    //   [dispatch,ctx] = [arg ptr] => []
+    napi_status status;
+    size_t argc;
+    napi_value args[5];
+    napi_value ctx_this;
+    void* bogus;
+    napi_value ret;
+    int64_t out;
+    finalizer_params_t* params;
+    void* ptr;
+    size_t size;
+
+    params = malloc(sizeof(finalizer_params_t));
+    
+    argc = 5;
+    status = napi_get_cb_info(env, info, &argc, args, &ctx_this, &bogus);
+    if(status != napi_ok){
+        abort();
+    }
+    // ptr
+    status = napi_get_value_int64(env, args[0], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    ptr = (void*)(intptr_t)out;
+    // size
+    status = napi_get_value_int64(env, args[1], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    size = out;
+    // dispatch
+    status = napi_get_value_int64(env, args[2], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    params->dispatch = out;
+    // ctx
+    status = napi_get_value_int64(env, args[3], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    params->ctx = out;
+    // arg
+    status = napi_get_value_int64(env, args[4], &out);
+    if(status != napi_ok){
+        abort();
+    }
+    params->arg = out;
+
+    /* Regenerate ArrayBuffer */
+    status = napi_create_external_arraybuffer(env, 
+                                              ptr,
+                                              size, 
+                                              do_finalize,
+                                              params,
+                                              &ret);
+    if(status != napi_ok){
+        abort();
+    }
+
+
+    return ret;
+}
+
 static napi_value
 nccc_call_trampoline(napi_env env, napi_callback_info info){
     int i;
@@ -577,6 +709,30 @@ node_nccc_init(napi_env env, napi_value exports){
         return NULL;
     }
     status = napi_set_named_property(env, exports, "make_nccc_call", obj);
+    if(status != napi_ok){
+        return NULL;
+    }
+    status = napi_create_function(env, "destroy_cb_ctx",
+                                  NAPI_AUTO_LENGTH,
+                                  nccc_destroy_cb_ctx,
+                                  NULL,
+                                  &obj);
+    if(status != napi_ok){
+        return NULL;
+    }
+    status = napi_set_named_property(env, exports, "destroy_cb_ctx", obj);
+    if(status != napi_ok){
+        return NULL;
+    }
+    status = napi_create_function(env, "wrap_pointer",
+                                  NAPI_AUTO_LENGTH,
+                                  nccc_wrap_pointer,
+                                  NULL,
+                                  &obj);
+    if(status != napi_ok){
+        return NULL;
+    }
+    status = napi_set_named_property(env, exports, "wrap_pointer", obj);
     if(status != napi_ok){
         return NULL;
     }
