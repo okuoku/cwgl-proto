@@ -1,4 +1,3 @@
-const REF = require("ref-napi");
 const ncccutil = require("./ncccutil.js");
 
 const node_nccc = ncccutil.node_nccc;
@@ -441,7 +440,7 @@ function nccc(DLLPATH){
         function attach_memory(mem){
             const current_pages = mem.__wasmproxy_current_page();
             const max_pages = 32768;
-            const native_addr = REF.address(mem.__wasmproxy_heap);
+            const native_addr = ncccutil.ptraddr(mem.__wasmproxy_heap);
             const memory_instance = init_memory(current_pages, max_pages, native_addr);
             console.log("Attach memory",mem,native_addr);
             library_set_import(idx, memory_instance);

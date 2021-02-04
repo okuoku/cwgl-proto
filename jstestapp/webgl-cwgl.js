@@ -1,5 +1,4 @@
 const CWGL = require("./cwgl.js");
-const Ref = require("ref-napi");
 const Weak = require("weak-napi");
 const E = require("./glenums.js");
 const getenumtype = require("./getenumtype.js");
@@ -12,7 +11,7 @@ function readcstr(buf){
 }
 
 function wrapPointer(obj, relcb){
-    const pval = Ref.address(obj);
+    const pval = ncccutil.ptraddr(obj);
     return Weak(obj, function(){relcb(pval);});
 }
 

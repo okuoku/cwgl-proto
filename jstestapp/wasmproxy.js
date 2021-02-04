@@ -1,4 +1,4 @@
-const REF = require("ref-napi");
+const ncccutil = require("./ncccutil.js");
 const nccc_node = require("./nccc-node.js");
 
 
@@ -77,7 +77,7 @@ wasm = function(DLLFILE){
                 me.heapobject = new Uint8Array(max * 64 * 1024);
                 memory.buffer = me.heapobject.buffer;
                 console.log("Alloc memory", memory.buffer);
-                return [REF.address(me.heapobject), max];
+                return [ncccutil.ptraddr(me.heapobject), max];
             },
             wasm_boot_grow_memory: function(instance_id, pages){
                 console.log("Grow memory");
