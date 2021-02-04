@@ -16,6 +16,17 @@ function wrapPointer(obj, relcb){
     return Weak(obj, function(){relcb(pval);});
 }
 
+function ptralloc(){
+    return ncccutil.malloc(8);
+}
+function ptrfree(addr){
+    return ncccutil.free(addr);
+}
+function ptrref(addr){
+    // FIXME: Endian??
+    return ncccutil.peek_u64(addr);
+}
+
 function freectx(ptr){
     // FIXME: Implement context freeing
     console.log("Leak!", ptr);
@@ -275,10 +286,11 @@ function GL(w, h, attr){
                     break;
                 case "str":
                     {
-                        let p0 = Ref.alloc(Ref.refType(Ref.types.void));
+                        let p0 = ptralloc();
                         const r = CWGL.cwgl_getParameter_str(ctx, pname, p0);
                         if(r == 0){
-                            const s = p0.deref();
+                            const s = ptrref(p0);
+                            ptrfree(p0);
                             const ssiz = CWGL.cwgl_string_size(ctx, s);
                             const buf = new Uint8Array(ssiz);
                             CWGL.cwgl_string_read(ctx, s, buf, ssiz);
@@ -796,12 +808,13 @@ function GL(w, h, attr){
         },
         // getActiveAttrib
         getActiveUniform: function(program, index){
-            let p0 = Ref.alloc(Ref.refType(Ref.types.void));
+            let p0 = ptralloc();
             let i0 = new Int32Array(1);
             let i1 = new Int32Array(1);
             const r = CWGL.cwgl_getActiveUniform(ctx, program, index, i0, i1, p0);
             if(r == 0){
-                const s = p0.deref();
+                const s = ptrref(p0);
+                ptrfree(p0);
                 const ssiz = CWGL.cwgl_string_size(ctx, s);
                 const buf = new Uint8Array(ssiz);
                 CWGL.cwgl_string_read(ctx, s, buf, ssiz);
