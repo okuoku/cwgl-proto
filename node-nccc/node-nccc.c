@@ -640,6 +640,7 @@ make_nccc_cb(napi_env env, napi_callback_info info){
 
     /* Fill context */
     params = malloc(sizeof(cb_params_t));
+    memset(params, 0, sizeof(cb_params_t));
     params->env = env; // FIXME: Is that safe?
     params->cb_ref = cb_ref;
     /* 1:intypes */
@@ -689,7 +690,6 @@ make_nccc_cb(napi_env env, napi_callback_info info){
     if(status != napi_ok){
         abort();
     }
-    /* FIXME: Assign GC callback(napi_add_finalizer) here. */
     return out;
 }
 
