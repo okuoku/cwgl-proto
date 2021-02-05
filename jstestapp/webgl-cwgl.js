@@ -1,5 +1,4 @@
 const CWGL = require("./cwgl.js");
-const Weak = require("weak-napi");
 const E = require("./glenums.js");
 const getenumtype = require("./getenumtype.js");
 const NULL = 0;
@@ -11,8 +10,7 @@ function readcstr(buf){
 }
 
 function wrapPointer(obj, relcb){
-    const pval = ncccutil.ptraddr(obj);
-    return Weak(obj, function(){relcb(pval);});
+    return ncccutil.wrapptr(obj, relcb);
 }
 
 function ptralloc(){
@@ -32,7 +30,7 @@ function freectx(ptr){
 }
 
 function GL(w, h, attr){
-    const ctx = CWGL.yfrm_cwgl_ctx_create(w, h, 0, 0);
+    const ctx0 = CWGL.yfrm_cwgl_ctx_create(w, h, 0, 0);
     const evtbuf = new Int32Array(128);
 
     let shadowDepthRenderbuffer = null;
@@ -101,7 +99,7 @@ function GL(w, h, attr){
     function uniformlocationfree(ptr){
         CWGL.cwgl_UniformLocation_release(ctx, ptr);
     }
-    wrapPointer(ctx, freectx);
+    const ctx = wrapPointer(ctx0, freectx);
     return {
         /* mgmt */
         cwgl_frame_begin: function(){
@@ -427,8 +425,8 @@ function GL(w, h, attr){
             CWGL.cwgl_bufferSubData(ctx, target, offset, data, data.byteLength);
         },
         createBuffer: function(){
-            let ptr = CWGL.cwgl_createBuffer(ctx);
-            wrapPointer(ptr, bufferfree);
+            let ptr0 = CWGL.cwgl_createBuffer(ctx);
+            const ptr = wrapPointer(ptr0, bufferfree);
             return ptr;
         },
         deleteBuffer: function(buffer){
@@ -465,8 +463,8 @@ function GL(w, h, attr){
             return CWGL.cwgl_checkFramebufferStatus(ctx, target);
         },
         createFramebuffer: function(){
-            let ptr = CWGL.cwgl_createFramebuffer(ctx);
-            wrapPointer(ptr, framebufferfree);
+            let ptr0 = CWGL.cwgl_createFramebuffer(ctx);
+            const ptr = wrapPointer(ptr0, framebufferfree);
             return ptr;
         },
         deleteFramebuffer: function(buffer){
@@ -522,8 +520,8 @@ function GL(w, h, attr){
             }
         },
         createRenderbuffer: function(){
-            let ptr = CWGL.cwgl_createRenderbuffer(ctx);
-            wrapPointer(ptr, renderbufferfree);
+            let ptr0 = CWGL.cwgl_createRenderbuffer(ctx);
+            const ptr = wrapPointer(ptr0, renderbufferfree);
             return ptr;
         },
         deleteRenderbuffer: function(renderbuffer){
@@ -557,8 +555,8 @@ function GL(w, h, attr){
                 let save_Renderbuffer = currentRenderbuffer;
                 // FIXME: check restrictions
                 CWGL.cwgl_renderbufferStorage(ctx, target, E.DEPTH_COMPONENT16, width, height);
-                let shadow = CWGL.cwgl_createRenderbuffer(ctx);
-                wrapPointer(shadow, renderbufferfree);
+                let shadow0 = CWGL.cwgl_createRenderbuffer(ctx);
+                const shadow = wrapPointer(shadow0, renderbufferfree);
                 CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, shadow);
                 CWGL.cwgl_renderbufferStorage(ctx, target, E.STENCIL_INDEX8, width, height);
                 if(shadowStencilRenderbuffer){
@@ -595,8 +593,8 @@ function GL(w, h, attr){
             CWGL.cwgl_copyTexSubImage2D(ctx, target, level, xoffset, yoffset, x, y, width, height);
         },
         createTexture: function(){
-            let ptr = CWGL.cwgl_createTexture(ctx);
-            wrapPointer(ptr, texfree);
+            let ptr0 = CWGL.cwgl_createTexture(ctx);
+            const ptr = wrapPointer(ptr0, texfree);
             return ptr;
         },
         deleteTexture: function(tex){
@@ -652,13 +650,13 @@ function GL(w, h, attr){
             CWGL.cwgl_compileShader(ctx, shader);
         },
         createProgram: function(){
-            let ptr = CWGL.cwgl_createProgram(ctx);
-            wrapPointer(ptr, programfree);
+            let ptr0 = CWGL.cwgl_createProgram(ctx);
+            const ptr = wrapPointer(ptr0, programfree);
             return ptr;
         },
         createShader: function(type){
-            let ptr = CWGL.cwgl_createShader(ctx, type);
-            wrapPointer(ptr, shaderfree);
+            let ptr0 = CWGL.cwgl_createShader(ctx, type);
+            const ptr = wrapPointer(ptr0, shaderfree);
             return ptr;
         },
         deleteProgram: function(program){
@@ -833,8 +831,8 @@ function GL(w, h, attr){
         },
         // getUniform
         getUniformLocation: function(program, name){
-            let ptr = CWGL.cwgl_getUniformLocation(ctx, program, name);
-            wrapPointer(ptr, uniformlocationfree);
+            let ptr0 = CWGL.cwgl_getUniformLocation(ctx, program, name);
+            const ptr = wrapPointer(ptr0, uniformlocationfree);
             return ptr;
         },
         getVertexAttrib: function(index, pname){
