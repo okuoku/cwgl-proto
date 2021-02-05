@@ -230,6 +230,26 @@ function opendll_null(path){ // => something
     return dllfile;
 }
 
+function gencb(the_cb){
+    let myctx = null;
+    function freecb(arg0,ptr){
+        if(ptr === false){
+            myctx = arg0;
+        }else{
+            the_cb(ptr);
+            node_nccc.destroy_cb_ctx(myctx);
+        }
+    }
+    return freecb;
+}
+
+function wrapptr(ptr, size, freecb){ // => ptr
+    const cb = gencb(freecb);
+    const cba = node_nccc.make_nccc_cb(cb, "pp", "");
+    cb(cba[1], false);
+    return node_nccc.wrap_pointer(ptr, size, cba[0], cba[1], 999);
+}
+
 
 module.exports = {
     opendll: opendll,
@@ -248,4 +268,5 @@ module.exports = {
     poke_u64: util_poke_u64,
     poke_f64: util_poke_f64,
     poke_f32: util_poke_f32,
+    wrapptr: wrapptr 
 };
