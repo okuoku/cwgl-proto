@@ -513,6 +513,9 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     const uint64_t* in_next = (uint64_t*)(uintptr_t)in[1];
     int i;
     bool r;
+    char outtypes[33];
+    int outcount;
+    napi_env env;
 
     status = napi_open_handle_scope(ctx->env, &scope);
     if(status != napi_ok){
@@ -541,6 +544,12 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     if(typ != napi_function){
         abort();
     }
+    // Capture ctx data so we can free ctx inside callback
+    env = ctx->env;
+    outcount = ctx->outcount;
+    strncpy(outtypes, ctx->outtypes, 32);
+    outtypes[32] = 0;
+    
     // FIXME: Throw C++ exception on error?
     status = napi_call_function(ctx->env, glbl, cb, 
                                 ctx->incount /* FIXME: varargs? */,
@@ -549,43 +558,43 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     if(status == napi_pending_exception){
         if(calldepth != 0){
             /* Return back to depth == 0 */
-            status = napi_close_handle_scope(ctx->env, scope);
+            status = napi_close_handle_scope(env, scope);
             if(status != napi_ok){
                 abort();
             }
             longjmp(g_jmpbuf, 1);
         }else{
-            status = napi_get_and_clear_last_exception(ctx->env, &err);
+            status = napi_get_and_clear_last_exception(env, &err);
             if(status != napi_ok){
                 abort();
             }
-            status = napi_throw(ctx->env, err);
-            status = napi_get_undefined(ctx->env, &vout);
+            status = napi_throw(env, err);
+            status = napi_get_undefined(env, &vout);
         }
     }else if(status != napi_ok){
         abort();
     }
 
     // Parse and fill output
-    if(ctx->outcount){
-        status = napi_is_array(ctx->env, vout, &r);
+    if(outcount){
+        status = napi_is_array(env, vout, &r);
         if(status != napi_ok){
             abort();
         }
         if(r){
-            for(i=0;i!=ctx->outcount;i++){
-                status = napi_get_element(ctx->env, vout, i, &v);
+            for(i=0;i!=outcount;i++){
+                status = napi_get_element(env, vout, i, &v);
                 if(status != napi_ok){
                     abort();
                 }
-                value_out(ctx->env, &out[i], ctx->outtypes[i], v);
+                value_out(env, &out[i], outtypes[i], v);
             }
         }else{
-            value_out(ctx->env, &out[0], ctx->outtypes[0], vout);
+            value_out(env, &out[0], outtypes[0], vout);
         }
     }
 
-    status = napi_close_handle_scope(ctx->env, scope);
+    status = napi_close_handle_scope(env, scope);
     if(status != napi_ok){
         abort();
     }
