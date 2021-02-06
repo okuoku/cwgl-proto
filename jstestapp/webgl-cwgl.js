@@ -10,7 +10,7 @@ function readcstr(buf){
 }
 
 function wrapPointer(obj, relcb){
-    return ncccutil.wrapptr(ncccutil.ptraddr(obj), 1, relcb);
+    return ncccutil.wrapptr(ncccutil.ptraddr(obj), relcb);
 }
 
 function ptralloc(){

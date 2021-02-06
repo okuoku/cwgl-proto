@@ -243,11 +243,11 @@ function gencb(the_cb){
     return freecb;
 }
 
-function wrapptr(ptr, size, freecb){ // => ptr
+function wrapptr(ptr, freecb){ // => ptr
     const cb = gencb(freecb);
     const cba = node_nccc.make_nccc_cb(cb, "pp", "");
     cb(cba[1], false);
-    return node_nccc.wrap_pointer(ptr, size, cba[0], cba[1], 999);
+    return node_nccc.wrap_pointer(ptr, cba[0], cba[1], 999);
 }
 
 

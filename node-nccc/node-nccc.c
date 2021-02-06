@@ -15,7 +15,6 @@ static void
 value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
     napi_status status;
     status = napi_invalid_arg;
-    napi_value arraybuf;
     switch(type){
         case 'i':
             status = napi_create_int32(env, vin, vout);
@@ -24,21 +23,14 @@ value_in(napi_env env, napi_value* vout, char type, uint64_t vin){
             status = napi_create_int64(env, vin, vout);
             break;
         case 'p':
-            status = napi_create_external_arraybuffer(env, 
-                                                      (void*)(uintptr_t)vin, 
-                                                      1, 
-                                                      NULL,
-                                                      NULL,
-                                                      &arraybuf);
+            status = napi_create_external(env, 
+                                          (void*)(uintptr_t)vin, 
+                                          NULL,
+                                          NULL,
+                                          vout);
             if(status != napi_ok){
                 abort();
             }
-            status = napi_create_typedarray(env,
-                                            napi_uint8_array, 
-                                            1,
-                                            arraybuf,
-                                            0,
-                                            vout);
             break;
         case 'f':
             status = napi_create_double(env, *((float *)&vin), vout);
@@ -129,6 +121,11 @@ value_out(napi_env env, uint64_t* vout, char type, napi_value vin){
                 *vout = 1;
             }else{
                 *vout = 0;
+            }
+        }else if(typ == napi_external){
+            status = napi_get_value_external(env, vin, (void**)vout);
+            if(status != napi_ok){
+                abort();
             }
         }else if(typ == napi_string && type == 'p'){
             strbuflen = 0;
@@ -246,7 +243,7 @@ do_finalize(napi_env env, void* data, void* ctx){
 
 static napi_value
 nccc_wrap_pointer(napi_env env, napi_callback_info info){
-    // [ptr size dispatch ctx arg] => ptr
+    // [ptr dispatch ctx arg] => ptr
     //   [dispatch,ctx] = [arg ptr] => []
     napi_status status;
     size_t argc;
@@ -261,7 +258,7 @@ nccc_wrap_pointer(napi_env env, napi_callback_info info){
 
     params = malloc(sizeof(finalizer_params_t));
     
-    argc = 5;
+    argc = 4;
     status = napi_get_cb_info(env, info, &argc, args, &ctx_this, &bogus);
     if(status != napi_ok){
         abort();
@@ -272,38 +269,31 @@ nccc_wrap_pointer(napi_env env, napi_callback_info info){
         abort();
     }
     ptr = (void*)(intptr_t)out;
-    // size
-    status = napi_get_value_int64(env, args[1], &out);
-    if(status != napi_ok){
-        abort();
-    }
-    size = out;
     // dispatch
-    status = napi_get_value_int64(env, args[2], &out);
+    status = napi_get_value_int64(env, args[1], &out);
     if(status != napi_ok){
         abort();
     }
     params->dispatch = out;
     // ctx
-    status = napi_get_value_int64(env, args[3], &out);
+    status = napi_get_value_int64(env, args[2], &out);
     if(status != napi_ok){
         abort();
     }
     params->ctx = out;
     // arg
-    status = napi_get_value_int64(env, args[4], &out);
+    status = napi_get_value_int64(env, args[3], &out);
     if(status != napi_ok){
         abort();
     }
     params->arg = out;
 
     /* Regenerate ArrayBuffer */
-    status = napi_create_external_arraybuffer(env, 
-                                              ptr,
-                                              size, 
-                                              do_finalize,
-                                              params,
-                                              &ret);
+    status = napi_create_external(env, 
+                                  ptr,
+                                  do_finalize,
+                                  params,
+                                  &ret);
     if(status != napi_ok){
         abort();
     }
