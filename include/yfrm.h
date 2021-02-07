@@ -40,6 +40,34 @@ YFRM_API void yfrm_frame_end0(void*);
 YFRM_API void yfrm_audio_enqueue0(float* ch0, float* ch1, int32_t samples);
 YFRM_API void yfrm_audio_pause0(void);
 
+/* Filesystem */
+struct yfrm_file_s;
+typedef struct yfrm_file_s yfrm_file_t;
+
+/* Open / Close */
+YFRM_API int yfrm_file_open_ro(const char* path, yfrm_file_t** file);
+YFRM_API int yfrm_file_open_rw(const char* path, yfrm_file_t** file);
+YFRM_API int yfrm_file_open_create(const char* path, yfrm_file_t** file);
+YFRM_API void yfrm_file_close(yfrm_file_t* file);
+
+/* Metadata */
+struct yfrm_file_readdir_s;
+typedef struct yfrm_file_readdir_s yfrm_file_readdir_t;
+#define YFRM_FILE_FLAG_IS_DIRECTORY 1
+YFRM_API int yfrm_file_pathinfo(const char* path, uint64_t* flags, uint64_t* size, uint64_t* time_create, uint64_t* time_mod);
+YFRM_API int yfrm_file_info(yfrm_file_t* file, uint64_t* flags, uint64_t* size, uint64_t* time_create, uint64_t* time_mod);
+YFRM_API int yfrm_file_mkdir(const char* path);
+YFRM_API int yfrm_file_rmdir(const char* path);
+YFRM_API int yfrm_file_rename(const char* oldpath, const char* newpath);
+YFRM_API int yfrm_file_unlink(const char* path);
+YFRM_API int yfrm_file_readdir_begin(const char* path, yfrm_file_readdir_t** rd);
+YFRM_API int yfrm_file_readdir_step(yfrm_file_readdir** rd, char* buf, uint32_t buflen, uint32_t* outlen);
+YFRM_API void yfrm_file_readdir_end(yfrm_file_readdir** rd);
+
+/* Access */
+YFRM_API int yfrm_file_read(yfrm_file_t* file, uint64_t offset, void* buf, uint64_t buflen);
+YFRM_API int yfrm_file_write(yfrm_file_t* file, uint64_t offset, const void* buf, uint64_t buflen);
+
 // {
 #ifdef __cplusplus
 };
