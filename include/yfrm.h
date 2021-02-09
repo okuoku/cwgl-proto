@@ -61,12 +61,12 @@ YFRM_API int yfrm_file_rmdir(const char* path);
 YFRM_API int yfrm_file_rename(const char* oldpath, const char* newpath);
 YFRM_API int yfrm_file_unlink(const char* path);
 YFRM_API int yfrm_file_readdir_begin(const char* path, yfrm_file_readdir_t** rd);
-YFRM_API int yfrm_file_readdir_step(yfrm_file_readdir** rd, char* buf, uint32_t buflen, uint32_t* outlen);
-YFRM_API void yfrm_file_readdir_end(yfrm_file_readdir** rd);
+YFRM_API int yfrm_file_readdir_step(yfrm_file_readdir_t* rd, uint32_t dostep, char* buf, uint32_t buflen, uint32_t* outlen);
+YFRM_API void yfrm_file_readdir_end(yfrm_file_readdir_t* rd);
 
 /* Access */
-YFRM_API int yfrm_file_read(yfrm_file_t* file, uint64_t offset, void* buf, uint64_t buflen);
-YFRM_API int yfrm_file_write(yfrm_file_t* file, uint64_t offset, const void* buf, uint64_t buflen);
+YFRM_API int yfrm_file_read(yfrm_file_t* file, uint64_t offset, char* buf, uint64_t buflen, uint64_t* readcnt);
+YFRM_API int yfrm_file_write(yfrm_file_t* file, uint64_t offset, const char* buf, uint64_t buflen);
 
 // {
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(cwgl C)
+project(cwgl C CXX)
 
 
 # SDL2
@@ -33,7 +33,10 @@ endif()
 
 include_directories(include angle/include)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_library(cwgl SHARED
+    yfrm/src-cxx17/yfrm-fs-cxx17.cpp
     yfrm/src-sdl2/yfrm-audio-sdl2.c
     yfrm/src-sdl2/yfrm-ctx-sdl2.c
     yfrm/src-sdl2/yfrm-events-sdl2.c
