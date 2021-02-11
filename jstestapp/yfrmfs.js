@@ -110,16 +110,16 @@ module.exports = {
         const pathbuflen = 4096;
         const ptrbuf = ncccutil.ptrbuf();
         const lenbuf = new Uint32Array(1);
-        const r0 = yfrm_file_readdir_begin(path, ptrbuf);
+        const r0 = CWGL.yfrm_file_readdir_begin(path, ptrbuf);
         if(r0 != 0){
             throw {code: "ENOENT"};
         }
         let dostep = 0;
         const ctx = ncccutil.fetchptrbuf(ptrbuf);
         for(;;){
-            const r1 = yfrm_file_readdir_step(ctx, dostep,
-                                              pathbuf, pathbuflen,
-                                              lenbuf);
+            const r1 = CWGL.yfrm_file_readdir_step(ctx, dostep,
+                                                   pathbuf, pathbuflen,
+                                                   lenbuf);
             if(r1 != 0){
                 throw "something wrong";
             }
@@ -130,8 +130,9 @@ module.exports = {
                 break;
             }
             dostep = 1;
-            out.push(ncccutil.fetchcstring(pathbuf));
+            out.push(ncccutil.fetchcstring(ncccutil.ptraddr(pathbuf)));
         }
+        CWGL.yfrm_file_readdir_end(ctx);
         return out;
     },
     openSync: function(path){
