@@ -180,7 +180,8 @@ yfrm_file_readdir_step(yfrm_file_readdir_t* rd, uint32_t dostep,
     fs::directory_iterator end;
 
     if(dostep){
-        rd->it++;
+        std::error_code ec;
+        rd->it->increment(ec);
     }
     if(*rd->it == end){
         *outlen = 0;
@@ -200,6 +201,7 @@ YFRM_API int
 yfrm_file_read(yfrm_file_t* file, uint64_t offset, char* buf, uint64_t buflen,
                uint64_t* readcnt){
     uint64_t cnt;
+    file->strm->clear();
     cnt = file->strm->seekg(offset).read(buf, buflen).gcount();
     if(readcnt){
         *readcnt = cnt;
