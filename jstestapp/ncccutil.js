@@ -46,6 +46,9 @@ const util_poke_f32 = node_nccc.make_nccc_call("poke_f32", // reinterpret
 const util_ptraddr = node_nccc.make_nccc_call("ptraddr",
                                               0, util_ptraddr_addr,
                                               "p","l");
+const util_addrptr = node_nccc.make_nccc_call("addrptr",
+                                              0, util_ptraddr_addr,
+                                              "l","p");
 
 function fetchbyte(addr){
     if(addr == 0){
@@ -250,6 +253,15 @@ function wrapptr(ptr, freecb){ // => ptr
     return node_nccc.wrap_pointer(ptr, cba[0], cba[1], 999);
 }
 
+// FIXME: 64bits version
+function ptrbuf(){
+    return new Uint32Array(2);
+}
+function fetchptrbuf(buf){
+    const v = util_peek_u64(buf);
+    return util_addrptr(v);
+}
+
 
 module.exports = {
     opendll: opendll,
@@ -261,6 +273,7 @@ module.exports = {
     malloc: util_malloc,
     free: util_free,
     ptraddr: util_ptraddr,
+    addrptr: util_addrptr,
     peek_u64: util_peek_u64,
     peek_u32: util_peek_u32,
     peek_f64: util_peek_f64,
@@ -268,5 +281,7 @@ module.exports = {
     poke_u64: util_poke_u64,
     poke_f64: util_poke_f64,
     poke_f32: util_poke_f32,
-    wrapptr: wrapptr 
+    wrapptr: wrapptr,
+    ptrbuf: ptrbuf,
+    fetchptrbuf: fetchptrbuf,
 };

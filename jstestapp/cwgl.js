@@ -275,7 +275,6 @@ const __ported_cwgl = {
 };
 
 const __ported_yfrm = {
-    /* These are already ported to NCCC */
     /* Yuniframe */
     yfrm_init: [Int, []],
     yfrm_terminate: [_, []],
@@ -286,6 +285,20 @@ const __ported_yfrm = {
     yfrm_frame_end0: [_, [C]],
     yfrm_audio_enqueue0: [_, ["void *", "void *", Int]],
     yfrm_audio_pause0: [_, []],
+    yfrm_file_open_ro: false,
+    yfrm_file_open_rw: false,
+    yfrm_file_open_create: false,
+    yfrm_file_pathinfo: false,
+    yfrm_file_info: false,
+    yfrm_file_mkdir: false,
+    yfrm_file_rmdir: false,
+    yfrm_file_rename: false,
+    yfrm_file_unlink: false,
+    yfrm_file_readdir_begin: false,
+    yfrm_file_readdir_step: false,
+    yfrm_file_readdir_end: false,
+    yfrm_file_read: false,
+    yfrm_file_write: false,
 };
 const __names_yfrm = Object.keys(__ported_yfrm);
 const __names_cwgl = Object.keys(__ported_cwgl);
