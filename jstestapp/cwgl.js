@@ -288,6 +288,7 @@ const __ported_yfrm = {
     yfrm_file_open_ro: false,
     yfrm_file_open_rw: false,
     yfrm_file_open_create: false,
+    yfrm_file_close: false,
     yfrm_file_pathinfo: false,
     yfrm_file_info: false,
     yfrm_file_mkdir: false,

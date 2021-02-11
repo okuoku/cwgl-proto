@@ -38,6 +38,9 @@ nccc_api(yfrm_file_open_rw
 nccc_api(yfrm_file_open_create
     IN ptr ptr
     OUT u32)
+nccc_api(yfrm_file_close
+    IN ptr
+    OUT)
 #  Metadata
 nccc_api(yfrm_file_pathinfo
     IN ptr ptr ptr ptr ptr
