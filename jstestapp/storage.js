@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("./yfrmfs.js");
 
 const ERRNO_CODES = {
     EPERM: 1,
