@@ -533,12 +533,6 @@ global.AudioContext = wnd.AudioContext;
 
 function boot_plain(){ // Emscripten plain
     const bootstrap = bootstrap_script();
-    let window = global.my_window;
-    let navigator = window.navigator;
-    let document = global.my_doc;
-    let screen = global.my_screen;
-    let setTimeout = global.fake_settimeout;
-    let AudioContext = window.AudioContext;
     my_module.wasmBinary = bootstrap_wasm();
     if(BOOTARGS){
         my_module.arguments = BOOTARGS;
@@ -553,13 +547,19 @@ function boot_plain(){ // Emscripten plain
     }
     global.my_module.preRun.push(mountFS);
 
-    const preamble = "function Bootstrap(Module){ let tempDouble; let tempI64; function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
+    const preamble = "function Bootstrap(window,navigator,document,screen,setTimeout,AudioContext,Module){ let tempDouble; let tempI64; function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
     const postamble = "\n\n}; \n global.initfunc = Bootstrap;";
 
     eval(preamble + bootstrap + postamble);
 
     const bootfunc = global.initfunc;
-    bootfunc(global.my_module);
+    bootfunc(global.my_window,
+             global.my_window.navigator,
+             global.my_doc,
+             global.my_screen,
+             global.fake_settimeout,
+             global.my_window.AudioContext,
+             global.my_module);
 }
 
 function boot_unity(){ // Unity
