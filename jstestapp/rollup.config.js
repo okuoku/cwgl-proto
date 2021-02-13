@@ -1,5 +1,5 @@
 import { babel } from "@rollup/plugin-babel";
-import commonjs from "@rollup/plugin-commonjs";
+import resolve from "@rollup/plugin-node-resolve";
 
 const config_duktape = {
     input: "index.js",
@@ -9,6 +9,7 @@ const config_duktape = {
         name: "loader",
     },
     plugins: [
+        resolve(),
         babel({ babelHelpers: "bundled", configFile: false,
               presets: [ "@babel/preset-env"]
         })
