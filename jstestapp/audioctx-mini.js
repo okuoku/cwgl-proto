@@ -1,4 +1,4 @@
-const performance = require('perf_hooks').performance;
+const PortStd = require("./port-std.js");
 
 function dummybuffer(){
     return {};
@@ -96,7 +96,7 @@ function audioctx_mini(){
     }
 
     function audiotick(){
-        const curtime = performance.now();
+        const curtime = PortStd.performance_now();
         me.currentTime = curtime / 1000;
         if(graphupdated){
             graphupdate();

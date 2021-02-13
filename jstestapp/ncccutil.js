@@ -1,6 +1,7 @@
+const PortNative = require("./port-native.js");
 const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
-const FFI = require("ffi-napi");
-const node_nccc = require("../node-nccc/out/build/x64-Debug/node-nccc");
+const FFI = PortNative.FFI;
+const node_nccc = PortNative.nccc;
 
 const utildll = FFI.DynamicLibrary(DLLUTIL, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
 
