@@ -9,12 +9,11 @@ const config_duktape = {
         name: "loader",
     },
     plugins: [
-        commonjs({exclude: ["port-std.js","port-native.js"],
-         requireReturnsDefault: true}),
         babel({ babelHelpers: "bundled", configFile: false,
               presets: [ "@babel/preset-env"]
         })
-    ]
+    ],
+    external: ["./port-std.js", "./port-native.js"]
 };
 
 export default config_duktape;
