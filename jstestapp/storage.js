@@ -1,4 +1,4 @@
-const fs = require("./yfrmfs.js");
+import fs from "./yfrmfs.js";
 
 const ERRNO_CODES = {
     EPERM: 1,
@@ -416,7 +416,7 @@ function do_genfs(FS, ROOT){
 
     return {
         mount: function(mount){
-            me = newnode_dir(null, "/");
+            const me = newnode_dir(null, "/");
             me.mount = mount;
             me.parent = me;
             return me;
@@ -430,4 +430,4 @@ const Storage = {
     }
 };
 
-module.exports = Storage;
+export default Storage;

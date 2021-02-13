@@ -1,4 +1,4 @@
-const ncccutil = require("./ncccutil.js");
+import ncccutil from "./ncccutil.js";
 
 const node_nccc = ncccutil.node_nccc;
 const util_rawcall = ncccutil.rawcall;
@@ -547,4 +547,4 @@ function nccc(DLLPATH){
     };
 }
 
-module.exports = nccc;
+export default nccc;

@@ -1,8 +1,9 @@
-const CWGL = require("./cwgl.js");
-const E = require("./glenums.js");
-const getenumtype = require("./getenumtype.js");
+import CWGL from "./cwgl.js";
+import E from "./glenums.js";
+import getenumtype from "./getenumtype.js";
+import ncccutil from "./ncccutil.js";
+
 const NULL = 0;
-const ncccutil = require("./ncccutil.js");
 
 function readcstr(buf){
     const addr = ncccutil.ptraddr(buf);
@@ -580,7 +581,6 @@ function GL(w, h, attr){
             if(! texture){
                 CWGL.cwgl_bindTexture(ctx, target, NULL);
             }else{
-                currentTexture = texture;
                 CWGL.cwgl_bindTexture(ctx, target, texture);
             }
         },
@@ -1284,4 +1284,4 @@ function GL(w, h, attr){
 
 CWGL.yfrm_init();
 
-module.exports = GL;
+export default GL;

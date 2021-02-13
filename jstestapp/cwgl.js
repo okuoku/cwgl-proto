@@ -1,4 +1,5 @@
-const ncccutil = require("./ncccutil.js");
+import ncccutil from "./ncccutil.js";
+
 const cwgl0 = ncccutil.opendll_null("../out/build/x64-Debug/cwgl.dll");
 const yfrmdll = ncccutil.opendll("../out/build/x64-Debug/ncccstubs/yfrm_stubs.dll", "yfrm"); /* Both yfrm and cwgl */
 
@@ -318,4 +319,4 @@ __names_cwgl.forEach(e => {
     CWGL[e] = yfrmdll.libs.cwgl[e].proc;
 });
 
-module.exports = CWGL;
+export default CWGL;

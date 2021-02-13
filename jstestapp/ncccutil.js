@@ -1,4 +1,4 @@
-const PortNative = require("./port-native.js");
+import PortNative from "./port-native.js";
 const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
 const FFI = PortNative.FFI;
 const node_nccc = PortNative.nccc;
@@ -264,7 +264,7 @@ function fetchptrbuf(buf){
 }
 
 
-module.exports = {
+export default {
     opendll: opendll,
     opendll_raw: opendll_raw,
     opendll_null: opendll_null,

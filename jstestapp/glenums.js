@@ -298,4 +298,4 @@ const glenums = {
 
 };
 
-module.exports = glenums;
+export default glenums;

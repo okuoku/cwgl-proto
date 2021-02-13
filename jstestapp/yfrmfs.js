@@ -1,6 +1,7 @@
-const ncccutil = require("./ncccutil.js");
-const CWGL = require("./cwgl.js");
-module.exports = {
+import ncccutil from "./ncccutil.js";
+import CWGL from "./cwgl.js";
+
+export default {
     statSync: function(path){
         // FIXME: Endian
         // FIXME: 4Gig over

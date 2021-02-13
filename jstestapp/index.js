@@ -48,12 +48,14 @@ const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
 const DLLFILE = "../apps/out/appdll_app6.dll";
 
-const PortStd = require("./port-std.js");
-const GL = require("./webgl-cwgl.js");
-const audioctx_mini = require("./audioctx-mini.js");
-const storage = require("./storage.js");
-const EmuCanvas = require("./emucanvas.js");
-const WebAssembly = require("./wasmproxy.js")(DLLFILE);
+import PortStd from "./port-std.js";
+import GL from "./webgl-cwgl.js";
+import audioctx_mini from "./audioctx-mini.js";
+import storage from "./storage.js";
+import EmuCanvas from "./emucanvas.js";
+import WebAssembly_ist from "./wasmproxy.js";
+
+const WebAssembly = WebAssembly_ist(DLLFILE);
 
 const orig_setInterval = global.setInterval;
 
@@ -533,7 +535,6 @@ function boot_plain(){ // Emscripten plain
     let window = global.my_window;
     let navigator = window.navigator;
     let document = global.my_doc;
-    var Module = global.my_module;
     let screen = global.my_screen;
     let setTimeout = global.fake_settimeout;
     let AudioContext = window.AudioContext;
@@ -542,6 +543,7 @@ function boot_plain(){ // Emscripten plain
         my_module.arguments = BOOTARGS;
     }
     function mountFS(){
+        const FS = my_module.peekFS();
         if(APPFS_DIR){
             const APPFS = storage.genfs(FS, APPFS_DIR);
             FS.mkdir("/appfs");
@@ -549,7 +551,14 @@ function boot_plain(){ // Emscripten plain
         }
     }
     global.my_module.preRun.push(mountFS);
-    eval(bootstrap);
+
+    const preamble = "function Bootstrap(Module){ let tempDouble; let tempI64; function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
+    const postamble = "\n\n}; \n global.initfunc = Bootstrap;";
+
+    eval(preamble + bootstrap + postamble);
+
+    const bootfunc = global.initfunc;
+    bootfunc(global.my_module);
 }
 
 function boot_unity(){ // Unity

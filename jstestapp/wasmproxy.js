@@ -1,8 +1,8 @@
-const ncccutil = require("./ncccutil.js");
-const nccc_node = require("./nccc-node.js");
+import ncccutil from "./ncccutil.js";
+import nccc_node from "./nccc-node.js";
 
 
-wasm = function(DLLFILE){ 
+const wasm = function(DLLFILE){ 
 
     const nccc = nccc_node(DLLFILE);
 
@@ -158,4 +158,4 @@ wasm = function(DLLFILE){
     }
 };
 
-module.exports = wasm;
+export default wasm;

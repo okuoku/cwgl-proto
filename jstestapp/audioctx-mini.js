@@ -1,4 +1,4 @@
-const PortStd = require("./port-std.js");
+import PortStd from "./port-std.js";
 
 function dummybuffer(){
     return {};
@@ -97,7 +97,7 @@ function audioctx_mini(){
 
     function audiotick(){
         const curtime = PortStd.performance_now();
-        me.currentTime = curtime / 1000;
+        //me.currentTime = curtime / 1000;
         if(graphupdated){
             graphupdate();
             graphupdated = false;
@@ -213,5 +213,5 @@ function audioctx_mini(){
     return the_context;
 }
 
-module.exports = register;
+export default register;
 

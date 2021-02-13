@@ -133,4 +133,4 @@ function context(GL, is_framebuffer){
     }
 }
 
-module.exports = context;
+export default context;

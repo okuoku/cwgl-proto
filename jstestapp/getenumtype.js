@@ -440,4 +440,4 @@ function genenumtype(num){
     }
 }
 
-module.exports = genenumtype;
+export default genenumtype;
