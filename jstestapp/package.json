@@ -1,5 +1,5 @@
 {
-    "type": "module",
+  "type": "module",
   "name": "jstestapp",
   "version": "1.0.0",
   "description": "",
@@ -17,6 +17,7 @@
     "fake-indexeddb": "^3.1.2",
     "ffi-napi": "^3.1.0",
     "heapdump": "^0.3.15",
+    "regenerator-runtime": "^0.13.7",
     "rollup": "^2.39.0",
     "weak-napi": "^2.0.2"
   }

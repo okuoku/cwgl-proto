@@ -48,6 +48,7 @@ const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
 const DLLFILE = "../apps/out/appdll_app6.dll";
 
+import "regenerator-runtime/runtime.js";
 import PortStd from "./port-std.js";
 import GL from "./webgl-cwgl.js";
 import audioctx_mini from "./audioctx-mini.js";
