@@ -410,7 +410,7 @@ function GL(w, h, attr){
             if(! buffer){
                 CWGL.cwgl_bindBuffer(ctx, target, NULL);
             }else{
-                CWGL.cwgl_bindBuffer(ctx, target, buffer);
+                CWGL.cwgl_bindBuffer(ctx, target, buffer.ptr);
             }
         },
         bufferData: function(target, data_or_size, usage){
@@ -428,10 +428,11 @@ function GL(w, h, attr){
         createBuffer: function(){
             let ptr0 = CWGL.cwgl_createBuffer(ctx);
             const ptr = wrapPointer(ptr0, bufferfree);
-            return ptr;
+            const r = {ptr: ptr};
+            return r;
         },
         deleteBuffer: function(buffer){
-            CWGL.cwgl_deleteBuffer(ctx, buffer);
+            CWGL.cwgl_deleteBuffer(ctx, buffer.ptr);
         },
         getBufferParameter: function(target, pname){
             let i0 = new Int32Array(1);
@@ -443,7 +444,7 @@ function GL(w, h, attr){
             }
         },
         isBuffer: function(buffer){
-            const r = CWGL.cwgl_isBuffer(ctx, buffer);
+            const r = CWGL.cwgl_isBuffer(ctx, buffer.ptr);
             if(r == 0){
                 return false;
             }else{
@@ -456,7 +457,7 @@ function GL(w, h, attr){
             if(! framebuffer){
                 CWGL.cwgl_bindFramebuffer(ctx, target, NULL);
             }else{
-                CWGL.cwgl_bindFramebuffer(ctx, target, framebuffer);
+                CWGL.cwgl_bindFramebuffer(ctx, target, framebuffer.ptr);
             }
         },
         /* WebGLHandlesContextLoss */
@@ -466,27 +467,28 @@ function GL(w, h, attr){
         createFramebuffer: function(){
             let ptr0 = CWGL.cwgl_createFramebuffer(ctx);
             const ptr = wrapPointer(ptr0, framebufferfree);
-            return ptr;
+            const r = {ptr: ptr};
+            return r;
         },
         deleteFramebuffer: function(buffer){
-            CWGL.cwgl_deleteFramebuffer(ctx, buffer);
+            CWGL.cwgl_deleteFramebuffer(ctx, buffer.ptr);
         },
         framebufferRenderbuffer: function(target, attachment, renderbuffertarget, renderbuffer){
             if(attachment == E.DEPTH_STENCIL_ATTACHMENT){
                 if(renderbuffer != shadowDepthRenderbuffer){
                     console.log("ORPHAN shadowStencilRenderbuffer...");
                     // Fallback
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer.ptr);
                 }else{
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.DEPTH_ATTACHMENT, renderbuffertarget, renderbuffer);
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.STENCIL_ATTACHMENT, renderbuffertarget, shadowStencilRenderbuffer);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.DEPTH_ATTACHMENT, renderbuffertarget, renderbuffer.ptr);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.STENCIL_ATTACHMENT, renderbuffertarget, shadowStencilRenderbuffer.ptr);
                 }
             }else{
-                CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+                CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer.ptr);
             }
         },
         framebufferTexture2D: function(target, attachment, textarget, texture, level){
-            CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture, level);
+            CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture.ptr, level);
         },
         getFramebufferAttachmentParameter(target, attachment, pname){
             const type = getenumtype(pname);
@@ -504,7 +506,7 @@ function GL(w, h, attr){
         },
         /* WebGLHandlesContextLoss */
         isFramebuffer: function(framebuffer){
-            const r = CWGL.cwgl_isFramebuffer(ctx, framebuffer);
+            const r = CWGL.cwgl_isFramebuffer(ctx, framebuffer.ptr);
             if(r == 0){
                 return false;
             }else{
@@ -517,21 +519,22 @@ function GL(w, h, attr){
             if(! renderbuffer){
                 CWGL.cwgl_bindRenderbuffer(ctx, target, NULL);
             }else{
-                CWGL.cwgl_bindRenderbuffer(ctx, target, renderbuffer);
+                CWGL.cwgl_bindRenderbuffer(ctx, target, renderbuffer.ptr);
             }
         },
         createRenderbuffer: function(){
             let ptr0 = CWGL.cwgl_createRenderbuffer(ctx);
             const ptr = wrapPointer(ptr0, renderbufferfree);
-            return ptr;
+            const r = {ptr: ptr};
+            return r;
         },
         deleteRenderbuffer: function(renderbuffer){
             if(renderbuffer == shadowDepthRenderbuffer){
-                CWGL.cwgl_deleteRenderbuffer(ctx, shadowStencilRenderbuffer);
+                CWGL.cwgl_deleteRenderbuffer(ctx, shadowStencilRenderbuffer.ptr);
                 shadowDepthRenderbuffer = null;
                 shadowStencilRenderbuffer = null;
             }
-            CWGL.cwgl_deleteRenderbuffer(ctx, renderbuffer);
+            CWGL.cwgl_deleteRenderbuffer(ctx, renderbuffer.ptr);
         },
         getRenderbufferParameter: function(target, pname){
             let i0 = new Int32Array(i);
@@ -544,7 +547,7 @@ function GL(w, h, attr){
         },
         /* WebGLHandlesContextLoss */
         isRenderbuffer(renderbuffer){
-            const r = CWGL.cwgl_isRenderbuffer(ctx, renderbuffer);
+            const r = CWGL.cwgl_isRenderbuffer(ctx, renderbuffer.ptr);
             if(r == 0){
                 return false;
             }else{
@@ -557,8 +560,9 @@ function GL(w, h, attr){
                 // FIXME: check restrictions
                 CWGL.cwgl_renderbufferStorage(ctx, target, E.DEPTH_COMPONENT16, width, height);
                 let shadow0 = CWGL.cwgl_createRenderbuffer(ctx);
-                const shadow = wrapPointer(shadow0, renderbufferfree);
-                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, shadow);
+                const shadowobj = wrapPointer(shadow0, renderbufferfree);
+                const shadow = {ptr: shadowobj};
+                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, shadow.ptr);
                 CWGL.cwgl_renderbufferStorage(ctx, target, E.STENCIL_INDEX8, width, height);
                 if(shadowStencilRenderbuffer){
                     console.log("LEAKED shadowStencil");
@@ -568,7 +572,7 @@ function GL(w, h, attr){
                 }
                 shadowDepthRenderbuffer = save_Renderbuffer;
                 shadowStencilRenderbuffer = shadow;
-                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, save_Renderbuffer);
+                CWGL.cwgl_bindRenderbuffer(ctx, E.RENDERBUFFER, save_Renderbuffer.ptr);
             }else if(internalformat == E.DEPTH_COMPONENT){
                 CWGL.cwgl_renderbufferStorage(ctx, target, E.DEPTH_COMPONENT16, width, height);
             }else{
@@ -581,7 +585,7 @@ function GL(w, h, attr){
             if(! texture){
                 CWGL.cwgl_bindTexture(ctx, target, NULL);
             }else{
-                CWGL.cwgl_bindTexture(ctx, target, texture);
+                CWGL.cwgl_bindTexture(ctx, target, texture.ptr);
             }
         },
         // compressedTexImage2D
@@ -595,10 +599,11 @@ function GL(w, h, attr){
         createTexture: function(){
             let ptr0 = CWGL.cwgl_createTexture(ctx);
             const ptr = wrapPointer(ptr0, texfree);
-            return ptr;
+            const r = {ptr: ptr};
+            return r;
         },
         deleteTexture: function(tex){
-            CWGL.cwgl_deleteTexture(ctx, tex);
+            CWGL.cwgl_deleteTexture(ctx, tex.ptr);
         },
         generateMipmap: function(target){
             CWGL.cwgl_generateMipmap(ctx, target);
@@ -614,7 +619,7 @@ function GL(w, h, attr){
         },
         /* WebGLHandlesContextLoss */
         isTexture: function(texture){
-            const r = CWGL.cwgl_isTexture(ctx, renderbuffer);
+            const r = CWGL.cwgl_isTexture(ctx, texture.ptr);
             if(r == 0){
                 return false;
             }else{
@@ -641,10 +646,10 @@ function GL(w, h, attr){
         },
         // 5.14.9 Programs and Shaders
         attachShader: function(program, shader){
-            CWGL.cwgl_attachShader(ctx, program, shader);
+            CWGL.cwgl_attachShader(ctx, program.ptr, shader);
         },
         bindAttribLocation: function(program, index, name){
-            CWGL.cwgl_bindAttribLocation(ctx, program, index, name);
+            CWGL.cwgl_bindAttribLocation(ctx, program.ptr, index, name);
         },
         compileShader: function(shader){
             CWGL.cwgl_compileShader(ctx, shader);
@@ -652,7 +657,8 @@ function GL(w, h, attr){
         createProgram: function(){
             let ptr0 = CWGL.cwgl_createProgram(ctx);
             const ptr = wrapPointer(ptr0, programfree);
-            return ptr;
+            const r = {ptr: ptr};
+            return r;
         },
         createShader: function(type){
             let ptr0 = CWGL.cwgl_createShader(ctx, type);
@@ -660,20 +666,20 @@ function GL(w, h, attr){
             return ptr;
         },
         deleteProgram: function(program){
-            CWGL.cwgl_deleteProgram(ctx, program);
+            CWGL.cwgl_deleteProgram(ctx, program.ptr);
         },
         deleteShader: function(shader){
             CWGL.cwgl_deleteShader(ctx, shader);
         },
         detachShader: function(program, shader){
-            CWGL.cwgl_detachShader(ctx, program, shader);
+            CWGL.cwgl_detachShader(ctx, program.ptr, shader);
         },
         // getAttachedShaders
         getProgramParameter: function(program, pname){
             const type = getenumtype(pname);
             if(type == "int"){
                 let i0 = new Int32Array(1);
-                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program, pname, i0);
+                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program.ptr, pname, i0);
                 if(r == 0){
                     return i0[0];
                 }else{
@@ -681,7 +687,7 @@ function GL(w, h, attr){
                 }
             }else if(type == "bool"){
                 let i0 = new Int32Array(1);
-                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program, pname, i0);
+                const r = CWGL.cwgl_getProgramParameter_i1(ctx, program.ptr, pname, i0);
                 if(r == 0){
                     return i0[0] == 0 ? false : true;
                 }else{
@@ -692,7 +698,7 @@ function GL(w, h, attr){
             }
         },
         getProgramInfoLog: function(program){
-            const s = CWGL.cwgl_getProgramInfoLog(ctx, program);
+            const s = CWGL.cwgl_getProgramInfoLog(ctx, program.ptr);
             const ssiz = CWGL.cwgl_string_size(ctx, s);
             const buf = new Uint8Array(ssiz);
             const r = CWGL.cwgl_string_read(ctx, s, buf, ssiz);
@@ -766,7 +772,7 @@ function GL(w, h, attr){
         },
         /* WebGLHandlesContextLoss */
         isProgram: function(program){
-            const r = CWGL.cwgl_isProgram(ctx, program);
+            const r = CWGL.cwgl_isProgram(ctx, program.ptr);
             if(r == 0){
                 return false;
             }else{
@@ -783,7 +789,7 @@ function GL(w, h, attr){
             }
         },
         linkProgram: function(program){
-            CWGL.cwgl_linkProgram(ctx, program);
+            CWGL.cwgl_linkProgram(ctx, program.ptr);
         },
         shaderSource: function(shader, source){
             // FIXME: Is it okay to use length here..?
@@ -791,10 +797,14 @@ function GL(w, h, attr){
         },
         useProgram: function(program){
             trackbinding_program(program);
-            CWGL.cwgl_useProgram(ctx, program);
+            if(program){
+                CWGL.cwgl_useProgram(ctx, program.ptr);
+            }else{
+                CWGL.cwgl_useProgram(ctx, NULL);
+            }
         },
         validateProgram: function(program){
-            CWGL.cwgl_validateProgram(ctx, program);
+            CWGL.cwgl_validateProgram(ctx, program.ptr);
         },
         // 5.14.10 Uniforms and attributes
         disableVertexAttribArray: function(index){
@@ -808,7 +818,7 @@ function GL(w, h, attr){
             let p0 = ptralloc();
             let i0 = new Int32Array(1);
             let i1 = new Int32Array(1);
-            const r = CWGL.cwgl_getActiveUniform(ctx, program, index, i0, i1, p0);
+            const r = CWGL.cwgl_getActiveUniform(ctx, program.ptr, index, i0, i1, p0);
             if(r == 0){
                 const s = ptrref(p0);
                 ptrfree(p0);
@@ -827,11 +837,11 @@ function GL(w, h, attr){
             }
         },
         getAttribLocation: function(program, name){
-            return CWGL.cwgl_getAttribLocation(ctx, program, name);
+            return CWGL.cwgl_getAttribLocation(ctx, program.ptr, name);
         },
         // getUniform
         getUniformLocation: function(program, name){
-            let ptr0 = CWGL.cwgl_getUniformLocation(ctx, program, name);
+            let ptr0 = CWGL.cwgl_getUniformLocation(ctx, program.ptr, name);
             const ptr = wrapPointer(ptr0, uniformlocationfree);
             return ptr;
         },
