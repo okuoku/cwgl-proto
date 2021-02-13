@@ -48,12 +48,9 @@ const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
 const DLLFILE = "../apps/out/appdll_app6.dll";
 
-const process = require("process");
-const fs = require("fs");
-const Crypto = require("crypto");
+const PortStd = require("./port-std.js");
 const GL = require("./webgl-cwgl.js");
 const audioctx_mini = require("./audioctx-mini.js");
-const performance = require('perf_hooks').performance;
 const storage = require("./storage.js");
 const EmuCanvas = require("./emucanvas.js");
 const WebAssembly = require("./wasmproxy.js")(DLLFILE);
@@ -97,7 +94,7 @@ function audiotick(){
 }
 
 function fake_gRV(buffer){
-    Crypto.randomFillSync(buffer);
+    PortStd.crypto_randomFillSync(buffer);
     return buffer;
 }
 
@@ -129,10 +126,10 @@ function handleevents(){
 
 // Bootstrap resources
 function bootstrap_script(){
-    return fs.readFileSync(BOOTSTRAP, "utf8");
+    return PortStd.fs_readFileSync(BOOTSTRAP, "utf8");
 }
 function bootstrap_wasm(){
-    return fs.readFileSync(BOOTWASM);
+    return PortStd.fs_readFileSync(BOOTWASM);
 }
 
 // Emscripten patches
@@ -268,7 +265,7 @@ function gen_gamepad(){
         id: "Player 1",
         index: 0,
         connected: true,
-        timestamp: performance.now(),
+        timestamp: PortStd.performance_now(),
         mapping: "standard",
         axes: axis,
         buttons: buttons.map(e => {
@@ -435,7 +432,7 @@ wnd.navigator.getGamepads = function(){
 wnd.requestAnimationFrame = function(cb){
     //console.log("rAF");
     setImmediate(function(){
-        const now = performance.now();
+        const now = PortStd.performance_now();
         if(g_ctx){
             checkheapdump();
             checkframebuffer();
@@ -481,7 +478,7 @@ function fake_settimeout(cb, ms, bogus){
             checkheapdump();
             checkframebuffer();
             g_ctx.cwgl_frame_end();
-            const now = performance.now();
+            const now = PortStd.performance_now();
             //console.log("FRAME", now);
             g_ctx.cwgl_frame_begin();
             handleevents();
