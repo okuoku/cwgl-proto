@@ -1,3 +1,6 @@
 [submodule "angle"]
 	path = angle
 	url = https://github.com/google/angle
+[submodule "duktape-releases"]
+	path = duktape-releases
+	url = https://github.com/svaarala/duktape-releases
