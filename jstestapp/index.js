@@ -531,6 +531,18 @@ global.my_screen = my_screen;
 global.fake_settimeout = fake_settimeout;
 global.AudioContext = wnd.AudioContext;
 
+function bindeval(str, binds){
+    const names = Object.keys(binds);
+    const vals = names.map(k => binds[k]);
+    const forms = names.join(",");
+    const preamble = "(function (" + forms + "){"
+    const postamble = "})"
+    console.log(binds);
+    const receiver = eval(preamble + str + postamble);
+
+    receiver.apply(null, vals);
+}
+
 function boot_plain(){ // Emscripten plain
     const bootstrap = bootstrap_script();
     my_module.wasmBinary = bootstrap_wasm();
@@ -547,19 +559,23 @@ function boot_plain(){ // Emscripten plain
     }
     global.my_module.preRun.push(mountFS);
 
-    const preamble = "function Bootstrap(window,navigator,document,screen,setTimeout,AudioContext,Module){ let tempDouble; let tempI64; function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
-    const postamble = "\n\n}; \n global.initfunc = Bootstrap;";
+    const preamble = "function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
 
-    eval(preamble + bootstrap + postamble);
+    const binds = {
+        window: global.my_window,
+        navigator: global.my_window.navigator,
+        document: global.my_doc,
+        screen: global.my_screen,
+        setTimeout: global.fake_settimeout,
+        AudioContext: global.my_window.AudioContext,
+        Module: global.my_module,
 
-    const bootfunc = global.initfunc;
-    bootfunc(global.my_window,
-             global.my_window.navigator,
-             global.my_doc,
-             global.my_screen,
-             global.fake_settimeout,
-             global.my_window.AudioContext,
-             global.my_module);
+        /* Old emscripten workaround */
+        tempDouble: 0.0,
+        tempI64: 0,
+    };
+
+    bindeval(preamble + bootstrap, binds);
 }
 
 function boot_unity(){ // Unity
