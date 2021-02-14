@@ -1,18 +1,16 @@
 import PortNative from "./port-native.js";
 const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
-const FFI = PortNative.FFI;
+const corelib = PortNative.nccc.corelib;
 const node_nccc = PortNative.nccc;
 
-const utildll = FFI.DynamicLibrary(DLLUTIL, FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-
-const util_rawcall_addr = utildll.get("util_rawcall").address();
-const util_peek_u64_addr = utildll.get("util_peek_u64").address();
-const util_poke_u64_addr = utildll.get("util_poke_u64").address();
-const util_peek_u32_addr = utildll.get("util_peek_u32").address();
-const util_poke_u32_addr = utildll.get("util_poke_u32").address();
-const util_malloc_addr = utildll.get("util_malloc").address();
-const util_free_addr = utildll.get("util_free").address();
-const util_ptraddr_addr = utildll.get("util_ptraddr").address();
+const util_rawcall_addr = corelib.util_rawcall;
+const util_peek_u64_addr = corelib.util_peek_u64;
+const util_poke_u64_addr = corelib.util_poke_u64;
+const util_peek_u32_addr = corelib.util_peek_u32;
+const util_poke_u32_addr = corelib.util_poke_u32;
+const util_malloc_addr = corelib.util_malloc;
+const util_free_addr = corelib.util_free;
+const util_ptraddr_addr = corelib.util_ptraddr;
 
 const util_rawcall = node_nccc.make_nccc_call("rawcall",
                                               0, util_rawcall_addr,
@@ -50,6 +48,31 @@ const util_ptraddr = node_nccc.make_nccc_call("ptraddr",
 const util_addrptr = node_nccc.make_nccc_call("addrptr",
                                               0, util_ptraddr_addr,
                                               "l","p");
+
+const dlfcn_open = node_nccc.make_nccc_call("dlfcn_open",
+                                            0, corelib.dlfcn_open,
+                                            "p", "lp");
+const dlfcn_get = node_nccc.make_nccc_call("dlfcn_get",
+                                           0, corelib.dlfcn_get,
+                                           "pp", "lp");
+
+function dlopen(path){ // => handle
+    const r = dlfcn_open(path);
+    if(r[0] != 0){
+        throw "dlopen error";
+    }
+    console.log("dlopen",path,r);
+    return r[1];
+}
+
+function dlsym(handle,name){ // => ptr
+    const r = dlfcn_get(handle, name);
+    if(r[0] != 0){
+        throw "dlsym error";
+    }
+    console.log("dlsym",handle,name,r);
+    return r[1];
+}
 
 function fetchbyte(addr){
     if(addr == 0){
@@ -134,9 +157,8 @@ function nccctypes2string(types){
 }
 
 function opendll(path, modname){ // => {libs: {<lib>: {exports: ...}}}
-    const dllfile = FFI.DynamicLibrary(path,
-                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-    const rootaddr = dllfile.get(modname + "_nccc_root_00").address();
+    const dllfile = dlopen(path); 
+    const rootaddr = dlsym(dllfile, modname + "_nccc_root_00");
     console.log("Module",path,rootaddr);
     function collection_info(){
         const out = do_rawcall(rootaddr, [0, 0, 1], 4);
@@ -222,15 +244,13 @@ function opendll(path, modname){ // => {libs: {<lib>: {exports: ...}}}
 }
 
 function opendll_raw(path, rootsym){ // => addr
-    const dllfile = FFI.DynamicLibrary(path, 
-                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
-    const rootaddr = dllfile.get(rootsym).address();
+    const dllfile = dlopen(path);
+    const rootaddr = dlsym(dllfile, rootsym); 
     return rootaddr;
 }
 
 function opendll_null(path){ // => something
-    const dllfile = FFI.DynamicLibrary(path, 
-                                       FFI.DynamicLibrary.FLAGS.RTLD_NOW);
+    const dllfile = dlopen(path);
     return dllfile;
 }
 

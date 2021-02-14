@@ -1,10 +1,10 @@
-import FFI from "ffi-napi";
 import { createRequire } from 'module';
-const require = createRequire(import.meta.url); // FIXME: ???
 
+// Node.js currently does not support loading native module
+// using ES6 module syntax
+const require = createRequire(import.meta.url);
 const nccc = require("../node-nccc/out/build/x64-Debug/node-nccc");
 
 export default {
-    FFI: FFI, /* Tentative */
     nccc: nccc
 };
