@@ -435,18 +435,15 @@ make_nccc_call(napi_env env, napi_callback_info info){
         abort();
     }
     /* 1:dispatch */
-    status = napi_get_value_int64(env, args[1], (int64_t*)&addr);
-    if(status != napi_ok){
-        abort();
-    }
+    value_out(env, &addr, 'p', args[1]);
     ctx->dispatch = addr;
 
     /* 2:addr */
-    status = napi_get_value_int64(env, args[2], (int64_t*)&addr);
-    if(status != napi_ok){
+    value_out(env, &addr, 'p', args[2]);
+    ctx->addr = addr;
+    if(!addr){
         abort();
     }
-    ctx->addr = addr;
 
     /* 3:intype */
     status = napi_get_value_string_utf8(env, args[3], typestringbuf,
@@ -683,6 +680,56 @@ make_nccc_cb(napi_env env, napi_callback_info info){
     return out;
 }
 
+#define EXPAND_CORELIB(x) \
+    x(util_rawcall) \
+    x(util_peek_u64) \
+    x(util_peek_u32) \
+    x(util_poke_u64) \
+    x(util_poke_u32) \
+    x(util_malloc) \
+    x(util_free) \
+    x(util_ptraddr) \
+    x(dlfcn_open) \
+    x(dlfcn_get)
+
+#define ITR_PROTOTYPE(nam) \
+    void nam(const uint64_t* in, uint64_t* out);
+
+EXPAND_CORELIB(ITR_PROTOTYPE)
+
+static void
+set_corelib(napi_env env, napi_value target, const char* name, void* sym){
+    napi_status status;
+    napi_value obj;
+    status = napi_create_external(env, sym, NULL, NULL, &obj);
+    if(status != napi_ok){
+        abort();
+    }
+    status = napi_set_named_property(env, target,
+                                     name, obj);
+    if(status != napi_ok){
+        abort();
+    }
+}
+
+static napi_value
+create_corelib(napi_env env){
+    napi_status status;
+    napi_value root;
+    napi_value obj;
+
+    status = napi_create_object(env, &root);
+    if(status != napi_ok){
+        abort();
+    }
+#define ITR_SETCORELIB(sym) set_corelib(env, root, #sym, sym);
+    EXPAND_CORELIB(ITR_SETCORELIB)
+#undef ITR_SETCORELIB
+
+    return root;
+}
+
+
 static napi_value
 node_nccc_init(napi_env env, napi_value exports){
     napi_status status;
@@ -732,6 +779,10 @@ node_nccc_init(napi_env env, napi_value exports){
         return NULL;
     }
     status = napi_set_named_property(env, exports, "wrap_pointer", obj);
+    if(status != napi_ok){
+        return NULL;
+    }
+    status = napi_set_named_property(env, exports, "corelib", create_corelib(env));
     if(status != napi_ok){
         return NULL;
     }
