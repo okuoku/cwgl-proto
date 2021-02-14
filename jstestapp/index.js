@@ -625,27 +625,35 @@ async function boot_godot(){ // Godot
         console.log("ALERT", obj);
     }
 
-    let window = global.my_window;
-    let navigator = window.navigator;
-    let document = global.my_doc;
-    let screen = global.my_screen;
-    let setTimeout = global.fake_settimeout;
-    let alert = fake_alert;
-    window.alert = fake_alert;
-    let requestAnimationFrame = window.requestAnimationFrame;
-    let AudioContext = window.AudioContext;
+    global.my_window.alert = fake_alert;
+    /* Filler for favicon override... */
+    global.my_doc.head = {};
+    global.my_doc.head.appendChild = function(){};
+    const binds = {
+        window: global.my_window,
+        navigator: global.my_window.navigator,
+        document: global.my_doc,
+        screen: global.my_screen,
+        setTimeout: global.fake_settimeout,
+        AudioContext: global.my_window.AudioContext,
+        Module: global.my_module,
 
-    eval(bootstrap + "\n\n global.the_godot = Godot;");
+        alert: fake_alert,
+        requestAnimationFrame: global.my_window.requestAnimationFrame,
+
+        /* Filler for favicon override... */
+        Blob: function(){return {};},
+        URL: {
+            createObjectURL: function(){
+                console.log("Ignored createObjectURL...");
+            }
+        },
+    };
+
+    bindeval(bootstrap + "\n\n global.the_godot = Godot;", binds);
 
     let my_Godot = global.the_godot;
 
-    /* Filler for favicon override... */
-    const Blob = function(){return {};}
-    URL.createObjectURL = function(){
-        console.log("Ignored createObjectURL...");
-    };
-    document.head = {};
-    document.head.appendChild = function(){};
     /* Emulate engine.init() */
     const godotconfig = {};
     godotconfig.wasmBinary = bootstrap_wasm();
