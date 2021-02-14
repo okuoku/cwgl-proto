@@ -488,7 +488,11 @@ function GL(w, h, attr){
             }
         },
         framebufferTexture2D: function(target, attachment, textarget, texture, level){
-            CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture.ptr, level);
+            if(texture){
+                CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture.ptr, level);
+            }else{
+                CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, NULL, level);
+            }
         },
         getFramebufferAttachmentParameter(target, attachment, pname){
             const type = getenumtype(pname);
