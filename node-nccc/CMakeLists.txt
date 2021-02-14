@@ -4,8 +4,20 @@ project(node-nccc C)
 link_directories(napi-lib)
 include_directories(napi-includes)
 
+if(WIN32)
+    set(dlfcn
+        win32-dlfcn.h
+        win32-dlfcn.c)
+else()
+    set(dlfcn)
+endif()
+
+
 add_library(node-nccc SHARED
     node-nccc.c
+    ncccutils.c
+    ncccdlfcn.c
+    ${dlfcn}
     )
 
 add_library(nccc-utils SHARED
