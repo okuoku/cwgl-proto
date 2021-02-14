@@ -597,18 +597,20 @@ function boot_unity(){ // Unity
         console.log("ALERT", obj);
     }
 
-    let window = global.my_window;
-    let navigator = window.navigator;
-    let document = global.my_doc;
-    var Module = global.my_module;
-    let screen = global.my_screen;
-    let setTimeout = global.fake_settimeout;
-    let alert = fake_alert;
-    let AudioContext = window.AudioContext;
+    const binds = {
+        window: global.my_window,
+        navigator: global.my_window.navigator,
+        document: global.my_doc,
+        screen: global.my_screen,
+        setTimeout: global.fake_settimeout,
+        AudioContext: global.my_window.AudioContext,
+        Module: global.my_module,
+        alert: fake_alert,
+    };
 
     const preamble = "function unityFramework(Module){function peekFS(){return FS;} Module.peekFS = peekFS; //"
 
-    eval(preamble + bootstrap + "\n\n global.initfunc = unityFramework;");
+    bindeval(preamble + bootstrap + "\n\n global.initfunc = unityFramework;", binds);
 
     let init = global.initfunc;
     my_module.noFSInit = true;
