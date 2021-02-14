@@ -562,6 +562,7 @@ function boot_plain(){ // Emscripten plain
     const preamble = "function peekFS(){return FS;} Module.peekFS = peekFS; \n\n";
 
     const binds = {
+        WebAssembly: WebAssembly,
         window: global.my_window,
         navigator: global.my_window.navigator,
         document: global.my_doc,
@@ -598,6 +599,7 @@ function boot_unity(){ // Unity
     }
 
     const binds = {
+        WebAssembly: WebAssembly,
         window: global.my_window,
         navigator: global.my_window.navigator,
         document: global.my_doc,
@@ -632,6 +634,7 @@ async function boot_godot(){ // Godot
     global.my_doc.head = {};
     global.my_doc.head.appendChild = function(){};
     const binds = {
+        WebAssembly: WebAssembly,
         window: global.my_window,
         navigator: global.my_window.navigator,
         document: global.my_doc,
