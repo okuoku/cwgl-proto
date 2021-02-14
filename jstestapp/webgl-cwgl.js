@@ -100,6 +100,13 @@ function GL(w, h, attr){
     function uniformlocationfree(ptr){
         CWGL.cwgl_UniformLocation_release(ctx, ptr);
     }
+    function objptr(obj){
+        if(obj){
+            return obj.ptr
+        }else{
+            return NULL;
+        }
+    }
     const ctx = wrapPointer(ctx0, freectx);
     return {
         /* mgmt */
@@ -454,11 +461,7 @@ function GL(w, h, attr){
         // 5.14.6 Framebuffer objects
         bindFramebuffer: function(target, framebuffer){
             trackbinding_Framebuffer(framebuffer);
-            if(! framebuffer){
-                CWGL.cwgl_bindFramebuffer(ctx, target, NULL);
-            }else{
-                CWGL.cwgl_bindFramebuffer(ctx, target, framebuffer.ptr);
-            }
+            CWGL.cwgl_bindFramebuffer(ctx, target, objptr(framebuffer));
         },
         /* WebGLHandlesContextLoss */
         checkFramebufferStatus: function(target){
@@ -478,21 +481,17 @@ function GL(w, h, attr){
                 if(renderbuffer != shadowDepthRenderbuffer){
                     console.log("ORPHAN shadowStencilRenderbuffer...");
                     // Fallback
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer.ptr);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, objptr(renderbuffer));
                 }else{
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.DEPTH_ATTACHMENT, renderbuffertarget, renderbuffer.ptr);
-                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.STENCIL_ATTACHMENT, renderbuffertarget, shadowStencilRenderbuffer.ptr);
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.DEPTH_ATTACHMENT, renderbuffertarget, objptr(renderbuffer));
+                    CWGL.cwgl_framebufferRenderbuffer(ctx, target, E.STENCIL_ATTACHMENT, renderbuffertarget, objptr(shadowStencilRenderbuffer));
                 }
             }else{
-                CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer.ptr);
+                CWGL.cwgl_framebufferRenderbuffer(ctx, target, attachment, renderbuffertarget, objptr(renderbuffer));
             }
         },
         framebufferTexture2D: function(target, attachment, textarget, texture, level){
-            if(texture){
-                CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, texture.ptr, level);
-            }else{
-                CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, NULL, level);
-            }
+            CWGL.cwgl_framebufferTexture2D(ctx, target, attachment, textarget, objptr(texture), level);
         },
         getFramebufferAttachmentParameter(target, attachment, pname){
             const type = getenumtype(pname);
