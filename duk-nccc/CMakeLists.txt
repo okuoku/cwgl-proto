@@ -73,6 +73,7 @@ endif()
 
 add_executable(yuniduk
     yuniduk.c
+    duk-nccc.c
     ${NCCC_COMMON}/ncccutils.c
     ${NCCC_COMMON}/ncccdlfcn.c
     ${dlfcn}

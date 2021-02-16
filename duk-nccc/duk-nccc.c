@@ -108,4 +108,63 @@ value_out(duk_context* ctx, uint64_t* out, char type, duk_idx_t vin){
     }
 }
 
+typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
+
+struct finalizer_params_s {
+    uint64_t dispatch;
+    uint64_t ctx;
+    uint64_t arg;
+};
+
+typedef struct finalizer_params_s finalizer_params_t;
+
+static duk_ret_t
+do_finalize(duk_context* ctx){
+    nccc_call_t fn;
+    uint64_t in0[2];
+    uint64_t in1[2];
+    uintptr_t v;
+    finalizer_params_t* params;
+    (void)duk_get_prop_index(ctx, 0, 1);
+    params = duk_get_pointer(ctx, -1);
+    (void)duk_get_prop_index(ctx, 0, 0);
+    v = duk_get_pointer(ctx, -1);
+    in0[0] = params->arg;
+    in0[1] = (uint64_t)v;
+    if(params->dispatch){
+        fn = (nccc_call_t)params->dispatch;
+        in1[0] = params->ctx;
+        in1[1] = (uint64_t)in0;
+        fn(in1, NULL);
+    }else{
+        fn = (nccc_call_t)params->ctx;
+        fn(in0, NULL);
+    }
+    free(params);
+
+    return 0;
+}
+
+static duk_ret_t
+nccc_wrap_pointer(duk_context* ctx){
+    // [ptr dispatch ctx arg] => ptr
+    //   [dispatch,ctx] = [arg ptr] => []
+    finalizer_params_t* params;
+    uint64_t ptr;
+    params = malloc(sizeof(finalizer_params_t));
+    value_out(ctx, &ptr, 'p', 0);
+    value_out(ctx, &params->dispatch, 'p', 1);
+    value_out(ctx, &params->ctx, 'p', 2);
+    value_out(ctx, &params->arg, 'p', 3);
+    duk_push_object(ctx);
+    duk_push_c_function(ctx, do_finalize, 1);
+    duk_set_finalizer(ctx, -2);
+    duk_push_pointer(ctx, ptr);
+    duk_put_prop_index(ctx, -2, 0);
+    duk_push_pointer(ctx, params);
+    duk_put_prop_index(ctx, -2, 1);
+
+    return 1;
+}
+
 
