@@ -75,7 +75,7 @@ list(APPEND
     duk_srcs
     ${DUK_EXTRAS}/print-alert/duk_print_alert.c)
 
-set(duk_use_amalgamated 1)
+set(duk_use_amalgamated OFF)
 
 if(duk_use_amalgamated)
     message(STATUS "Duktape: Amalgamated build.")
