@@ -269,7 +269,12 @@ function GL(w, h, attr){
                         let i1 = new Int32Array(1);
                         const r = CWGL.cwgl_getParameter_i2(ctx, pname, i0, i1);
                         if(r == 0){
-                            return Int32Array.of(i0[0], i1[0]);
+                            //Duktape does not have .of ..?
+                            //return Int32Array.of(i0[0], i1[0]);
+                            const x = new Int32Array(2);
+                            x[0] = i0[0];
+                            x[1] = i1[0];
+                            return x;
                         }else{
                             return null;
                         }
@@ -283,7 +288,13 @@ function GL(w, h, attr){
                         let i3 = new Int32Array(1);
                         const r = CWGL.cwgl_getParameter_i4(ctx, pname, i0, i1, i2, i3);
                         if(r == 0){
-                            return Int32Array.of(i0[0], i1[0], i2[0], i3[0]);
+                            //return Int32Array.of(i0[0], i1[0], i2[0], i3[0]);
+                            const x = new Int32Array(4);
+                            x[0] = i0[0];
+                            x[1] = i1[0];
+                            x[2] = i2[0];
+                            x[3] = i3[0];
+                            return x;
                         }else{
                             return null;
                         }
@@ -323,7 +334,11 @@ function GL(w, h, attr){
                         let f1 = new Float32Array(1);
                         const r = CWGL.cwgl_getParameter_f2(ctx, pname, f0, f1);
                         if(r == 0){
-                            return Float32Array.of(f0[0], f1[0]);
+                            //return Float32Array.of(f0[0], f1[0]);
+                            const x = new Float32Array(2);
+                            x[0] = f0[0];
+                            x[1] = f1[0];
+                            return x;
                         }else{
                             return null;
                         }
@@ -337,7 +352,13 @@ function GL(w, h, attr){
                         let f3 = new Float32Array(1);
                         const r = CWGL.cwgl_getParameter_f4(ctx, pname, f0, f1, f2, f3);
                         if(r == 0){
-                            return Float32Array.of(f0[0], f1[0], f2[0], f3[0]);
+                            //return Float32Array.of(f0[0], f1[0], f2[0], f3[0]);
+                            const x = new Float32Array(4);
+                            x[0] = f0[0];
+                            x[1] = f1[0];
+                            x[2] = f2[0];
+                            x[3] = f3[0];
+                            return x;
                         }else{
                             return null;
                         }
