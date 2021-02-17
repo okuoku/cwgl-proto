@@ -13,13 +13,13 @@ static void
 value_in(duk_context* ctx, char type, uint64_t vin){
     switch(type){
         case 'i':
-            duk_push_int(ctx, vin);
+            duk_push_int(ctx, (int64_t)vin);
             break;
         case 'l':
-            duk_push_number(ctx, vin);
+            duk_push_number(ctx, (int64_t)vin);
             break;
         case 'p':
-            duk_push_pointer(ctx, (uintptr_t)vin);
+            duk_push_pointer(ctx, (intptr_t)vin);
             break;
         case 'f':
             duk_push_number(ctx, *((float *)&vin));
@@ -82,7 +82,7 @@ value_out(duk_context* ctx, uint64_t* out, char type, duk_idx_t vin){
             }else if(get_pointer(ctx, vin, &v)){
                 *out = v;
             }else{
-                *out = duk_get_int(ctx, vin);
+                *out = duk_require_number(ctx, vin);
             }
             break;
         case 'f':
@@ -320,6 +320,9 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
     /* Function */
     duk_push_global_stash(ctx);
     (void)duk_get_prop_index(ctx, -1, in[0]);
+    if(!duk_is_function(ctx, -1)){
+        abort();
+    }
 
     /* Args */
     for(i=0;i!=params->incount;i++){
@@ -345,6 +348,9 @@ nccc_cb_dispatcher(const uint64_t* in, uint64_t* out){
             value_out(ctx, &out[0], outtypes[0], -1);
         }
     }
+
+    duk_pop(ctx);
+    duk_pop(ctx); /* Global stash */
 }
 
 static duk_ret_t
