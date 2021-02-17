@@ -19,7 +19,9 @@ const wasm = function(DLLFILE){
 
     function wasmmemory(opts){
         const initial_pages = opts.initial;
-        const max_pages = opts.maximum ? opts.maximum : 32768;
+        //const max_pages = opts.maximum ? opts.maximum : 32768;
+        const max_pages = opts.maximum ? opts.maximum : 30000;
+        console.log("Creating wasmmemory",opts);
         let current_pages = initial_pages;
         //const heap = new Uint8Array(initial_pages * 64 * 1024);
         const heap = new Uint8Array(max_pages * 64 * 1024);
@@ -30,7 +32,6 @@ const wasm = function(DLLFILE){
             }
         });
 
-        console.log("Creating wasmmemory",opts);
 
         /* Unity has instanceof check */
         this.grow = function(delta){
@@ -76,7 +77,7 @@ const wasm = function(DLLFILE){
                 max_pages = max;
                 me.heapobject = new Uint8Array(max * 64 * 1024);
                 memory.buffer = me.heapobject.buffer;
-                console.log("Alloc memory", memory.buffer);
+                //console.log("Alloc memory", memory.buffer);
                 return [ncccutil.ptraddr(me.heapobject), max];
             },
             wasm_boot_grow_memory: function(instance_id, pages){
@@ -92,7 +93,7 @@ const wasm = function(DLLFILE){
         Object.keys(imports).forEach(name0 => {
             Object.keys(imports[name0]).forEach(name1 => {
                 if(nccc.imports[name0] && nccc.imports[name0][name1]){
-                    console.log("Import",name0,name1,imports[name0][name1]);
+                    //console.log("Import",name0,name1,imports[name0][name1]);
                     nccc.imports[name0][name1].attach(imports[name0][name1]);
                 }else{
                     //console.log("Skip import",name0,name1);
