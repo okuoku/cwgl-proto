@@ -193,8 +193,8 @@ function setInterval(func, delay){
 }
 
 function setTimeout(func, delay){
-    print("FIXME: setTimeout");
-    console.log("Queue",func,delay);
+    //print("FIXME: setTimeout");
+    //console.log("Queue",func,delay);
     eventqueue.push({func: func, delay: delay});
 }
 
