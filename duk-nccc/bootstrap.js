@@ -36,6 +36,7 @@ PortStd.crypto_randomFillSync = function(buf){
 
 PortNative.nccc = NCCC;
 
+// https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
 // Polyfill Array.fill
 if (!Array.prototype.fill) {
   Object.defineProperty(Array.prototype, 'fill', {
@@ -211,7 +212,7 @@ if(promisepolyfill){
 const bootfile = BOOTSTRAP.readtext("output-duk/index.js");
 if(bootfile){
     try {
-    eval(bootfile);
+        eval(bootfile);
     } catch (e) {
         print(e.stack || e);
     }
