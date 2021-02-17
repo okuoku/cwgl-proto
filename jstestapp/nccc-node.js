@@ -442,7 +442,7 @@ function nccc(DLLPATH){
             const max_pages = 32768;
             const native_addr = ncccutil.ptraddr(mem.__wasmproxy_heap);
             const memory_instance = init_memory(current_pages, max_pages, native_addr);
-            console.log("Attach memory",mem,native_addr);
+            //console.log("Attach memory",mem,native_addr);
             library_set_import(idx, memory_instance);
         }
         function attach_table(tbl){
