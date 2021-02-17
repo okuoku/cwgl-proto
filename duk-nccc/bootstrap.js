@@ -140,6 +140,7 @@ console.log = function(){
 }
 
 console.warn = console.log;
+console.error = console.log;
 
 Math.imul = function(){
     print("FIXME: imul");
