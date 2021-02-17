@@ -203,7 +203,7 @@ function clearInterval(){
 
 
 // Boot
-const promisepolyfill = BOOTSTRAP.readtext("polyfill.min.js");
+const promisepolyfill = BOOTSTRAP.readtext("promise-polyfill.min.js");
 if(promisepolyfill){
     eval(promisepolyfill);
 }
