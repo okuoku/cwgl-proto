@@ -75,9 +75,17 @@ list(APPEND
     duk_srcs
     ${DUK_EXTRAS}/print-alert/duk_print_alert.c)
 
-foreach(s ${duk_srcs0})
-    list(APPEND duk_srcs ${DUK_SRC}/${s})
-endforeach()
+set(duk_use_amalgamated 1)
+
+if(duk_use_amalgamated)
+    message(STATUS "Duktape: Amalgamated build.")
+    list(APPEND duk_srcs ${DUK}/src/duktape.c)
+else()
+    foreach(s ${duk_srcs0})
+        list(APPEND duk_srcs ${DUK_SRC}/${s})
+    endforeach()
+endif()
+
 
 if(WIN32)
     set(dlfcn
