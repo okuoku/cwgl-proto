@@ -3,9 +3,20 @@ project(duk-nccc C)
 
 set(NCCC_COMMON ${CMAKE_CURRENT_SOURCE_DIR}/../node-nccc)
 set(DUK ${CMAKE_CURRENT_SOURCE_DIR}/../duktape-releases)
-set(DUK_SRC ${DUK}/src-separate)
+set(DUK_SRC ${CMAKE_CURRENT_LIST_DIR}/../duktape260)
+set(DUK_EXTRAS ${DUK}/extras)
 
-include_directories(${DUK_SRC})
+include_directories(${DUK_SRC}
+    ${DUK_EXTRAS}/print-alert)
+
+add_definitions(
+    -DSCRIPTROOT=\"${CMAKE_CURRENT_LIST_DIR}\"
+    #-DDUK_USE_GET_MONOTONIC_TIME_CLOCK_GETTIME=1
+    -DDUK_USE_GET_MONOTONIC_TIME_WINDOWS_QPC=1
+    #-DDUK_USE_DEBUG=1
+    #-DDUK_USE_DEBUG_LEVEL=1
+    #-DDUK_USE_DEBUG_WRITE=dukdebugwrite
+    )
 
 set(duk_srcs0
     duk_alloc_default.c      duk_debug_macros.c       duk_hthread_alloc.c
@@ -59,6 +70,11 @@ set(duk_srcs0
     duk_debug_fixedbuffer.c  duk_hthread.h)
 
 set(duk_srcs)
+
+list(APPEND
+    duk_srcs
+    ${DUK_EXTRAS}/print-alert/duk_print_alert.c)
+
 foreach(s ${duk_srcs0})
     list(APPEND duk_srcs ${DUK_SRC}/${s})
 endforeach()
