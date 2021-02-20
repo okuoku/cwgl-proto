@@ -23,7 +23,7 @@ endif()
 set(STUBGEN "${CMAKE_CURRENT_LIST_DIR}/../stubgen")
 set(WASMSTUB "${CMAKE_CURRENT_LIST_DIR}/../wasmstub")
 
-function(translate_wasm proj wasmpath) # => .o (USE_HOST_LLVM) or library
+function(translate_wasm proj wasmpath) # => .o (USE_HOST_LLVM) or .c
     set(WASM2C "${WITH_WASM2C}")
 
     set(base "${CMAKE_CURRENT_BINARY_DIR}/${proj}")
@@ -64,9 +64,6 @@ function(translate_wasm proj wasmpath) # => .o (USE_HOST_LLVM) or library
             -o ${outpath} ${bcpath}
             DEPENDS ${bcpath}
             COMMENT "WASM: Generating machine code LLVM => bin (${proj})")
-    else()
-        add_library(${outpath} OBJECT
-            ${wasmcpath} ${wasmhpath})
     endif()
 
 
@@ -104,16 +101,13 @@ function(addapp app wasmpath)
     if(USE_HOST_LLVM)
         set(wasmbinary "${base}_wasm.o")
     else()
-        set(wasmbinary)
+        set(wasmbinary "${base}_wasm.c")
     endif()
     add_library(appdll_${app} SHARED
         ${wasmbinary}
         ${base}_stub.c
         ${base}_stubdata.h
         ${WASMSTUB}/rt.c)
-    if(NOT wasmbinary)
-        target_link_libraries(appdll_${app} ${app}_wasm)
-    endif()
 endfunction()
 
 set(APPROOT "${CMAKE_CURRENT_LIST_DIR}/../jstestapp")
