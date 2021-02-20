@@ -20,13 +20,6 @@ add_library(node-nccc SHARED
     ${dlfcn}
     )
 
-add_library(nccc-utils SHARED
-    ncccutils.c
-    )
-
-add_library(testlib SHARED
-    testlib.c)
-
 if(WIN32)
     target_link_libraries(node-nccc node)
 endif()
