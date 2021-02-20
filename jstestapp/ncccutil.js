@@ -7,6 +7,7 @@ const util_peek_u64_addr = corelib.util_peek_u64;
 const util_poke_u64_addr = corelib.util_poke_u64;
 const util_peek_u32_addr = corelib.util_peek_u32;
 const util_poke_u32_addr = corelib.util_poke_u32;
+const util_peek_ptr_addr = corelib.util_peek_ptr;
 const util_malloc_addr = corelib.util_malloc;
 const util_free_addr = corelib.util_free;
 const util_ptraddr_addr = corelib.util_ptraddr;
@@ -32,6 +33,9 @@ const util_peek_f64 = node_nccc.make_nccc_call("peek_f64", // reinterpret
 const util_peek_f32 = node_nccc.make_nccc_call("peek_f32", // reinterpret
                                                0, util_peek_u32_addr,
                                                "p", "f");
+const util_peek_ptr = node_nccc.make_nccc_call("peek_ptr", // trunc
+                                               0, util_peek_ptr_addr,
+                                               "p", "l");
 const util_poke_u64 = node_nccc.make_nccc_call("poke_u64",
                                                0, util_poke_u64_addr,
                                                "pl", "");
@@ -278,7 +282,7 @@ function ptrbuf(){
     return new Uint32Array(2);
 }
 function fetchptrbuf(buf){
-    const v = util_peek_u64(buf);
+    const v = util_peek_ptr(buf);
     return util_addrptr(v);
 }
 
@@ -298,6 +302,7 @@ export default {
     peek_u32: util_peek_u32,
     peek_f64: util_peek_f64,
     peek_f32: util_peek_f32,
+    peek_ptr: util_peek_ptr,
     poke_u64: util_poke_u64,
     poke_f64: util_poke_f64,
     poke_f32: util_poke_f32,

@@ -32,6 +32,14 @@ util_peek_u32(const uint64_t* in, uint64_t* out){
 }
 
 UTILLIB_API void
+util_peek_ptr(const uint64_t* in, uint64_t* out){
+    // [addr] => [v]
+    const uintptr_t* addr = (uintptr_t)in[0];
+    const uint64_t d = *addr;
+    out[0] = d;
+}
+
+UTILLIB_API void
 util_poke_u64(const uint64_t* in, uint64_t* out){
     // [addr v] => []
     uint64_t* const dest = (uintptr_t)in[0];
