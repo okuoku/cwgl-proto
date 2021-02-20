@@ -277,7 +277,11 @@ wasm_rt_trap(wasm_rt_trap_t x){
 }
 
 // Export
+#ifdef _WIN32
 __declspec(dllexport)
+#else
+__attribute__ ((visibility ("default")))
+#endif
 void
 the_module_root(const uint64_t* in, uint64_t* out){
     const uint64_t mod = in[0];
