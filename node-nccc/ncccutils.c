@@ -1,5 +1,5 @@
 #include <stdint.h>
-#define UTILLIB_API __declspec(dllexport)
+#define UTILLIB_API
 
 #include <stdlib.h>
 
