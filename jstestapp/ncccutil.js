@@ -1,5 +1,4 @@
 import PortNative from "./port-native.js";
-const DLLUTIL = "../node-nccc/out/build/x64-Debug/nccc-utils.dll";
 const corelib = PortNative.nccc.corelib;
 const node_nccc = PortNative.nccc;
 
