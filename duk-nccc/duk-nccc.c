@@ -393,6 +393,7 @@ make_nccc_cb(duk_context* ctx){
     x(util_rawcall) \
     x(util_peek_u64) \
     x(util_peek_u32) \
+    x(util_peek_ptr) \
     x(util_poke_u64) \
     x(util_poke_u32) \
     x(util_malloc) \
