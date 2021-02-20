@@ -62,7 +62,7 @@ yfrm_file_close(yfrm_file_t* file){
 
 /* Metadata */
 static int
-file_info_gen(std::filesystem::path& path, 
+file_info_gen(const std::filesystem::path& path, 
               uint64_t* out_flags, uint64_t* out_size,
               uint64_t* out_time_create, uint64_t* out_time_mod){
     /* FIXME: We need real fstat() for some safety */
