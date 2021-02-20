@@ -4,20 +4,38 @@ project(cwgl C CXX)
 
 # SDL2
 if(WIN32)
-    # Vulkan SDK and SDL2
-    file(TO_CMAKE_PATH $ENV{VK_SDK_PATH} vksdk)
-    if(EXISTS ${vksdk})
-        set(sdl2_inc ${vksdk}/Third-Party/Include/SDL2)
-        set(sdl2_lib ${vksdk}/Third-Party/Bin)
-        set(sdl2_dll ${vksdk}/Third-Party/Bin/SDL2.dll)
-    endif()
+    if(BUILD_WIN32)
+        # Vulkan SDK and SDL2
+        file(TO_CMAKE_PATH $ENV{VK_SDK_PATH} vksdk)
+        if(EXISTS ${vksdk})
+            set(sdl2_inc ${vksdk}/Third-Party/Include/SDL2)
+            set(sdl2_lib ${vksdk}/Third-Party/Bin32)
+            set(sdl2_dll ${vksdk}/Third-Party/Bin32/SDL2.dll)
+        endif()
 
-    file(TO_CMAKE_PATH "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools" pvrroot)
-    if(EXISTS ${pvrroot})
-        # PVRVFrame 
-        set(emu_lib "${pvrroot}/PVRVFrame/Library/Windows_x86_64")
-        # PVRCarbon
-        set(es2cap_lib "${pvrroot}/PVRCarbon/Recorder/GLES/Windows_x86_64")
+        file(TO_CMAKE_PATH "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools" pvrroot)
+        if(EXISTS ${pvrroot})
+            # PVRVFrame 
+            set(emu_lib "${pvrroot}/PVRVFrame/Library/Windows_x86_32")
+            # PVRCarbon
+            set(es2cap_lib "${pvrroot}/PVRCarbon/Recorder/GLES/Windows_x86_32")
+        endif()
+    else()
+        # Vulkan SDK and SDL2
+        file(TO_CMAKE_PATH $ENV{VK_SDK_PATH} vksdk)
+        if(EXISTS ${vksdk})
+            set(sdl2_inc ${vksdk}/Third-Party/Include/SDL2)
+            set(sdl2_lib ${vksdk}/Third-Party/Bin)
+            set(sdl2_dll ${vksdk}/Third-Party/Bin/SDL2.dll)
+        endif()
+
+        file(TO_CMAKE_PATH "C:/Imagination Technologies/PowerVR_Graphics/PowerVR_Tools" pvrroot)
+        if(EXISTS ${pvrroot})
+            # PVRVFrame 
+            set(emu_lib "${pvrroot}/PVRVFrame/Library/Windows_x86_64")
+            # PVRCarbon
+            set(es2cap_lib "${pvrroot}/PVRCarbon/Recorder/GLES/Windows_x86_64")
+        endif()
     endif()
 endif()
 
