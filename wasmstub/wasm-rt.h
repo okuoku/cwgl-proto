@@ -23,6 +23,13 @@
 extern "C" {
 #endif
 
+// Pick: https://github.com/WebAssembly/wabt/pull/909/files#diff-4f128b661d343d97ee188574413f9fefe659d761a04752fd2970eb9c437618a8
+#ifdef _MSC_VER
+#define WASM_RT_NORETURN(x) __declspec(noreturn) x
+#else
+#define WASM_RT_NORETURN(x) x __attribute__((noreturn))
+#endif
+
 /** Maximum stack depth before trapping. This can be configured by defining
  * this symbol before including wasm-rt when building the generated c files,
  * for example:
@@ -132,7 +139,7 @@ typedef struct {
  *  The result of `wasm_rt_try` will be the provided trap reason.
  *
  *  This is typically called by the generated code, and not the embedder. */
-extern void wasm_rt_trap(wasm_rt_trap_t) __attribute__((noreturn));
+extern void WASM_RT_NORETURN(wasm_rt_trap(wasm_rt_trap_t));
 
 /** Register a function type with the given signature. The returned function
  * index is guaranteed to be the same for all calls with the same signature.

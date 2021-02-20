@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#if _MSC_VER
+#include <intrin.h>
+#define ABORT __debugbreak
+#else
+#define ABORT __builtin_trap
+#endif
+
 // FIXME: rename it
 #define WASM_RT_ADD_PREFIX(x) x
 
@@ -43,7 +50,7 @@ wasm_set_bootstrap(const uint64_t* in, uint64_t* out){
             cb_wasm_boot_register_func_type = ctx;
             break;
         default:
-            __builtin_trap();
+            ABORT();
             break;
     }
 }
@@ -231,7 +238,7 @@ wasm_rt_register_func_type(uint32_t params,
     // FIXME: Currently we have static MAX of 32 arguments
     if(total > 32){
         printf("Too complex function type\n");
-        __builtin_trap();
+        ABORT();
     }
     dargs[0] = cb_wasm_boot_register_func_type;
     dargs[1] = (uint64_t)(uintptr_t)args;
@@ -254,7 +261,7 @@ wasm_rt_register_func_type(uint32_t params,
                 x = 3;
                 break;
             default:
-                __builtin_trap();
+                ABORT();
                 break;
         }
         args[2+i] = x;
@@ -266,7 +273,7 @@ wasm_rt_register_func_type(uint32_t params,
 void
 wasm_rt_trap(wasm_rt_trap_t x){
     printf("DLLTEST: Trap halt!\n");
-    __builtin_trap();
+    ABORT();
 }
 
 // Export
@@ -282,12 +289,12 @@ the_module_root(const uint64_t* in, uint64_t* out){
                 case 0:
                     switch(in[2]){
                         default:
-                            __builtin_trap();
+                            ABORT();
                             break;
                     }
                     break;
                 default:
-                    __builtin_trap();
+                    ABORT();
                     break;
             }
             break;
@@ -333,12 +340,12 @@ the_module_root(const uint64_t* in, uint64_t* out){
                     wasm_init_table(&in[2], out);
                     break;
                 default:
-                    __builtin_trap();
+                    ABORT();
                     break;
             }
             break;
         default:
-            __builtin_trap();
+            ABORT();
             break;
     }
 }

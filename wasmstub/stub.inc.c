@@ -1,5 +1,12 @@
 #include <stdint.h>
 
+#if _MSC_VER
+#include <intrin.h>
+#define ABORT __debugbreak
+#else
+#define ABORT __builtin_trap
+#endif
+
 typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 #define EXP_COMMA_arg ,
@@ -259,7 +266,7 @@ stub_wasm_library_info(const uint64_t* in, uint64_t* out){
     const uint64_t type_count = TOTAL_TYPES;
 
     if(library_index != 0){
-        __builtin_trap();
+        ABORT();
     }
 
     out[0] = export_count;
@@ -307,14 +314,14 @@ stub_library_get_export(const uint64_t* in, uint64_t* out){
         switch(idx){
             EXPORTVAR_EXPAND(LIBEX_VAR)
             default:
-                __builtin_trap();
+                ABORT();
                 break;
         }
     }else{
         switch(idx){
             EXPORTFUNC_EXPAND(LIBEX_FUNC)
             default:
-                __builtin_trap();
+                ABORT();
                 break;
         }
     }
