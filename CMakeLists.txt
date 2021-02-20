@@ -37,17 +37,23 @@ if(WIN32)
             set(es2cap_lib "${pvrroot}/PVRCarbon/Recorder/GLES/Windows_x86_64")
         endif()
     endif()
+    if(sdl2_inc AND emu_lib AND es2cap_lib)
+        # Do nothing
+    else()
+        message(FATAL_ERROR "Cannot find prerequisite(s)")
+    endif()
+    set(es2_lib libGLESv2)
+else()
+    # FIXME: Use FindSDL2 etc.
+    set(sdl2_inc "/usr/include/SDL2")
+    set(emu_lib)
+    set(es2cap_lib)
+    set(es2_lib GLESv2)
 endif()
 
 message(STATUS "sdl2_inc = ${sdl2_inc}")
 message(STATUS "emu = ${emu_lib}")
 message(STATUS "es2cap_lib = ${es2cap_lib}")
-
-if(sdl2_inc AND emu_lib AND es2cap_lib)
-    # Do nothing
-else()
-    message(FATAL_ERROR "Cannot find prerequisite(s)")
-endif()
 
 include_directories(include angle/include)
 
@@ -79,21 +85,23 @@ target_link_directories(cwgl
     PUBLIC
     ${emu_lib} ${sdl2_lib})
 
-target_link_libraries(cwgl SDL2 libGLESv2)
+target_link_libraries(cwgl SDL2 ${es2_lib})
 
 target_include_directories(cwgl
     PUBLIC
     ${sdl2_inc})
 
-add_custom_command(TARGET cwgl
-    POST_BUILD
-    # Deploy SDL2.dll, GLES2
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    ${sdl2_dll} 
-    ${emu_lib}/libEGL.dll
-    ${emu_lib}/libGLESv2.dll
-    ${CMAKE_CURRENT_BINARY_DIR}
-    )
+if(WIN32)
+    add_custom_command(TARGET cwgl
+        POST_BUILD
+        # Deploy SDL2.dll, GLES2
+        COMMAND ${CMAKE_COMMAND} -E copy 
+        ${sdl2_dll} 
+        ${emu_lib}/libEGL.dll
+        ${emu_lib}/libGLESv2.dll
+        ${CMAKE_CURRENT_BINARY_DIR}
+        )
+endif()
 
 # NCCC stub
 add_subdirectory(ncccstubs)
@@ -103,9 +111,7 @@ add_executable(testapp
     testapp.c)
 target_link_libraries(testapp cwgl)
 
-if(WIN32)
-    target_compile_definitions(testapp
-        PUBLIC
-        YFRM_DLL
-        CWGL_DLL)
-endif()
+target_compile_definitions(testapp
+    PUBLIC
+    YFRM_DLL
+    CWGL_DLL)
