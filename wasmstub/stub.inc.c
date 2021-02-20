@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 #if _MSC_VER
 #include <intrin.h>
