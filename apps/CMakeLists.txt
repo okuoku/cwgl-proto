@@ -108,6 +108,15 @@ function(addapp app wasmpath)
         ${base}_stub.c
         ${base}_stubdata.h
         ${WASMSTUB}/rt.c)
+    if(NOT USE_HOST_LLVM)
+        if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
+                ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+            set_source_files_properties(
+                ${wasmbinary}
+                PROPERTIES
+                COMPILE_FLAGS "-fno-builtin")
+        endif()
+    endif()
 endfunction()
 
 set(APPROOT "${CMAKE_CURRENT_LIST_DIR}/../jstestapp")
