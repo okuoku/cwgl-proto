@@ -8,6 +8,12 @@ if(NOT WITH_WASM2C)
     set(WITH_WASM2C "c:/cygwin64/home/oku/repos/cwgl/wabt-static/wasm2c.exe") 
 endif()
 
+if(BUILD_WIN32)
+    set(opt_target_triple --target=i686-pc-windows-msvc)
+else()
+    set(opt_target_triple)
+endif()
+
 set(STUBGEN "${CMAKE_CURRENT_LIST_DIR}/../stubgen")
 set(WASMSTUB "${CMAKE_CURRENT_LIST_DIR}/../wasmstub")
 
@@ -32,6 +38,7 @@ function(translate_wasm proj wasmpath)
     # .c => .bc
     add_custom_command(OUTPUT ${bcpath}
         COMMAND clang -g3 -c -emit-llvm -O0
+        ${opt_target_triple}
         -Xclang -disable-O0-optnone
         -DWASM_RT_MEMCHECK_SIGNAL_HANDLER=1
         -I${WASMSTUB}
@@ -42,6 +49,7 @@ function(translate_wasm proj wasmpath)
     # .bc => .o
     add_custom_command(OUTPUT ${outpath}
         COMMAND clang -g3 -O1 -c
+        ${opt_target_triple}
         -o ${outpath} ${bcpath}
         DEPENDS ${bcpath}
         COMMENT "WASM: Generating machine code LLVM => bin (${proj})")
