@@ -13,7 +13,7 @@ static void
 value_in(duk_context* ctx, char type, uint64_t vin){
     switch(type){
         case 'i':
-            duk_push_int(ctx, (int64_t)vin);
+            duk_push_int(ctx, (int32_t)vin);
             break;
         case 'l':
             duk_push_number(ctx, (int64_t)vin);
