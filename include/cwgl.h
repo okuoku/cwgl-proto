@@ -9,9 +9,17 @@ extern "C" {
 #ifdef CWGL_DLL
 /* Win32 DLL */
 #ifdef CWGL_SHARED_BUILD
+#ifdef _WIN32
 #define CWGL_API __declspec(dllexport)
 #else
+#define CWGL_API __attribute__ ((visibility ("default")))
+#endif /* _WIN32 */
+#else
+#ifdef _WIN32
 #define CWGL_API __declspec(dllimport)
+#else
+#define CWGL_API 
+#endif /* _WIN32 */
 #endif
 #else
 /* Generic static-library */

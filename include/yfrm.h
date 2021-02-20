@@ -9,7 +9,11 @@ extern "C" {
 #ifdef YFRM_DLL
 /* Win32 DLL */
 #ifdef YFRM_SHARED_BUILD
+#ifdef _WIN32
 #define YFRM_API __declspec(dllexport)
+#else
+#define YFRM_API __attribute__ ((visibility ("default")))
+#endif /* _WIN32 */
 #else
 #define YFRM_API __declspec(dllimport)
 #endif
