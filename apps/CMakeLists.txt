@@ -8,6 +8,12 @@ if(NOT WITH_WASM2C)
     set(WITH_WASM2C "c:/cygwin64/home/oku/repos/cwgl/wabt-static/wasm2c.exe") 
 endif()
 
+if(WIN32)
+    set(USE_HOST_LLVM ON)
+else()
+    set(USE_HOST_LLVM OFF)
+endif()
+
 if(BUILD_WIN32)
     set(opt_target_triple --target=i686-pc-windows-msvc)
 else()
@@ -17,14 +23,18 @@ endif()
 set(STUBGEN "${CMAKE_CURRENT_LIST_DIR}/../stubgen")
 set(WASMSTUB "${CMAKE_CURRENT_LIST_DIR}/../wasmstub")
 
-function(translate_wasm proj wasmpath)
+function(translate_wasm proj wasmpath) # => .o (USE_HOST_LLVM) or library
     set(WASM2C "${WITH_WASM2C}")
 
     set(base "${CMAKE_CURRENT_BINARY_DIR}/${proj}")
     set(wasmcpath "${base}_wasm.c")
     set(wasmhpath "${base}_wasm.h")
-    set(bcpath "${base}_wasm.bc")
-    set(outpath "${base}_wasm.o")
+    if(USE_HOST_LLVM)
+        set(bcpath "${base}_wasm.bc")
+        set(outpath "${base}_wasm.o")
+    else()
+        set(outpath "${proj}_wasm")
+    endif()
     set(stubhpath "${base}_stubdata.h")
     set(stubcpath "${base}_stub.c")
 
@@ -35,24 +45,30 @@ function(translate_wasm proj wasmpath)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "WASM: Translating .wasm => .c (${proj})")
 
-    # .c => .bc
-    add_custom_command(OUTPUT ${bcpath}
-        COMMAND clang -g3 -c -emit-llvm -O0
-        ${opt_target_triple}
-        -Xclang -disable-O0-optnone
-        -DWASM_RT_MEMCHECK_SIGNAL_HANDLER=1
-        -I${WASMSTUB}
-        -o ${bcpath} ${wasmcpath}
-        DEPENDS ${wasmcpath} ${wasmhpath}
-        COMMENT "WASM: Translating .c => LLVM (${proj})")
+    if(USE_HOST_LLVM)
+        # .c => .bc
+        add_custom_command(OUTPUT ${bcpath}
+            COMMAND clang -g3 -c -emit-llvm -O0
+            ${opt_target_triple}
+            -Xclang -disable-O0-optnone
+            -DWASM_RT_MEMCHECK_SIGNAL_HANDLER=1
+            -I${WASMSTUB}
+            -o ${bcpath} ${wasmcpath}
+            DEPENDS ${wasmcpath} ${wasmhpath}
+            COMMENT "WASM: Translating .c => LLVM (${proj})")
 
-    # .bc => .o
-    add_custom_command(OUTPUT ${outpath}
-        COMMAND clang -g3 -O1 -c
-        ${opt_target_triple}
-        -o ${outpath} ${bcpath}
-        DEPENDS ${bcpath}
-        COMMENT "WASM: Generating machine code LLVM => bin (${proj})")
+        # .bc => .o
+        add_custom_command(OUTPUT ${outpath}
+            COMMAND clang -g3 -O1 -c
+            ${opt_target_triple}
+            -o ${outpath} ${bcpath}
+            DEPENDS ${bcpath}
+            COMMENT "WASM: Generating machine code LLVM => bin (${proj})")
+    else()
+        add_library(${outpath} OBJECT
+            ${wasmcpath} ${wasmhpath})
+    endif()
+
 
     # Stub info(h)
     add_custom_command(OUTPUT ${base}_hdr.cmake
@@ -85,11 +101,19 @@ endfunction()
 function(addapp app wasmpath)
     set(base ${CMAKE_CURRENT_BINARY_DIR}/${app})
     translate_wasm(${app} ${wasmpath})
+    if(USE_HOST_LLVM)
+        set(wasmbinary "${base}_wasm.o")
+    else()
+        set(wasmbinary)
+    endif()
     add_library(appdll_${app} SHARED
-        ${base}_wasm.o
+        ${wasmbinary}
         ${base}_stub.c
         ${base}_stubdata.h
         ${WASMSTUB}/rt.c)
+    if(NOT wasmbinary)
+        target_link_libraries(appdll_${app} ${app}_wasm)
+    endif()
 endfunction()
 
 set(APPROOT "${CMAKE_CURRENT_LIST_DIR}/../jstestapp")
