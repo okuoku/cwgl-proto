@@ -22,7 +22,7 @@ function ptrfree(addr){
 }
 function ptrref(addr){
     // FIXME: Endian??
-    return ncccutil.peek_u64(addr);
+    return ncccutil.peek_ptr(addr);
 }
 
 function freectx(ptr){
