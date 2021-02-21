@@ -11,12 +11,20 @@ include_directories(${DUK_SRC}
 
 add_definitions(
     -DSCRIPTROOT=\"${CMAKE_CURRENT_LIST_DIR}\"
-    #-DDUK_USE_GET_MONOTONIC_TIME_CLOCK_GETTIME=1
-    -DDUK_USE_GET_MONOTONIC_TIME_WINDOWS_QPC=1
     #-DDUK_USE_DEBUG=1
     #-DDUK_USE_DEBUG_LEVEL=1
     #-DDUK_USE_DEBUG_WRITE=dukdebugwrite
     )
+
+if(WIN32)
+    add_definitions(
+        -DDUK_USE_GET_MONOTONIC_TIME_WINDOWS_QPC=1
+        )
+else()
+    add_definitions(
+        -DDUK_USE_GET_MONOTONIC_TIME_CLOCK_GETTIME=1
+        )
+endif()
 
 set(duk_srcs0
     duk_alloc_default.c      duk_debug_macros.c       duk_hthread_alloc.c
@@ -103,3 +111,7 @@ add_executable(yuniduk
     ${dlfcn}
     ${duk_srcs})
 
+if(WIN32)
+else()
+    target_link_libraries(yuniduk m dl)
+endif()
