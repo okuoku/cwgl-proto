@@ -76,8 +76,10 @@ file_info_gen(const std::filesystem::path& path,
         fs::file_type typ = st.type();
         if(typ == fs::file_type::directory){
             flags |= YFRM_FILE_FLAG_IS_DIRECTORY;
+            size = 0;
+        }else{
+            size = fs::file_size(path);
         }
-        size = fs::file_size(path);
         if(out_flags){
             *out_flags = flags;
         }
