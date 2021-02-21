@@ -109,6 +109,10 @@ function(addapp app wasmpath)
         ${base}_stubdata.h
         ${WASMSTUB}/rt.c)
     if(NOT USE_HOST_LLVM)
+        set_source_files_properties(
+            ${wasmbinary}
+            PROPERTIES
+            COMPILE_DEFINITIONS "WASM_RT_MEMCHECK_SIGNAL_HANDLER=1")
         if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
                 ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
             set_source_files_properties(
