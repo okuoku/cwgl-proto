@@ -44,7 +44,7 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
         EXP_CALLARGS(sym); \
         *((SYM_ ## sym ## _DATATYPE *)out) = ret; \
     } \
-    SYM_ ## sym ## _DATATYPE \
+    extern SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym); \
 
 #define EXP_DECL_EXPORT_FUNC_void_val(sym) \
@@ -53,7 +53,7 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
         ret = WASM_RT_ADD_PREFIX(sym)(); \
         *((SYM_ ## sym ## _DATATYPE *)out) = ret; \
     } \
-    SYM_ ## sym ## _DATATYPE \
+    extern SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym);
 
 #define EXP_DECL_EXPORT_FUNC_arg_void(sym) \
@@ -62,14 +62,14 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
         WASM_RT_ADD_PREFIX(sym) \
         EXP_CALLARGS(sym); \
     } \
-    SYM_ ## sym ## _DATATYPE \
+    extern SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym);
 
 #define EXP_DECL_EXPORT_FUNC_void_void(sym) \
     static void nccc_ ## sym (const uint64_t* in, uint64_t* out) { \
         WASM_RT_ADD_PREFIX(sym)(); \
     } \
-    SYM_ ## sym ## _DATATYPE \
+    extern SYM_ ## sym ## _DATATYPE \
     (*WASM_RT_ADD_PREFIX(sym)) EXP_DECL_ARGS(sym);
 
 /* Function types (implicit exports) */
@@ -145,7 +145,7 @@ typedef void (*nccc_call_t)(const uint64_t* in, uint64_t* out);
 
 /* EXPORT VARIABLEs */
 #define EXP_DECL_EXPORT_VAR_obj(sym) \
-    SYM_ ## sym ## _DATATYPE * WASM_RT_ADD_PREFIX(sym);
+    extern SYM_ ## sym ## _DATATYPE * WASM_RT_ADD_PREFIX(sym);
 #define EXP_DECL_EXPORT_VAR_table(sym) \
     EXP_DECL_EXPORT_VAR_obj(sym)
 #define EXP_DECL_EXPORT_VAR_memory(sym) \
