@@ -149,6 +149,9 @@ wrap_pointer(duk_context* ctx){
     finalizer_params_t* params;
     uint64_t ptr;
     params = malloc(sizeof(finalizer_params_t));
+    if(!params){
+        abort();
+    }
     value_out(ctx, &ptr, 'p', 0);
     value_out(ctx, &params->dispatch, 'p', 1);
     value_out(ctx, &params->ctx, 'p', 2);
@@ -273,6 +276,9 @@ dukstrdup(duk_context* ctx, duk_idx_t v){
 
     buf = duk_require_lstring(ctx, v, &len);
     p = malloc(len+1);
+    if(!p){
+        abort();
+    }
     memcpy(p, buf, len);
     p[len] = 0;
     return (const char*)p;
@@ -286,6 +292,9 @@ make_nccc_call(duk_context* ctx){
     // FIXME: debugstring
 
     params = malloc(sizeof(cb_params_t)); /* FIXME: Allocate this to stack first */
+    if(!params){
+        abort();
+    }
     params->intypes = dukstrdup(ctx, 3);
     params->outtypes = dukstrdup(ctx, 4);
     (void)duk_require_lstring(ctx, 3, &params->incount);
@@ -366,6 +375,9 @@ make_nccc_cb(duk_context* ctx){
     cb_params_t* params;
 
     params = malloc(sizeof(cb_params_t)); /* FIXME: Allocate this to stack first */
+    if(!params){
+        abort();
+    }
     params->intypes = dukstrdup(ctx, 1);
     params->outtypes = dukstrdup(ctx, 2);
     (void)duk_require_lstring(ctx, 1, &params->incount);

@@ -60,6 +60,9 @@ util_malloc(const uint64_t* in, uint64_t* out){
     // [size] => [addr]
     const size_t size = in[0];
     const void* addr = malloc(size);
+    if(!addr){
+        abort();
+    }
     out[0] = addr;
 }
 
