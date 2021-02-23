@@ -82,7 +82,7 @@ value_out(duk_context* ctx, uint64_t* out, char type, duk_idx_t vin){
             }else if(get_pointer(ctx, vin, &v)){
                 *out = v;
             }else{
-                *out = duk_require_number(ctx, vin);
+                *out = (int64_t)duk_require_number(ctx, vin);
             }
             break;
         case 'f':
