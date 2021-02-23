@@ -83,6 +83,11 @@ if (!Array.prototype.fill) {
   });
 }
 
+if(!Uint8Array.prototype.copyWithin){
+    Object.defineProperty(Uint8Array.prototype, "copyWithin", {
+        value: BOOTSTRAP.copywithin_uint8
+    });
+}
 
 const console = {};
 
@@ -152,10 +157,7 @@ Math.fround = function(){
     abort();
 }
 
-Math.clz32 = function(){
-    print("FIXME: clz32");
-    abort();
-}
+Math.clz32 = BOOTSTRAP.clz32;
 
 // https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
 if (!Math.trunc) {

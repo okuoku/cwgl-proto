@@ -1,6 +1,7 @@
 /* Main */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "duktape.h"
 
 #include "duk_print_alert.h"
@@ -53,6 +54,44 @@ readbinary(duk_context* ctx){
     return readfile(ctx, 1);
 }
 
+/* Uint8Array.prototype.copyWithin() polyfill */
+static duk_ret_t
+copywithin_uint8(duk_context* ctx){
+    // [target start (end)] => this
+    const double target = duk_require_number(ctx, 0);
+    const double start = duk_require_number(ctx, 1);
+    const double end = duk_require_number(ctx, 2);
+    const size_t len = end - start;
+    char* p;
+    size_t buflen;
+    duk_push_this(ctx);
+    p = duk_require_buffer_data(ctx, -1, &buflen);
+    if(target + len > buflen){
+        fprintf(stderr, "????");
+        abort();
+    }
+    // FIXME: memmove?
+    memcpy(p + (size_t)target, p + (size_t)start, (size_t)len);
+
+    return 1;
+}
+
+/* clz32 */
+static duk_ret_t
+clz32(duk_context* ctx){
+    const double d = duk_require_number(ctx, 0);
+    const uint32_t u = d;
+
+    uint32_t ret;
+    if(u == 0){
+        ret = 32;
+    }else{
+        ret = __builtin_clz(u);
+    }
+    duk_push_number(ctx, ret);
+    return 1;
+}
+
 static void
 dukload(duk_context* ctx, const char* filename, int flags){
     long siz;
@@ -85,6 +124,10 @@ int main(int argc, char *argv[]) {
     (void)duk_put_prop_string(ctx, -2, "readbinary");
     duk_push_c_function(ctx, readtext, 1);
     (void)duk_put_prop_string(ctx, -2, "readtext");
+    duk_push_c_function(ctx, copywithin_uint8, 3);
+    (void)duk_put_prop_string(ctx, -2, "copywithin_uint8");
+    duk_push_c_function(ctx, clz32, 1);
+    (void)duk_put_prop_string(ctx, -2, "clz32");
     (void)duk_put_prop_string(ctx, -2, "BOOTSTRAP");
     (void)duk_put_prop_string(ctx, -1, "global");
     duk_pop(ctx);
