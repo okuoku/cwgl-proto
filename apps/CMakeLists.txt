@@ -1,7 +1,7 @@
 # NB: It's not compatible with MSVC for now
 
 cmake_minimum_required(VERSION 3.0) # FIXME: Hex notation in MATH?
-project(apps)
+project(apps C)
 
 if(NOT WITH_WASM2C)
     # FIXME: WABT path
