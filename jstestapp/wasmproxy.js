@@ -20,7 +20,7 @@ const wasm = function(DLLFILE){
     function wasmmemory(opts){
         const initial_pages = opts.initial;
         //const max_pages = opts.maximum ? opts.maximum : 32768;
-        const max_pages = opts.maximum ? opts.maximum : 30000;
+        const max_pages = opts.maximum ? opts.maximum : 6000;
         console.log("Creating wasmmemory",opts);
         let current_pages = initial_pages;
         //const heap = new Uint8Array(initial_pages * 64 * 1024);
@@ -74,10 +74,13 @@ const wasm = function(DLLFILE){
         };
         const wasmrt = {
             wasm_boot_allocate_memory: function(instance_id, initial, max){
+                if(max > 6000){
+                    max = 6000;
+                }
                 max_pages = max;
+                console.log("Alloc memory", max);
                 me.heapobject = new Uint8Array(max * 64 * 1024);
                 memory.buffer = me.heapobject.buffer;
-                //console.log("Alloc memory", memory.buffer);
                 return [ncccutil.ptraddr(me.heapobject), max];
             },
             wasm_boot_grow_memory: function(instance_id, pages){
