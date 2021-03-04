@@ -115,3 +115,19 @@ target_compile_definitions(testapp
     PUBLIC
     YFRM_DLL
     CWGL_DLL)
+
+# TestFw
+include_directories(imgui)
+add_executable(testfw
+    testfw.cpp
+    fw/imgui_impl_cwgl.cpp
+    imgui/imgui.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp)
+target_link_libraries(testfw cwgl)
+target_compile_definitions(testfw
+    PUBLIC
+    YFRM_DLL
+    CWGL_DLL)
