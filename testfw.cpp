@@ -10,6 +10,7 @@ int
 main(int ac, char** av){
     int w,h;
     int buf[128];
+    int init = 0;
     cwgl_ctx_t* ctx;
     yfrm_init();
 
@@ -19,10 +20,7 @@ main(int ac, char** av){
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); 
 
-
-
     ImGui::StyleColorsDark();
-    ImGui_ImplCwgl_Init(ctx);
 
     /* Loop */
     bool showdemo = true;
@@ -30,25 +28,29 @@ main(int ac, char** av){
     frame = 0;
     for(;;){
         yfrm_frame_begin0(ctx);
+        if(!init){
+            ImGui_ImplCwgl_Init(ctx);
+            init = 1;
+        }else{
+            /* Clear */
+            cwgl_viewport(ctx, 0, 0, w, h);
+            cwgl_clearColor(ctx, 0, 0, 0, 1.0f);
+            cwgl_clear(ctx, 0x4000 /* COLOR BUFFER BIT */);
 
-        /* Clear */
-        cwgl_viewport(ctx, 0, 0, w, h);
-        cwgl_clearColor(ctx, 0, 0, 0, 1.0f);
-        cwgl_clear(ctx, 0x4000 /* COLOR BUFFER BIT */);
+            /* Draw something */
+            // FIXME: Should go to backend
+            io.DisplaySize = ImVec2((float)w, (float)h);
+            io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
-        /* Draw something */
-        // FIXME: Should go to backend
-        io.DisplaySize = ImVec2((float)w, (float)h);
-        io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+            io.DeltaTime = 1.0f/60.0f; /* 60Hz */
 
-        io.DeltaTime = 1.0f/60.0f; /* 60Hz */
+            ImGui::NewFrame();
+            ImGui::ShowDemoWindow(&showdemo);
+            ImGui::Render();
+            ImGui_ImplCwgl_RenderDrawData(ImGui::GetDrawData());
 
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow(&showdemo);
-        ImGui::Render();
-        ImGui_ImplCwgl_RenderDrawData(ImGui::GetDrawData());
-
-        while(yfrm_query0(0, buf, 128) > 0){}
+            while(yfrm_query0(0, buf, 128) > 0){}
+        }
         yfrm_frame_end0(ctx);
         frame ++;
     }
