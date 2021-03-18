@@ -6,11 +6,16 @@
 bool ImGui_ImplCwgl_Init(cwgl_ctx_t* ctx);
 void ImGui_ImplCwgl_RenderDrawData(ImDrawData* draw_data);
 
+bool ImGui_ImplYfrm_ProcessEvent0(const int32_t* events, size_t start, size_t end);
+bool ImGui_ImplYfrm_Init();
+
+
 int
 main(int ac, char** av){
     int w,h;
     int buf[128];
     int init = 0;
+    int events;
     cwgl_ctx_t* ctx;
     yfrm_init();
 
@@ -29,11 +34,13 @@ main(int ac, char** av){
     for(;;){
         yfrm_frame_begin0(ctx);
         if(!init){
+            ImGui_ImplYfrm_Init();
             ImGui_ImplCwgl_Init(ctx);
             init = 1;
         }else{
             /* Clear */
             cwgl_viewport(ctx, 0, 0, w, h);
+            cwgl_disable(ctx, (cwgl_enum_t)0x0C11); /* disable scissor */
             cwgl_clearColor(ctx, 0, 0, 0, 1.0f);
             cwgl_clear(ctx, 0x4000 /* COLOR BUFFER BIT */);
 
@@ -49,7 +56,14 @@ main(int ac, char** av){
             ImGui::Render();
             ImGui_ImplCwgl_RenderDrawData(ImGui::GetDrawData());
 
-            while(yfrm_query0(0, buf, 128) > 0){}
+            for(;;){
+                events = yfrm_query0(0, buf, 128);
+                if(events > 0){
+                    ImGui_ImplYfrm_ProcessEvent0(buf, 0, events);
+                }else{
+                    break;
+                }
+            }
         }
         yfrm_frame_end0(ctx);
         frame ++;
