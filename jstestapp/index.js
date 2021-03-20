@@ -591,7 +591,7 @@ function boot_unity(){ // Unity
     const bootstrap = bootstrap_script();
 
     function GetFS(){
-        const FS = my_module.peekFS();
+        const FS = my_module.FS;
         const APPFS = storage.genfs(FS, APPFS_DIR);
         // Remove current root
         FS.root = false;
@@ -618,9 +618,7 @@ function boot_unity(){ // Unity
         alert: fake_alert,
     };
 
-    const preamble = "function unityFramework(Module){function peekFS(){return FS;} Module.peekFS = peekFS; //"
-
-    bindeval(preamble + bootstrap + "\n\n global.initfunc = unityFramework;", binds);
+    bindeval(bootstrap + "\n\n global.initfunc = unityFramework;", binds);
 
     let init = global.initfunc;
     my_module.noFSInit = true;
