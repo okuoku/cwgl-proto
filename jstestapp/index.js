@@ -41,12 +41,20 @@ const APPFS_DIR = "app5/appfs";
 const DLLFILE = "../apps/out/appdll_app5.dll";
 */
 
+/*
 const BOOTPROTOCOL = "plain";
 const BOOTSTRAP = "app6/dosbox-x.js";
 const BOOTWASM = "app6/dosbox-x.wasm";
 const BOOTARGS = ["-conf", "/appfs/conf"];
 const APPFS_DIR = "app6/appfs";
 const DLLFILE = "../apps/out/appdll_app6.dll";
+*/
+
+const BOOTPROTOCOL = "unity";
+const BOOTSTRAP = "app7/webgl.framework.js";
+const BOOTWASM = "app7/webgl.wasm";
+const APPFS_DIR = "app7/appfs";
+//const DLLFILE = "../apps/out/appdll_app7.dll";
 
 import "regenerator-runtime/runtime.js";
 import PortStd from "./port-std.js";
@@ -54,9 +62,9 @@ import GL from "./webgl-cwgl.js";
 import audioctx_mini from "./audioctx-mini.js";
 import storage from "./storage.js";
 import EmuCanvas from "./emucanvas.js";
-import WebAssembly_ist from "./wasmproxy.js";
+//import WebAssembly_ist from "./wasmproxy.js";
 
-const WebAssembly = WebAssembly_ist(DLLFILE);
+//const WebAssembly = WebAssembly_ist(DLLFILE);
 
 const orig_setInterval = global.setInterval;
 
