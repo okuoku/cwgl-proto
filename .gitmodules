@@ -1,6 +1,3 @@
-[submodule "duktape-releases"]
-	path = duktape-releases
-	url = https://github.com/svaarala/duktape-releases
 [submodule "imgui"]
 	path = imgui
 	url = https://github.com/ocornut/imgui
